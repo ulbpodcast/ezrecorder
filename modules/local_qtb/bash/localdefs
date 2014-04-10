@@ -1,0 +1,12 @@
+EZCASTDIR=!PATH/modules/local_qtb/
+RECORDDIR=!RECORD_PATH/
+STARTRECTIMEPATH=/tmp/qtb_start_rec_time 
+USERQTBPREFS=~/Library/Preferences/com.apple.QuickTime\ Broadcaster.plist
+COMMON_MOVIE_NAME=qtbmovie
+FIRST_STARTED=$EZCASTDIR/var/_first_started
+LAST_REQUEST=$EZCASTDIR/var/_last_request
+STATUS=$EZCASTDIR/var/status
+TMP_PID=$EZCASTDIR/var/tmp_pid
+CLASSROOM="!CLASSROOM"
+MAIL_TO="!MAIL_TO"
+PHP_PATH=!PHP_PATH

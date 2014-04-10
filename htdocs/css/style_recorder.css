@@ -1,0 +1,598 @@
+/*
+ * EZCAST EZrecorder
+ *
+ * Copyright (C) 2014 Université libre de Bruxelles
+ *
+ * Written by Michel Jansens <mjansens@ulb.ac.be>
+ * 	      Arnaud Wijns <awijns@ulb.ac.be>
+ *            Antoine Dewilde
+ * UI Design by Julien Di Pietrantonio
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*------------------------------------------------------------- Generale -------------------------------------------------------------------------------------*/
+
+img, a, fieldset, ul, li, p, h1, h2, h3, h4, h5, h6, div{
+    border:0pt none;
+    margin:0pt;
+    padding:0pt;
+}
+
+*{
+    margin:0;
+    padding:0;
+}
+
+html{
+    height:100%;
+}
+
+body{
+    background-color:#FFFFFF;
+    height:100%;
+    color: #000000;
+    font-size: 14px;
+
+}
+
+.container{
+    position:relative;
+    min-height:100%;
+    min-width:768px;
+    width: 100%;
+    margin:auto;
+}
+
+.header{
+    position:relative;
+    /*min-height:100%;*/
+    min-width:768px;
+    width: 100%;
+    margin: 0 auto;
+    background: #F8F8F8;
+    border-bottom-width:1px;
+    border-bottom-style:solid;
+    border-bottom-color:#004C93;
+    margin-bottom:15px;
+}
+
+.logo{
+    position:relative;
+    margin-left:20px;
+    padding-top:10px;
+    width:718px;
+    padding-bottom:10px;
+    height:40px;
+    margin: 0 auto;
+}
+
+#global{
+    position:relative;
+    min-height:100%;
+    margin: 0 auto;
+    padding-bottom:170px;
+    width:768px;
+    color: #000000;	
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+    font-size: 12px;
+}
+
+#global a{
+    color: #444444;
+    text-decoration: none;
+}
+
+#global a:hover{
+    color: #7bb3b6;
+}
+
+#global2{
+    margin: 0 auto;
+    width: 738px;
+    min-height: 845px;
+}
+
+#global3{
+    position:relative;
+    margin: 0 auto;
+    width: 738px;
+    padding-left: 15px;
+    padding-right: 15px;
+    border: thin solid #CFCFCF;
+    border-radius: 25px;
+    background-color: #FCFCFC;
+    margin-top: 20px;
+}
+
+#login_form{
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
+    font-size:12px;
+    color:#000000;
+    margin-left:30px;
+    line-height:40px;
+}
+
+p{
+    font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;
+    font-size:16px;
+    color:#000000;
+    margin-left:30px;
+    line-height:40px;
+}
+
+.footer{
+    position:absolute;
+    bottom:0px;
+    min-width:768px;
+    width: 100%;
+    background: #222222;
+}
+
+.footer_wrapper{
+    position:relative;
+    padding-top:10px;
+    width:768px;
+    padding-bottom:10px;
+    height:100px;
+    margin: 0 auto;    
+}
+
+.logos{
+    float: left;
+}
+
+.logos a{
+    display: inline-block;
+    height: 42px;
+    min-width: 90px;
+    margin: 19px 0px;
+    margin-right: 15px;
+}
+
+
+.copyright {
+    margin: 33px 0px;
+    font-size: 11px;
+    color: #7bb3b6;
+    float: right;
+}
+
+.copyright a {
+    text-decoration: none;
+    color: #7bb3b6;
+}
+
+.copyright a:hover {
+    color: #ffffff;
+}
+
+
+.footer p{
+    margin-left:520px;
+    font-size:12px;
+    font-weight:normal;	
+}
+
+.footercolor{
+    background-color:#000000;
+}
+
+.bleuPod{
+    color:#a7bcde;
+}
+
+.error {
+    width: 100%;
+    color: red;
+    font-weight: bold;
+    padding: 10px;
+}
+
+/*----------------------------------------------------------- Generale [fin] -------------------------------------------------------------------------------------*/
+
+
+
+
+
+/*-------------------------------------------------------------------------PAGE (1)--------------------------------------------------------------------------*/
+
+.record_form{
+    width: 738px;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom:25px;
+    padding-top:25px;
+    margin:auto;
+
+    border: thin solid #CFCFCF;
+    border-radius: 25px;
+    background-color: #FCFCFC;
+    margin-top:40px;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+
+}
+
+.ensembleUn{
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
+    width: 438px;
+    margin-top:50px;
+    margin:auto;
+}
+
+.ensembleUn label{
+    display: block;
+    float: left;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: right;
+    width: 73px;
+    padding-top:3px;
+    color:#444444;
+}
+
+.ensembleUn input, .ensembleUn textarea, .ensembleUn select {
+    border: 1px solid #999999;
+    float: left;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
+    font-size: 11px;
+    margin: 2px 0 20px 10px;
+    width: 353px;
+    color:#444444;
+    line-height: 18px;
+}
+
+.ensembleUn option {
+    width:255px;
+
+}
+
+.spacer {
+    clear: both;
+    height: 1px;
+}
+
+.typechoice{
+    font-size: 12px;
+    font-weight: bold;
+    margin-left:151px;
+}
+
+.cours{
+    margin-bottom:13px;
+}
+
+/*- Bouton Select box Radio ETC.. */
+
+.radioOne .radio{
+    width:110px;
+    height:113px;
+    display:block;
+    float:left;
+    cursor:pointer;
+    background-image:url(../images/page1/checklist1.png);
+    margin-top:10px;
+}
+
+.radioTwo .radio{
+    width:110px;
+    height:113px;
+    margin-left:10px;
+    display:block;
+    float:left;
+    cursor:pointer;
+    background-image:url(../images/page1/checklist2.png);
+    margin-top:10px;
+}
+
+.radioThree .radio{
+    width:110px;
+    height:113px;
+    margin-left:10px;
+    display:block;
+    float:left;
+    cursor:pointer;
+    background-image:url(../images/page1/checklist3.png);
+    margin-top:10px;
+}
+
+#WrapRadio{
+    width: 353px;
+    height: 136px;
+    margin-bottom: 20px;
+    margin-left: 233px;
+    border: 1px solid #999999;
+    background-color:#FFFFFF;
+}
+
+
+
+/*- Bouton Select box Radio ETC.. [Fin] -*/
+
+
+/*- Bouton de fin annuler & continuer -*/
+
+#btn{
+    height:25px;
+    width:200px;
+    margin-left:407px;
+    margin-top:50px;
+}
+
+#btn a{
+    background: #444444;
+    display:inline-block;
+    float:left;
+    margin-right:8px;
+    padding: 5px 8px;
+    font-size:12px;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+    text-align: center;
+    color: #FFFFFF;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    min-width: 70px;
+    text-decoration: none;
+
+}
+
+#btn a.deconnexion:hover, #btn a.deconnexion:active {
+    color: #FF3366;
+}
+
+#btn a.continuer:hover, #btn a.continuer:active {
+    color: #7BB3B6;
+}
+
+/*-----------------------------------------------------------------------PAGE (1) [Fin ]--------------------------------------------------------------------------*/
+
+
+
+
+
+/*-------------------------------------------------------------------------PAGE (2)--------------------------------------------------------------------------*/
+
+/*- Plan Quicktime video+Slides EtC... -*/
+
+#camera{
+    width:716px;
+    height:304px;
+    margin-left:18px;
+    border: medium solid #999999;
+    background-image:url(../images/page2/ExempleCapture.png);
+}
+
+/*- Plan Quicktime video+Slides EtC... [FIN] -*/
+
+
+/*- Bouton Enregistrement -*/
+
+#boutonEnregistrement{
+    padding-top:15px;
+    margin-top:25px;
+    margin-left:100px;
+    margin-right:100px;
+    height: 190px;
+
+}
+
+
+#boutonEnregistrement a{
+    display: block;
+    text-align: center;
+    width: 128px;
+    color:#444444;
+    text-decoration:none;
+    font-size:14px;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
+}
+
+#boutonEnregistrement a img{
+    padding-bottom: 7px;
+    width: 128px;
+}
+
+.PlanCamera{
+    float:right;
+}
+
+#btnScenes a:hover{
+    color:#7ab2b5;
+}
+
+#id1{
+    float:left;
+}
+
+#id1 a:hover{
+    color:#8fc04d;
+}
+
+.BtnStop{
+    float:left;
+    margin-right: 45px;
+}
+
+#btnStop a:hover{
+    color:#ec6956;
+}
+
+#id3{
+    float:left;
+}
+
+#id3 a:hover{
+    color:#eeae3e;
+}
+
+.btnPause{
+    margin-left:15px;
+}
+
+#id4 a:hover{
+    color:#8fc04d;
+}
+
+/*- Bouton Enregistrement [Fin] -*/
+
+
+/*- Choix Plan -*/
+
+#divid5{
+    clear:both;
+    padding-top:35px;
+    height:180px;
+    width: 768px;
+}
+
+
+#buttons{
+
+}
+
+#buttons a.prev{
+    position:absolute;
+    margin-top:70px;
+    margin-left: 10px;
+}
+
+#buttons a.next{
+    position:absolute;
+    margin-top:70px;
+    margin-left: 733px;
+}
+
+
+#galerie{
+    width:650px;
+    clear:both;
+    margin: auto;
+    height:180px;
+
+}
+
+
+#slideshow{
+    overflow:hidden;
+}
+
+#galerie ul{
+    width:3500px;
+}
+
+#galerie li{
+    width:216px;
+    height:180px;
+    float:left;
+    margin-right:25px;
+    list-style:none;
+    text-align: center;
+}
+
+
+#galerie li a {
+    font-size:14px;
+    font-weight:bold;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+    color:#444444;
+    text-decoration: none;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#galerie li a:hover {
+    color: #004C93;
+}
+
+#BoutonCancel a{
+    background: #444444;
+    display:inline-block;
+    float:left;
+    margin-top:35px;
+    padding: 5px 8px;
+    font-size:12px;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+    text-align: center;
+    color: #FFFFFF;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    min-width: 70px;
+    text-decoration: none;
+}
+
+
+#BoutonCancel a:hover, #BoutonCancel a:active {
+    color: #FF3366;
+}
+/*- Choix Plan [Fin] -*/
+
+/*-----------------------------------------------------------------------PAGE (2) [Fin ]--------------------------------------------------------------------------*/
+
+
+
+
+
+/*-------------------------------------------------------------------------PAGE (3)--------------------------------------------------------------------------*/
+
+/*- Page 3 boutons -*/
+
+#troisbouton{
+    position:relative;
+    margin: 0 auto;    
+    width: 768px;
+    height:150px;
+    margin-top:180px;
+}
+
+#troisbouton img{
+    margin-bottom: 7px;
+}
+
+#troisbouton a{
+    width: 128px;
+    display: inline-block;
+    text-align: center;
+    margin-left:95px;
+    text-decoration: none;
+    color: #444444;
+    font-size:14px;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+}
+
+#global a#btnCancel:hover{
+    color:#e51e44;
+}
+
+#global a#btnPriv:hover{
+    color:#009daa;
+}
+
+#global a#btnPub:hover{
+    color:#9fc53f;
+}
+
+#record_cancel{
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
+    font-size:12px;
+    color:#000000;
+    margin-left:30px;
+    line-height:40px;
+}
+
+/*-Page 3 boutons [Fin] -*/
+
+/*-----------------------------------------------------------------------PAGE (3) [Fin ]--------------------------------------------------------------------------*/

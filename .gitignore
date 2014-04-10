@@ -1,0 +1,4 @@
+global_config.inc
+*.log
+**/var/**
+**/**/config.inc

@@ -1,0 +1,25 @@
+How the recoder behaves  and holds its states:
+
+state files description
+location: /Library/ezcast_recorder/var
+file usage:
+_current_user       contains the login of the person working this works as a lock to prevent/warn others from interfering
+_last_request       last time we received a request from the user's browser (not currently set nor used)
+status              state of the recorder (can be "","open","recording","paused","stopped")
+var/metadata.xml    user choices for the recording (course,title,desc,type)
+
+When login:
+
+-check if a lock  is present (from _current_user)
+ -yes
+  -check if recording in advanced state (recording paused or stopped)
+   -yes
+     -check if recording belongs to user
+       -yes
+        continue the current recording
+       -no
+        ask to save and send (private folder ) of other recording according to metadata.xml file
+   -no
+     not advanced state so do as if no record had begun, show choice form
+ -no(not already running)
+  show normal choice form

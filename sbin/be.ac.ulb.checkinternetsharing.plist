@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-/Apple/DTD PLIST 1.0/EN" "http:/www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UserName</key>
+	<string>podclient</string>
+	<key>Label</key>
+	<string>be.ac.ulb.checkinternetsharing</string>
+	<key>ProgramArguments</key>
+	<array>
+	  <string>/Library/ezcast_recorder/sbin/checkinternetsharing.bash</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StartInterval</key>
+	<integer>600</integer>
+	<key>StandardErrorPath</key>
+	<string>/dev/null</string>
+	<key>StandardOutPath</key>
+	<string>/dev/null</string>
+        <key>AbandonProcessGroup</key>
+        <true/>
+</dict>
+</plist>

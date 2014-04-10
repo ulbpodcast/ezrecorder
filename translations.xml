@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : translations.xml
+    Author     : Université libre de Bruxelles
+    Description:
+        Purpose of the document follows.
+-->
+
+<data>
+    <labels>
+        <label id="Page_title" lang="fr">Enregistrement - ULB Podcast</label>
+        <label id="Page_title" lang="en">Recorder - ULB Podcast</label>
+        <label id="service_name" lang="fr">EZcast Recorder</label>
+        <label id="service_name" lang="en">EZcast Recorder</label>
+        <!-- Keywords -->
+        <label id="Login" lang="fr">Podcast id</label>
+        <label id="Login" lang="en">Podcast id</label>
+        <label id="Password" lang="fr">Mot de passe</label>
+        <label id="Password" lang="en">Password</label>
+        <label id="Enter" lang="fr">OK</label>
+        <label id="Enter" lang="en">OK</label>
+        <label id="Course" lang="fr">Cours</label>
+        <label id="Course" lang="en">Course</label>
+        <label id="Title" lang="fr">Titre</label>
+        <label id="Title" lang="en">Title</label>
+        <label id="Description" lang="fr">Description</label>
+        <label id="Description" lang="en">Description</label>
+        <label id="Record_type" lang="fr">Choisissez un format d'enregistrement</label>
+        <label id="Record_type" lang="en">Please choose a record type</label>
+        <label id="Disabled" lang="fr">Désactivé</label>
+        <label id="Disabled" lang="en">Disabled</label>
+        <label id="Scenes" lang="fr">Plans caméra</label>
+        <label id="Scenes" lang="en">Scenes</label>
+        <label id="Author" lang="fr">Auteur</label>
+        <label id="Author" lang="en">Author</label>
+        <label id="Start_time" lang="fr">Date/heure</label>
+        <label id="Start_time" lang="en">Date/time</label>
+        <label id="Deconnection" lang="fr">Annuler</label>
+        <label id="Deconnection" lang="en">Cancel</label>
+        <label id="Back" lang="fr">Retour</label>
+        <label id="Back" lang="en">Back</label>
+        <label id="Continue" lang="fr">Continuer</label>
+        <label id="Continue" lang="en">Continue</label>
+
+            
+        <!-- Actions -->
+        <label id="Delete_record" lang="fr">Supprimer l'enregistrement</label>
+        <label id="Delete_record" lang="en">Do not save record</label>
+        <label id="Publish_in_private_album" lang="fr">Publier dans l'album privé</label>
+        <label id="Publish_in_private_album" lang="en">Publish in private album</label>
+        <label id="Publish_in_public_album" lang="fr">Publier dans l'album public</label>
+        <label id="Publish_in_public_album" lang="en">Publish in public album</label>
+        <label id="Start_again" lang="fr">Commencer un nouvel enregistrement</label>
+        <label id="Start_again" lang="en">Start a new record</label>
+        <label id="Start_recording" lang="fr">Commencer à enregistrer</label>
+        <label id="Start_recording" lang="en">Start recording</label>
+        <label id="Stop_recording_hover" lang="fr">Arrêter l'enregistrement</label>
+        <label id="Stop_recording_hover" lang="en">Stop recording?</label>
+        <label id="Stop_recording" lang="fr">Arrêter l\'enregistrement</label>
+        <label id="Stop_recording" lang="en">Stop recording?</label>
+        <label id="Pause_recording" lang="fr">Interrompre l'enregistrement</label>
+        <label id="Pause_recording" lang="en">Pause recording</label>
+        <label id="Resume_recording" lang="fr">Reprendre l'enregistrement</label>
+        <label id="Resume_recording" lang="en">Resume recording</label>
+        <label id="Publish" lang="fr">Publier dans l'album public?</label>
+        <label id="Publish" lang="en">Publish in private album?</label>
+        <label id="Unpublish" lang="fr">Publier dans l'album privé?</label>
+        <label id="Unpublish" lang="en">Publish in private album?</label>
+        <label id="Cancel" lang="fr">Annuler l'enregistrement?\n\nAttention : opération destructive non-réversible!</label>
+        <label id="Cancel" lang="en">Cancel the recording?\n\nCaution: destructive, non-reversible operation!</label>
+        <label id="Return_to_index" lang="fr">Lancer un nouvel enregistrement</label>
+        <label id="Return_to_index" lang="en">Start a new record</label>
+            
+        <!-- Long texts -->
+        <label id="No_course_available" lang="fr">Aucun cours disponible</label>
+        <label id="No_course_available" lang="en">No course available</label>
+        <label id="Title_not_defined" lang="fr">Titre non-défini</label>
+        <label id="Title_not_defined" lang="en">Undefined title</label>
+        <label id="Type_not_defined" lang="fr">Format d'enregistrement non-défini</label>
+        <label id="Type_not_defined" lang="en">Undefined record type</label>
+        <label id="Media_submitted_public" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album public une fois l'opération terminée.</label>
+        <label id="Media_submitted_public" lang="en">Record saved and waiting for processing.&lt;br/&gt;It will be added to your public album once ready.</label>
+        <label id="Media_submitted_private" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album privé une fois l'opération terminée.</label>
+        <label id="Media_submitted_private" lang="en">Record saved and waiting for processing&lt;br/&gt;It will be added to your private album once ready.</label>
+        <label id="Recording_cancelled" lang="fr">Enregistrement supprimé.</label>
+        <label id="Recording_cancelled" lang="en">Recording properly deleted.</label>
+        <label id="Logout_confirmation_message" lang="fr">Vous êtes à présent déconnecté.</label>
+        <label id="Logout_confirmation_message" lang="en">You are now disconnected.</label>
+        <label id="wait" lang="fr">La préparation de l'enregistreur peut prendre jusqu'à 1 minute.&lt;br/&gt;Veuillez patienter. Merci</label>
+        <label id="wait" lang="en">The recorder preparation can take up to 1 minute.&lt;br/&gt;Please wait. Thank you</label>
+        <!-- Errors -->
+        <label id="No_title_provided" lang="fr">Veuillez entrer un titre.</label>
+        <label id="No_title_provided" lang="en">no title provided</label>
+        <label id="Title_too_long" lang="fr">Titre trop long</label>
+        <label id="Title_too_long" lang="en">Title too long</label>
+        <label id="No_record_type_chosen" lang="fr">Veuillez choisir un type d\'enregistrement</label>
+        <label id="No_record_type_chosen" lang="en">no record type chosen</label>
+        <label id="Navigator_not_compatible" lang="fr">Votre navigateur n'est pas compatible. Veuillez le mettre à jour ou changer de navigateur.</label>
+        <label id="Navigator_not_compatible" lang="en">Your browser is not compatible. Please run updates or change it.</label>
+        <label id="Iframes_unsupported" lang="fr">Votre navigateur ne permet pas l'affichage d'aperçus.</label>
+        <label id="Iframes_unsupported" lang="en">Your browser doesn't support iframes for visual feedback.</label>
+        <label id="launch_failure_message" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</label>
+        <label id="launch_failure_message" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</label>
+        <label id="Ongoing_recording" lang="fr">Attention : enregistrement en cours.\nVoulez-vous arrêter l'enregistrement en cours et en lancer un nouveau?</label>
+        <label id="Ongoing_recording" lang="en">Caution: ongoing recording.\nDo you want to stop the current recording and start your own?</label>
+
+    </labels>
+        
+    <messages>
+        <message id="User_does_not_exist" lang="fr">Nom d'utilisateur incorrect</message>
+        <message id="User_does_not_exist" lang="en">User not found</message>
+        <message id="Incorrect_password" lang="fr">Mot de passe incorrect</message>
+        <message id="Incorrect_password" lang="en">Incorrect password</message>
+        <message id="ongoing_record_interrupted_message" lang="fr">Un enregistrement était en cours. Il a été arrêté et sauvegardé dans l'album privé de son auteur.</message>
+        <message id="ongoing_record_interrupted_message" lang="en">The recorder was already in use. The previous record has been stopped and published in its owner's private album.</message>
+        <message id="launch_failure_message" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</message>
+        <message id="launch_failure_message" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</message>
+        <message id="Empty_username_password" lang="fr">Veuillez rentrer votre Podcast id et mot de passe.</message>
+        <message id="Empty_username_password" lang="en">Please enter your Podcast id and password.</message>
+    </messages>
+</data>
