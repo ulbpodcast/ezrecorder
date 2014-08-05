@@ -25,15 +25,17 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
-if [ $# -eq 0 ]
+if [ $# -le 1 ]
 then 
+    ASSET=$1
     CALLS=1
 else 
-    CALLS=$1
+    ASSET=$1
+    CALLS=$2
 fi
 #copy saved FMLE prefs to the working prefs. This is done to avoid bad/destroyed prefs
 cp "$MODULEFMLEPREFS" "$USERFMLEPREFS"
 #open new movie recording in Flash Media Live Encoder
 osascript $EZCASTDIR/applescript/fmle_open.scpt&
 wait
-$EZCASTDIR/bash/fmle_check $CALLS 
+$EZCASTDIR/bash/fmle_check $ASSET $CALLS 

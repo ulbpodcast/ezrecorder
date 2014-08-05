@@ -85,8 +85,8 @@ while (true) {
     // Timeout check
     //*
     if ($status == 'recording') {
-        $startrec_time = private_capture_starttime_get();
-        $lastmod_time = private_capture_lastmodtime_get();
+        $startrec_time = private_capture_localqt_starttime_get();
+        $lastmod_time = private_capture_localqt_lastmodtime_get();
         $now = time();
 
         if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {

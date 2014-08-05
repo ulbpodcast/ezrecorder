@@ -25,11 +25,11 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
-CALLS=$1
+ASSET=$1
+CALLS=$2
 MAXCALLS=3 	# sends a mail after 3 fails
 
 #first clean up eventual movie remaining
-SDAT=`date +"%Y_%m_%d_%Hh%M"`
 mkdir  $RECORDDIR/trash/$SDAT 
 mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  $RECORDDIR/trash/$SDAT/
 
@@ -52,13 +52,6 @@ do
 	fi
 done
 
-#stop recording 
-osascript $EZCASTDIR/applescript/fmle_action.scpt
-wait
-
-# delete ${COMMON_MOVIE_NAME}.f4v files 
-rm $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  
-wait
 
 # add entry in log file 
 [ $CALLS -eq 1 ] && echo "********************************************" >> $EZCASTDIR/var/_check_log
@@ -80,10 +73,17 @@ then
 		# Test if FMLE_CAM_PID is set
 		if [ $FMLE_CAM_PID -gt 0 ]; then kill -9 $FMLE_CAM_PID; fi;
 
-		$EZCASTDIR/bash/fmle_init $(( $CALLS + 1 ))
+		$EZCASTDIR/bash/fmle_init $ASSET $(( $CALLS + 1 ))
 	else
 		echo "FAILURE FMLE"
 		echo "FMLE Launch Failure in $CLASSROOM" | mail -s "FMLE Failure $CLASSROOM" $MAIL_TO
 		echo -n "launch_failure" > $EZCASTDIR/var/status
 	fi
+else # currently recording
+    #saves current date as recording init
+    echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > $EZCASTDIR/var/$ASSET/_cut_list
+    #saves current date for monitoring
+    echo $SDAT > $FIRST_STARTED
+    #start monitoring 
+    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now
 fi

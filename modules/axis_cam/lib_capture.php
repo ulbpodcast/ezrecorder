@@ -26,7 +26,7 @@
 
 require 'config.inc';
 require 'lib_curl.php';
-require 'lib_various.php';
+require_once $basedir . '/lib_various.php';
 include_once $basedir . '/lib_error.php';
 
 /*
@@ -374,6 +374,7 @@ function capture_axiscam_thumbnail() {
     global $axiscam_username;
     global $axiscam_password;
     global $axiscam_ip;
+    global $axiscam_camstatus_file;
 
     touch($axiscam_last_request_file);
 
@@ -391,7 +392,7 @@ function capture_axiscam_thumbnail() {
             copy("./nopic.jpg", $axiscam_capture_file);
         } else {
             //copy screencapture to actual snap
-            image_resize("$axiscam_basedir/var/pic_new.jpg", "$axiscam_basedir/var/pic_new_www.jpg", 235, 157);
+            image_resize("$axiscam_basedir/var/pic_new.jpg", "$axiscam_basedir/var/pic_new_www.jpg", 235, 157, $axiscam_camstatus_file);
             rename("$axiscam_basedir/var/pic_new_www.jpg", $axiscam_capture_file);
         }
     }

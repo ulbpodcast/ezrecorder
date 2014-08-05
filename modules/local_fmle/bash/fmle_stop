@@ -32,14 +32,18 @@ SDAT=$2
 PROCESSING_TOOL=$3
 STORDIR=$RECORDDIR/local_processing/localfmle_${SDAT}_$COURSE
 
-#stop recording 
-METADATAPATH=$EZCASTDIR/var/${SDAT}_$COURSE/_metadata.xml
-osascript $EZCASTDIR/applescript/fmle_quit.scpt&
-
 #stop monitoring
 unlink $EZCASTDIR/var/_monitoring_pid
 
-echo "podcv : saving camera movie to $STORDIR<br>"
+#stop recording 
+osascript $EZCASTDIR/applescript/fmle_action.scpt&
+wait
+osascript $EZCASTDIR/applescript/fmle_quit.scpt&
+
+METADATAPATH=$EZCASTDIR/var/${SDAT}_$COURSE/_metadata.xml
+
+
+echo "EZrecorder : saving camera movie to $STORDIR<br>"
 mkdir $STORDIR
 mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v $STORDIR 
 mv $RECORDDIR/fmle_session*.log $STORDIR

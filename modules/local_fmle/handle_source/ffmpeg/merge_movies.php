@@ -34,17 +34,19 @@ include "$path" . "lib_ffmpeg.php";
 
 print "cam merge_fmle_movies\n";
 //handles an offlineqtb recording: multifile recording on podcv and podcs
-if ($argc != 4) {
-    echo "usage: " . $argv[0] . " <directory> <commonpartname> <output_movie_filename>\n";
+if ($argc != 5) {
+    echo "usage: " . $argv[0] . " <directory> <commonpartname> <output_movie_filename> <cutlist_file>\n";
     echo "        where <directory> is the directory containing the movies\n";
     echo "        <commonpartname> part name that is common to all movies\n";
     echo "        <merge_filename> filename to write output to\n";
+    echo "        <cutlist_file> the file containing the segments to extract from the recording\n";
     die;
 }
 
 $movies_path = $argv[1]; //basedir containing movies (typically /Users/podclient/Movies/local_processing/date_course)
 $commonpart = $argv[2]; // common part of video name (typically 'qtbmovie')
-$outputfilename = $argv[3]; // // name for output file (typically 'cam.f4v')
+$outputfilename = $argv[3]; // // name for output file (typically 'fmle_movie.f4v')
+$cutlist_file = $argv[4]; // file containing the video segments to extract from the full recording
 //
 //First start with merging parts of each stream (QuickTime Broadcaster is limited to 2GB files
 //join all cam parts (if neccessary)
@@ -59,6 +61,10 @@ if ($output > 1) {
 }else {
     copy("$movies_path/$commonpart.f4v", "$movies_path/$outputfilename");
 }
+
+//The recording is now concatenated (may have been in multiple parts)
+//We will now extract the parts user wants to keep according to the cutlist
+movie_extract_cutlist($movies_path, $outputfilename, $cutlist_file);
 
 function myerror($msg) {
     fprintf(STDERR, "%s", $msg);

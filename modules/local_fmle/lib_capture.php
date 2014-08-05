@@ -25,7 +25,7 @@
  */
 
 require 'config.inc';
-require_once 'lib_various.php';
+require_once $basedir . '/lib_various.php';
 include_once $basedir . '/lib_error.php';
 
 /*
@@ -61,11 +61,11 @@ function capture_localfmle_init(&$pid, $meta_assoc) {
     // status of the current recording
     $status = capture_localfmle_status_get();
     if ($status == '') { // no status yet
-        // qtbnew initializes QuickTime Broadcaster and runs a recording test
-        // launched in background to save time (pid is returned to be handled by web_index.php)
-        system("sudo -u $localfmle_username $localfmle_script_init >> $localfmle_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
+        // script_init initializes Flash Media Live Encoder and launches the recording
+        // in background to save time (pid is returned to be handled by web_index.php)
+        system("sudo -u $localfmle_username $localfmle_script_init $asset >> $localfmle_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
         $pid = file_get_contents("$tmp_dir/pid");
-        // error occured while launching QTB
+        // error occured while launching FMLE
         if (capture_localfmle_status_get() == 'launch_failure') {
             error_last_message("can't open because FMLE failed to launch");
             return false;
@@ -86,17 +86,14 @@ function capture_localfmle_init(&$pid, $meta_assoc) {
  */
 function capture_localfmle_start($asset) {
     global $localfmle_script_start;
-    global $localfmle_time_started_file;
     global $localfmle_last_request_file;
     global $localfmle_recorder_logs;
     global $localfmle_username;
 
-    // starts the recording in FMLE
-    // $pid is used in web_index.php
-    system("sudo -u $localfmle_username $localfmle_script_start >> $localfmle_recorder_logs 2>&1 &");
+    // adds time in the cutlist 
+    system("sudo -u $localfmle_username $localfmle_script_start $asset >> $localfmle_recorder_logs 2>&1 &");
 
     // saves start time in text file
-    file_put_contents($localfmle_time_started_file, time());
     file_put_contents($localfmle_last_request_file, time());
 
     //update recording status
@@ -117,7 +114,7 @@ function capture_localfmle_start($asset) {
  * Pauses the current recording
  */
 function capture_localfmle_pause($asset) {
-    global $localfmle_script_action;
+    global $localfmle_script_cutlist;
     global $localfmle_recorder_logs;
     global $localfmle_username;
 
@@ -125,7 +122,7 @@ function capture_localfmle_pause($asset) {
     $status = capture_localfmle_status_get();
     if ($status == 'recording') {
         // qtbpause pauses the recording in QTB
-        system("sudo -u $localfmle_username $localfmle_script_action >> $localfmle_recorder_logs 2>&1 &");
+        system("sudo -u $localfmle_username $localfmle_script_cutlist $asset pause >> $localfmle_recorder_logs 2>&1 &");
         capture_localfmle_status_set('paused');
     } else {
         error_last_message("capture_pause: can't pause recording because current status: $status");
@@ -140,7 +137,7 @@ function capture_localfmle_pause($asset) {
  * Resumes the current paused recording
  */
 function capture_localfmle_resume($asset) {
-    global $localfmle_script_action;
+    global $localfmle_script_cutlist;
     global $localfmle_recorder_logs;
     global $localfmle_username;
 
@@ -148,7 +145,7 @@ function capture_localfmle_resume($asset) {
     $status = capture_localfmle_status_get();
     if ($status == 'paused' || $status == 'stopped') {
         // qtbresume resumes the current recording
-        system("sudo -u $localfmle_username $localfmle_script_action >> $localfmle_recorder_logs 2>&1 &");
+        system("sudo -u $localfmle_username $localfmle_script_cutlist $asset resume >> $localfmle_recorder_logs 2>&1 &");
         // sets the new status of the current recording
         capture_localfmle_status_set('recording');
     } else {
@@ -164,7 +161,7 @@ function capture_localfmle_resume($asset) {
  * Stops the current recording
  */
 function capture_localfmle_stop(&$pid, $asset) {
-    global $localfmle_script_action;
+    global $localfmle_script_cutlist;
     global $localfmle_recorder_logs;
     global $localfmle_username;
 
@@ -172,14 +169,13 @@ function capture_localfmle_stop(&$pid, $asset) {
 
     // get status of the current recording
     $status = capture_localfmle_status_get();
-    if ($status == 'recording') {
+    if ($status == 'recording' || $status == "paused") {
         // pauses the current recording (while user chooses the way to publish the record)
-        system("sudo -u $localfmle_username $localfmle_script_action >> $localfmle_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
+        system("sudo -u $localfmle_username $localfmle_script_cutlist $asset stop >> $localfmle_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
         $pid = file_get_contents("$tmp_dir/pid");
         // set the new status for the current recording
         capture_localfmle_status_set('stopped');
-    } else if ($status == 'paused') {
-        capture_localfmle_status_set('stopped');
+        capture_localfmle_recstatus_set('');
     } else {
         error_last_message("capture_stop: can't pause recording because current status: $status");
         return false;
@@ -202,9 +198,10 @@ function capture_localfmle_cancel($asset) {
     $status = capture_localfmle_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
         // qtbcancel cancels the current recording, saves it in archive dir and stops the monitoring
-        $cmd = 'sudo -u ' . $localfmle_username . ' ' . $localfmle_script_cancel . ' ' . $asset . ' >> ' . $localfmle_recorder_logs . ' 2>&1';
+        $cmd = 'sudo -u ' . $localfmle_username . ' ' . $localfmle_script_cancel . ' ' . $asset . ' >> ' . $localfmle_recorder_logs . ' 2>&1 &';
         log_append('recording', "launching command: $cmd");
         $fpart = exec($cmd, $outputarray, $errorcode);
+        capture_localfmle_recstatus_set('');
     } else {
         error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
         return false;
@@ -311,7 +308,7 @@ function capture_localfmle_download_info_get($asset) {
     $download_info_array = array("ip" => $localfmle_ip,
         "protocol" => $localfmle_download_protocol,
         "username" => $localfmle_username,
-        "filename" => $localfmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.f4v");
+        "filename" => $localfmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/fmle_movie.f4v");
     return $download_info_array;
 }
 
@@ -341,7 +338,11 @@ function capture_localfmle_thumbnail() {
             copy("./nopic.jpg", $localfmle_capture_file);
         } else {
             //copy screencapture to actual snap
-            image_resize("$localfmle_basedir/var/pic_new.jpg", "$localfmle_basedir/var/pic_new_www.jpg", 235, 157);
+            $status = capture_localfmle_status_get();
+            if ($status == 'recording'){
+                $status = capture_localfmle_recstatus_get();
+            }
+            image_resize("$localfmle_basedir/var/pic_new.jpg", "$localfmle_basedir/var/pic_new_www.jpg", 235, 157, $status, false);
             rename("$localfmle_basedir/var/pic_new_www.jpg", $localfmle_capture_file);
         }
     }
@@ -376,10 +377,36 @@ function capture_localfmle_status_set($status) {
 }
 
 /**
+ * returns the real status of the current recording
+ * @global type $localfmle_recorddir
+ * @global type $localfmle_movie_name 
+ * @return string
+ */
+function capture_localfmle_recstatus_get(){
+    global $localfmle_recstatus_file;
+
+    if (!file_exists($localfmle_recstatus_file))
+        return '';
+
+    return trim(file_get_contents($localfmle_recstatus_file));
+}
+
+/**
+ * sets the real status of the current recording
+ * @global type $localfmle_status_file
+ * @global type $localfmle_last_request_file
+ * @param type $status
+ */
+function capture_localfmle_recstatus_set($status) {
+    global $localfmle_recstatus_file;
+
+    file_put_contents($localfmle_recstatus_file, $status);
+}
+/**
  * Returns time of creation of the recording file
  * Only used for local purposes
  */
-function private_capture_starttime_get() {
+function private_capture_localfmle_starttime_get() {
     global $localfmle_time_started_file;
 
     if (!file_exists($localfmle_time_started_file))
@@ -392,39 +419,12 @@ function private_capture_starttime_get() {
  * Returns time of last action
  * Only used for local purposes
  */
-function private_capture_lastmodtime_get() {
+function private_capture_localfmle_lastmodtime_get() {
     global $localfmle_capture_file;
 
     return filemtime($localfmle_capture_file);
 }
 
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata file
- */
-function assoc_array2xml_file($assoc_array, $localfmle_metadata_file) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    file_put_contents($localfmle_metadata_file, $xml_txt);
-    chmod($localfmle_metadata_file, 0644);
-}
-
-function xml_file2assoc_array($meta_path) {
-    $xml = simplexml_load_file($meta_path);
-    if ($xml === false)
-        return false;
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
-}
 
 function capture_localfmle_tmpdir_get($asset) {
     global $localfmle_basedir;

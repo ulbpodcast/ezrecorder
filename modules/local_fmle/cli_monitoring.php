@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -43,7 +44,7 @@ require_once 'lib_capture.php';
 // Delays, in seconds
 $threshold_timeout = 7200; // Threshold before we start worrying about the user
 //$threshold_timeout = 120; // Threshold before we start worrying about the user
-$recovery_threshold = 20; // Threshold before we start worrying about QTB
+$recovery_threshold = 20; // Threshold before we start worrying about FMLE
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
 //$timeout = 30;
 $sleep_time = 20; // Duration of the sleep between two checks
@@ -53,44 +54,53 @@ fwrite(fopen($localfmle_monitoring_file, 'w'), getmypid());
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
-    $status = capture_localfmle_status_get();
 
     // FMLE check
     clearstatcache();
     $files = glob("$localfmle_recorddir/$localfmle_movie_name*.f4v");
-    $status = capture_localfmle_status_get();
+    $status = capture_localfmle_recstatus_get();
+    if ($status == '') capture_localfmle_recstatus_set('recording');
 
-    if ($status == 'recording') {
-        // Checking when was the last modif
-        // (remember: Flash Media Live Encoder uses several fmlemovie files)
-        $last_modif = 0;
+
+    // Checking when was the last modif
+    // (remember: Flash Media Live Encoder uses several fmlemovie files)
+    $last_modif = 0;
+    foreach ($files as $file) {
+        $last_modif = max($last_modif, filemtime($file));
+    }
+
+    // Compares with current microtime
+    $now = (int) microtime(true);
+
+    if (($now - $last_modif) > $recovery_threshold) {
+        capture_localfmle_recstatus_set('stopped');
+        system("osascript $localfmle_open; wait");
+        system("osascript $localfmle_action; wait");
+        mail($mailto_admins, 'Flash Media Live Encoder crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
+ 
+        $files = glob("$localfmle_recorddir/$localfmle_movie_name*.f4v");    
         foreach ($files as $file) {
             $last_modif = max($last_modif, filemtime($file));
         }
-
-        // Compares with current microtime
         $now = (int) microtime(true);
-
-        if (($now - $last_modif) > $recovery_threshold) {
-            system("osascript $localfmle_open");
-            system("osascript $localfmle_action");
-            mail($mailto_admins, 'Flash Media Live Encoder crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
+        if (($now - $last_modif) <= $recovery_threshold) {            
+            capture_localfmle_recstatus_set('recording');
         }
+    } else if ($status == 'stopped'){
+        capture_localfmle_recstatus_set('recording');
     }
 
-    $status = capture_localfmle_status_get();
+
 
     // Timeout check
     //*
-    if ($status == 'recording') {
-        $startrec_time = private_capture_starttime_get();
-        $lastmod_time = private_capture_lastmodtime_get();
-        $now = time();
+    $startrec_time = private_capture_localfmle_starttime_get();
+    $lastmod_time = private_capture_localfmle_lastmodtime_get();
+    $now = time();
 
-        if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-            mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
-            send_timeout();
-        }
+    if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
+        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
+        send_timeout();
     }
     //*/
 

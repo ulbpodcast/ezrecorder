@@ -34,11 +34,12 @@ PROCESSING_TOOL=$3
 HANDLE_SOURCE_DIR=$EZCASTDIR/handle_source/$PROCESSING_TOOL
 STORDIR=$RECORDDIR/local_processing/localfmle_${SDAT}_$COURSE
 TOSERVERDIR=$RECORDDIR/upload_to_server/${SDAT}_$COURSE
+CUTLIST_FILE=$EZCASTDIR/var/${SDAT}_$COURSE/_cut_list
 
-echo "command: qtb_process_recording $COURSE $SDAT"
+echo "command: fmle_process_recording $COURSE $SDAT"
 #merge movies 
-echo "local merge_qtb_movies.php<br>";
-$PHP_PATH $HANDLE_SOURCE_DIR/merge_movies.php $STORDIR ${COMMON_MOVIE_NAME} cam.f4v
+echo "local merge_movies.php<br>";
+$PHP_PATH $HANDLE_SOURCE_DIR/merge_movies.php $STORDIR ${COMMON_MOVIE_NAME} fmle_movie.f4v $CUTLIST_FILE
 
 #now that processing has been done,
 #move the directories in the upload_to_server section

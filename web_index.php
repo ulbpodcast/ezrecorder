@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -58,7 +59,7 @@ template_load_dictionnary('translations.xml');
 // Login/logout
 // If we're not logged in, we try to log in or display the login form
 if (!user_logged_in()) {
-    
+
     // If an "action" was given, it means we've already submitted the login form
     // So all we want to do is check whether there is still a "forgotten" recording
     // and if not, log the user in
@@ -70,9 +71,9 @@ if (!user_logged_in()) {
         }
 
         user_login($input['login'], $input['passwd']);
-    // If the action is 'recording_force_quit', it might be a request from 
-    // the recorder. The quicktime modules, for instance, use curl to
-    // stop the recording after a timeout. 
+        // If the action is 'recording_force_quit', it might be a request from 
+        // the recorder. The quicktime modules, for instance, use curl to
+        // stop the recording after a timeout. 
     } else if ($input['action'] == 'recording_force_quit') {
         // We get information from both cam and slide modules to make 
         // sure that the caller ip address is one of the recorders. 
@@ -89,7 +90,7 @@ if (!user_logged_in()) {
         // if caller ip is one of the recorders (cam or slide), the current recording is stopped
         if ($caller_ip == $cam_info['ip'] || $caller_ip == $slide_info['ip']) {
             recording_force_quit();
-        // else (it is a standard user), the user has to log in
+            // else (it is a standard user), the user has to log in
         } else {
             view_login_form();
         }
@@ -103,23 +104,23 @@ if (!user_logged_in()) {
     die;
 }
 
-    // Check if the asset is known
-    // The asset is not known if the session has been force quit,
-    // if the session has expired or if there is a remote
-    // control of the session    
-    $fct_session_is_locked = "session_" . $session_module . "_is_locked";
-    if(!isset($_SESSION['asset']) && $fct_session_is_locked()){
-        $session = explode(';',file_get_contents($recorder_session));
-        if ($_SESSION['user_login'] == $session[1]){
-            $_SESSION['asset'] = $session[0];
-        }
+// Check if the asset is known
+// The asset is not known if the session has been force quit,
+// if the session has expired or if there is a remote
+// control of the session    
+$fct_session_is_locked = "session_" . $session_module . "_is_locked";
+if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
+    $session = explode(';', file_get_contents($recorder_session));
+    if ($_SESSION['user_login'] == $session[1]) {
+        $_SESSION['asset'] = $session[0];
     }
+}
 
 // At this point of the code, we know the user is logged in.
 // So now, we must see what action they wanted to perform, and do it.
 $action = $input['action'];
 switch ($action) {
-    
+
     // Someone submitted record information.
     // We save these metadata and display the record_screen
     case 'submit_record_infos':
@@ -282,7 +283,7 @@ function recording_submit_infos() {
     // Don't forget to save the current viewed page into a session var, just in cast the user reloads the page
     $_SESSION['recorder_mode'] = 'view_record_screen';
     $_SESSION['asset'] = $record_meta_assoc['record_date'] . '_' . $record_meta_assoc['course_name'];
-    file_put_contents($recorder_session, $_SESSION['asset'].";".$_SESSION['user_login']);
+    file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
 
     // And finally we can display the main screen!
     view_record_screen();
@@ -304,7 +305,7 @@ function recording_start() {
     $user = $fct_current_user_get();
 
     if ($user != $_SESSION['user_login']) {
-        error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module' );
+        error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
         die;
     }
 
@@ -440,7 +441,7 @@ function recording_cancel() {
     // Stopping and releasing the recorder
     // if cam module is enabled
     if ($cam_enabled) {
-        $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';    
+        $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';
         $res_cam = $fct_capture_cancel($_SESSION['asset']);
     }
     // if slide module is enabled 
@@ -488,9 +489,12 @@ function recording_force_quit() {
     global $session_module;
     global $php_cli_cmd;
     global $process_upload;
-    global $tmp_meta_file;
+    global $recorder_session;
     global $basedir;
 
+    $session = explode(';', file_get_contents($recorder_session));
+    $asset = $session[0];
+    
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
     log_append('warning', $_SESSION['user_login'] . ' trying to log in but recorder is already in use by ' . $fct_current_user_get() . '. Stopping current record.');
     $status = status_get();
@@ -498,12 +502,12 @@ function recording_force_quit() {
         // if cam module is enabled
         if ($cam_enabled) {
             $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';
-            $res_cam = $fct_capture_cancel($_SESSION['asset']);
+            $res_cam = $fct_capture_cancel($asset);
         }
         // if slide module is enabled
         if ($slide_enabled) {
             $fct_capture_cancel = 'capture_' . $slide_module . '_cancel';
-            $res_slide = $fct_capture_cancel($_SESSION['asset']);
+            $res_slide = $fct_capture_cancel($asset);
         }
         // deletes the previous metadata file 
         $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
@@ -516,9 +520,9 @@ function recording_force_quit() {
         $album = $recstarttime[1];
         log_append('recording_force_quit', 'Force quit recording by another user [' . $_SESSION['user_login'] . '] (course ' . $album . ', started on ' . $starttime . ')');
 
-    $tmp_dir = $basedir . "/var/" . $_SESSION['asset'];
-    mkdir($tmp_dir);
-        
+        $tmp_dir = $basedir . "/var/" . $asset;
+        mkdir($tmp_dir);
+
         $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
         $meta_xml_string = $fct_metadata_xml_get();
         // saves the recording metadata in a tmp xml file (used later in cli_process_upload.php)
@@ -579,7 +583,7 @@ function recording_pause() {
     global $slide_enabled;
     global $slide_module;
     global $session_module;
-    
+
     // if cam module is enabled
     if ($cam_enabled) {
         $fct_capture_pause = 'capture_' . $cam_module . '_pause';
@@ -613,7 +617,7 @@ function recording_resume() {
     global $slide_module;
     global $session_module;
 
-    
+
     // if cam module is enabled 
     if ($cam_enabled) {
         $fct_capture_resume = 'capture_' . $cam_module . '_resume';
@@ -1001,7 +1005,7 @@ function user_logout() {
     //unlock interface
     $fct_session_unlock = "session_" . $session_module . "_unlock";
     $fct_session_unlock();
-    
+
     log_append("user logged out");
 
     //destroy session

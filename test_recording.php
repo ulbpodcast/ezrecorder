@@ -58,25 +58,45 @@ echo " - E-BREMER            [9]" . PHP_EOL;
 echo " - E-F2-303            [10]" . PHP_EOL;
 $choice = readline("Choice [default: $default_classroom]: ");
 switch ($choice) {
-    case 2: $classroom = "podcv-s-r42-5-503";
+    case 2: 
+        $classroom = "podcv-s-r42-5-503";
+        $recorder = 'ezcast';
         break;
-    case 3: $classroom = "podc-s-r42-5-110";
+    case 3: 
+        $classroom = "podc-s-r42-5-110";
+        $recorder = 'ezcast';
         break;
-    case 4: $classroom = "podcv-s-ub2";
+    case 4: 
+        $classroom = "podcv-s-ub2";
+        $recorder = 'ezcast';
         break;
-    case 5: $classroom = "podcv-s-ud2";
+    case 5: 
+        $classroom = "podcv-s-ud2";
+        $recorder = 'ezcast';
         break;
-    case 6: $classroom = "podcv-s-k";
+    case 6: 
+        $classroom = "podcv-s-k";
+        $recorder = 'ezcast';
         break;
-    case 7: $classroom = "podcv-p-forumb";
+    case 7: 
+        $classroom = "podcv-p-forumb";
+        $recorder = 'ezcast';
         break;
-    case 8: $classroom = "podcv-e-j";
+    case 8: 
+        $classroom = "podcv-e-j";
+        $recorder = 'ezcast';
         break;
-    case 9: $classroom = "podcv-e-bremer";
+    case 9: 
+        $classroom = "podcv-e-bremer";
+        $recorder = 'ezcast';
         break;
-    case 10: $classroom = "podcv-e-f2";
+    case 10: 
+        $classroom = "podcv-e-f2";
+        $recorder = 'ezcast';
         break;
-    default: $classroom = "podcv-s-v";
+    default: 
+        $classroom = "podcs-s-v";
+        $recorder = 'ezrecorder';
         break;
 }
 $username = readline("Enter username for recorder: ");
@@ -87,7 +107,7 @@ $settings = false;
 do {
 // Login the user
     display_logs("Logins the user [$username]");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?action=login&login=$username&passwd=$password");
+    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?action=login&login=$username&passwd=$password");
     $response = explode("\n", $response);
     display_logs($response[1]);
     if (strpos($response[1], 'login screen') !== false) {
@@ -152,7 +172,7 @@ do {
 // Submit values for recording
     display_logs("Submits form values for the recording");
 
-    $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?" .
+    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
             "action=submit_record_infos" .
             "&course=$album" .
             "&title=${classroom}_${date}_" . (($default_records+1) - $records) .
@@ -165,7 +185,7 @@ do {
     do {
 // Recording start
         display_logs((($action == "recording_start") ? "Starts" : "Resumes") . " the recording [" . (($default_records+1) - $records) ."]");
-        $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?" .
+        $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
                 "action=$action");
 
 // Records for N seconds
@@ -174,7 +194,7 @@ do {
 // Pauses the recording if required
         if ($pause > 0) {
             display_logs("Pauses the recording");
-            $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?" .
+            $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
                     "action=recording_pause");
 
 // Wait for the pause
@@ -186,12 +206,12 @@ do {
 
 // Recording stop
     display_logs("Stops the recording");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?" .
+    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
             "action=view_record_submit");
 
 // Publish in private album
     display_logs("Publishes recording in album [moderation : $moderation]");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/ezcast/index.php?" .
+    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
             "action=recording_stop" .
             "&moderation=$moderation");
 

@@ -26,6 +26,7 @@
 
 
 require 'config.inc';
+include_once $basedir . '/lib_various.php';
 include_once $basedir . '/lib_error.php';
 
 /*
@@ -374,7 +375,7 @@ function capture_localqt_status_set($status) {
  * Returns time of creation of the recording file
  * Only used for local purposes
  */
-function private_capture_starttime_get() {
+function private_capture_localqt_starttime_get() {
     global $localqt_time_started_file;
 
     if (!file_exists($localqt_time_started_file))
@@ -387,38 +388,10 @@ function private_capture_starttime_get() {
  * Returns time of last action
  * Only used for local purposes
  */
-function private_capture_lastmodtime_get() {
+function private_capture_localqt_lastmodtime_get() {
     global $localqt_capture_file;
 
     return filemtime($localqt_capture_file);
-}
-
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata file
- */
-function assoc_array2xml_file($assoc_array, $localqt_metadata_file) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    file_put_contents($localqt_metadata_file, $xml_txt);
-    chmod($localqt_metadata_file, 0644);
-}
-
-function xml_file2assoc_array($meta_path) {
-    $xml = simplexml_load_file($meta_path);
-    if ($xml === false)
-        return false;
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
 }
 
 function capture_localqt_tmpdir_get($asset) {

@@ -25,17 +25,30 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
-#first clean up eventual movie remains
+#first stops the recording
+osascript $EZCASTDIR/applescript/fmle_action.scpt
+wait;
+
+unlink $EZCASTDIR/var/_monitoring_pid
+
+#then quit FMLE
+osascript $EZCASTDIR/applescript/fmle_quit.scpt&
+wait
+# Kill FMLE if it hasn't been quit
+FMLE_CAM_PID=`ps ax | grep -i "FlashMediaLiveEncoder" | grep -v grep | cut -c 1-6`
+# Test if FMLE_CAM_PID is set
+if [ $FMLE_CAM_PID -gt 0 ]; then kill -9 $FMLE_CAM_PID; fi;
+
+#Finally clean up eventual movie remains
 SDAT=`date +"%Y_%m_%d_%Hh%M"`
-echo $SDAT > $STARTRECTIMEPATH
 ASSET=$1
 
 mkdir  $RECORDDIR/trash/$SDAT 
-osascript $EZCASTDIR/applescript/fmle_quit.scpt&
 wait
-mv $RECORDDIR/${COMMON_MOVIE_NAME}*.mov  $RECORDDIR/trash/$SDAT/
-unlink $EZCASTDIR/var/_monitoring_pid
+mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  $RECORDDIR/trash/$SDAT/
+mv $RECORDDIR/fmle_session*.log  $RECORDDIR/trash/$SDAT/
 if [ "$ASSET" != "" ]
 then
+mv $EZCASTDIR/var/$ASSET/_cut_list $RECORDDIR/trash/$SDAT/
 rm -rf $EZCASTDIR/var/$ASSET
 fi

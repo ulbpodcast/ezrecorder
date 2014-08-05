@@ -1,0 +1,14 @@
+EZCASTDIR=!PATH/modules/local_fmle/
+RECORDDIR=!RECORD_PATH/
+STARTRECTIMEPATH=/tmp/fmle_start_rec_time 
+USERFMLEPREFS=~/Library/Application\ Support/Adobe/Flash\ Media\ Live\ Encoder\ 3.2/startup.xml
+MODULEFMLEPREFS=$EZCASTDIR/etc/fmle_BMD_H264_720p.xml
+#MODULEFMLEPREFS=$EZCASTDIR/etc/fmle_epiphan_H264_1024_768.xml
+COMMON_MOVIE_NAME=fmlemovie
+FIRST_STARTED=$EZCASTDIR/var/_first_started
+LAST_REQUEST=$EZCASTDIR/var/_last_request
+STATUS=$EZCASTDIR/var/status
+TMP_PID=$EZCASTDIR/var/tmp_pid
+CLASSROOM="!CLASSROOM"
+MAIL_TO="!MAIL_TO"
+PHP_PATH=!PHP_PATH
