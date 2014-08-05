@@ -1,4 +1,4 @@
-EZCASTDIR=!PATH/modules/local_fmle/
+EZCASTDIR=!PATH/
 RECORDDIR=!RECORD_PATH/
 STARTRECTIMEPATH=/tmp/fmle_start_rec_time 
 USERFMLEPREFS=~/Library/Application\ Support/Adobe/Flash\ Media\ Live\ Encoder\ 3.2/startup.xml

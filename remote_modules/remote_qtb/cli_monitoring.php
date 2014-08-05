@@ -68,7 +68,6 @@ while(true) {
         foreach($files as $file) {
             $last_modif = max($last_modif, filemtime($file));
         }
-
         // Compares with current microtime
         $now = (int) microtime(true);
 

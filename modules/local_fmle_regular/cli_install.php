@@ -27,7 +27,7 @@
 require_once 'config_sample.inc';
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
-echo "* Installation of local_fmle module    *" . PHP_EOL;
+echo "* Installation of local_fmle_regular module    *" . PHP_EOL;
 echo "***************************************" . PHP_EOL;
 echo PHP_EOL . "Verification of FFMPEG" . PHP_EOL;
 $success = false;
@@ -59,7 +59,7 @@ file_put_contents("$localfmle_basedir/config.inc", $config);
 echo PHP_EOL . "Changing values in bash/localdefs" . PHP_EOL;
 
 $bash_file = file_get_contents("$localfmle_basedir/bash/localdefs_sample");
-$bash_file = str_replace("!PATH", $basedir, $bash_file);
+$bash_file = str_replace("!PATH", $localfmle_basedir, $bash_file);
 $bash_file = str_replace("!RECORD_PATH", $ezrecorder_recorddir, $bash_file);
 $bash_file = str_replace("!CLASSROOM", $classroom, $bash_file);
 $bash_file = str_replace("!MAIL_TO", $mailto_admins, $bash_file);

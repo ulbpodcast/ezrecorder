@@ -37,6 +37,8 @@ $remoteqtb_username = "podclient"; // username on the remote recorder
 $remote_basedir = "/path/to/ezrecorder"; // basedir on the remote recorder
 $remoteqtb_basedir = "$remote_basedir/remote_modules/remote_qtb/"; // remote_qtb module on the remote recorder
 $remoteqtb_local_basedir = $modules_basedir . '/remote_qtb/'; // basedir on this machine
+$remoteqtb_recorddir = '~/Movies/';
+$remoteqtb_upload_dir = $remoteqtb_recorddir . '/upload_to_server/';
 
 $remoteqtb_time_started_file = $remoteqtb_basedir . 'var/_first_started'; // The file containing timestamp of creation
 $remoteqtb_status_file = $remoteqtb_basedir . 'var/status'; // Current recorder status (paused, recording, stopped,...)

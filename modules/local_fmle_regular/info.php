@@ -24,7 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-$module_title = "local_fmle";
+$module_title = "local_fmle_regular";
 $module_description = "This module is designed to record videos using Adobe Flash Media Live Encoder.";
 $module_name = "localfmle";
 $module_path = dirname(__FILE__);

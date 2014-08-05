@@ -31,7 +31,7 @@ $localfmle_username = $ezrecorder_username;
 $localfmle_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
 // used in cli_monitoring.php to stop the recording after a timeout
 
-$localfmle_basedir = $modules_basedir . '/local_fmle/';
+$localfmle_basedir = dirname(__FILE__).'/';
 $localfmle_recorddir = $ezrecorder_recorddir;
 $localfmle_movie_name = 'fmlemovie';
 

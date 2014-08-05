@@ -94,7 +94,7 @@ $bash_file = str_replace("!PHP_PATH", $php_path, $bash_file);
 file_put_contents("$remoteqtb_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remoteqtb_basedir/bash");
-chmod("$remoteqtb_basedir/CoreImageTool", 0755);
+chmod("$remoteqtb_basedir/bin/CoreImageTool", 0755);
 
 function read_line($prompt = '') {
     echo $prompt . PHP_EOL;

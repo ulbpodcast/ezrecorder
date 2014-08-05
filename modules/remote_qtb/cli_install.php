@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -42,11 +43,15 @@ if ($value != "")
 $value = read_line("Username on the remote recorder [default: '$remoteqtb_username']: ");
 if ($value != "")
     $remoteqtb_username = $value; unset($value);
+$value = read_line("Path to EZrecorder repository basedir on the remote recorder [default: '$remoteqtb_recorddir']: ");
+if ($value != "")
+    $remoteqtb_recorddir = $value; unset($value);
 
 $config = file_get_contents("$modules_basedir/remote_qtb/config_sample.inc");
 
 $config = preg_replace('/\$remoteqtb_ip = (.+);/', '\$remoteqtb_ip = "' . $remoteqtb_ip . '";', $config);
 $config = preg_replace('/\$remoteqtb_basedir = (.+);/', '\$remoteqtb_basedir = "' . $remoteqtb_basedir . '";', $config);
+$config = preg_replace('/\$remoteqtb_recorddir = (.+);/', '\$remoteqtb_recorddir = "' . $remoteqtb_recorddir . '";', $config);
 $config = preg_replace('/\$remoteqtb_username = (.+);/', '\$remoteqtb_username = "' . $remoteqtb_username . '";', $config);
 file_put_contents("$modules_basedir/remote_qtb/config.inc", $config);
 
