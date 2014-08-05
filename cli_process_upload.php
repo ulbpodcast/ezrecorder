@@ -73,7 +73,7 @@ while (is_process_running($cam_pid) || is_process_running($slide_pid)){
     sleep(0.5); 
 }
 
-system("echo \"`date` : local processing finished for both cam and slide modules\" >> /Library/ezcast_recorder/var/finish");
+system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
 
 
 
@@ -83,17 +83,16 @@ $nb_retry=500;
 
 
 if ($cam_enabled) {
-    // get downloading information required by the podcast server
+    // get downloading information required by EZcast server
     $fct = 'capture_' . $cam_module . '_download_info_get';
     $cam_download_info = $fct($asset);
 }
 
 if ($slide_enabled) {
-    // get downloading information required by the podcast server
+    // get downloading information required by EZcast server
     $fct = 'capture_' . $slide_module . '_download_info_get';
     $slide_download_info = $fct($asset);
 } 
-
 //try repeatedly to call EZcast server and send the right post parameters
 $err=true;
 while($err && $nb_retry>0){

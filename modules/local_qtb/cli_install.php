@@ -58,7 +58,7 @@ file_put_contents("$modules_basedir/local_qtb/config.inc", $config);
 
 echo PHP_EOL . "Changing values in bash/localdefs" . PHP_EOL;
 
-$bash_file = file_get_contents("$modules_basedir/local_qtb/bash/localdefs");
+$bash_file = file_get_contents("$modules_basedir/local_qtb/bash/localdefs_sample");
 $bash_file = str_replace("!PATH", $basedir, $bash_file);
 $bash_file = str_replace("!RECORD_PATH", $ezrecorder_recorddir, $bash_file);
 $bash_file = str_replace("!CLASSROOM", $classroom, $bash_file);
@@ -66,7 +66,7 @@ $bash_file = str_replace("!MAIL_TO", $mailto_admins, $bash_file);
 $bash_file = str_replace("!PHP_PATH", $php_cli_cmd, $bash_file);
 file_put_contents("$modules_basedir/local_qtb/bash/localdefs", $bash_file);
 
-$perms_file = file_get_contents("$modules_basedir/local_qtb/setperms.sh");
+$perms_file = file_get_contents("$modules_basedir/local_qtb/setperms_sample.sh");
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$modules_basedir/local_qtb/setperms.sh", $perms_file);

@@ -49,4 +49,4 @@ cp $METADATAPATH  $STORDIR/metadata.xml
 #osascript $EZCASTDIR/applescript/closescreensharing.scpt
 
 #echo "/usr/bin/nice -n 10 $EZCASTDIR/bash/qtb_process_recording $COURSE $SDAT >$STORDIR/processing.log 2>&1"|at now 
-/usr/bin/nice -n 10 $EZCASTDIR/bash/qtb_process_recording $COURSE $SDAT $PROCESSING_TOOL >$STORDIR/processing.log 2>&1
+/usr/bin/nice -n 10 $EZCASTDIR/bash/qtb_process_recording $COURSE $SDAT $PROCESSING_TOOL >> $STORDIR/processing.log 2>&1

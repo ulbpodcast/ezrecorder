@@ -102,26 +102,20 @@ if (strtoupper($choice) != 'N' && strtoupper($choice) != 'NO') {
 
 echo PHP_EOL . "global-config.inc created with custom values." . PHP_EOL;
 /*
- * Then, we adapt the paths in webspace according to the actual
- * position of EZrecorder
+ * Then, we adapt some paths in configuration files
  */
-echo "Modification of global values in ./htdocs/index.php" . PHP_EOL;
-
-$web_file = file_get_contents($basedir . "/htdocs/index.php");
-$web_file = str_replace("!PATH", $basedir, $web_file);
-file_put_contents($basedir . "/htdocs/index.php", $web_file);
 
 echo "Modification of global values in ./sbin/localdefs" . PHP_EOL;
 
-$sbin_file = file_get_contents($basedir . "/sbin/localdefs");
-$sbin_file = str_replace("!PATH", $basedir, $sbin_file);
+$sbin_file = file_get_contents($basedir . "/sbin/localdefs_sample");
+$sbin_file = str_replace("!PATH", $basedir, $sbin_file); 
 $sbin_file = str_replace("!CLASSROOM", $classroom, $sbin_file);
 $sbin_file = str_replace("!MAIL_TO", $mailto_admins, $sbin_file);
 file_put_contents($basedir . "/sbin/localdefs", $sbin_file);
 
 echo "Modification of global values in ./setperms.sh" . PHP_EOL;
 
-$perms_file = file_get_contents("$basedir/setperms.sh");
+$perms_file = file_get_contents("$basedir/setperms_sample.sh");
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$basedir/setperms.sh", $perms_file);
@@ -148,6 +142,12 @@ system("cp -rp $basedir/htdocs/* $web_basedir/.");
 system("chown -R $ezrecorder_username:$apache_user $web_basedir");
 system("chown -R $ezrecorder_username:$apache_user $basedir");
 system("chmod 755 $basedir/setperms.sh");
+
+echo "Modification of global values in $web_basedir/index.php" . PHP_EOL;
+
+$web_file = file_get_contents($web_basedir . "/index.php");
+$web_file = str_replace("!PATH", $basedir, $web_file);
+file_put_contents($web_basedir . "/index.php", $web_file);
 
 echo PHP_EOL."*******************************************************************".PHP_EOL;
 echo "*         I N S T A L L A T I O N    O F    M O D U L E S         *".PHP_EOL;

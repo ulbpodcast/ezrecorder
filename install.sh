@@ -23,6 +23,22 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+#try to find fullpath of command if in path or returns default value
+cmd_path_find()
+{
+  COMMAND=$1
+  DEFAULT=$2
+  cmdpath=`which $1`
+  if [ "$?" -eq "0" ]; then 
+    RES=$cmdpath
+    return 0
+   else
+    RES=$DEFAULT  
+    return 0
+  fi
+}
+
 G='\033[32m\033[1m'
 R='\033[31m\033[1m'
 N='\033[0m'
@@ -44,11 +60,11 @@ read whatever;
 echo "First of all, this script will verify you have all programs,";
 echo "commands and libraries required by EZrecorder to run properly";
 echo " ";
-echo "Press [Enter] to continue or [n] to skip this step.";
+echo "You can skip the tests if you want.";
 echo -e "${R}Warning ! Skipping this verification may have critical repercussions${N}";
 echo -e "${R}          on the use of EZrecorder after its installation.${N}";
 echo " ";
-read choice;
+read -p "Would you like to verify your server ? [y/n]: " choice;
 if [ "$choice" != "n" ];
 then
     check=1;
@@ -57,8 +73,9 @@ then
     echo "*************************************************";
     echo "Verification for PHP5 ...";
     echo "*************************************************";
-    default_path="/usr/bin/php";
-    echo "Please enter the path to 'php' bin (with tailing 'php')";
+    cmd_path_find php /usr/bin/php
+    default_path=$RES
+    echo "Enter the path to 'php' bin (with trailing 'php')";
     read -p "[default:$default_path]:" php_path ;
     if [ "$php_path" == "" ];
     then
@@ -100,46 +117,45 @@ then
         read choice;
         if [ "$choice" != "continue" ]; then exit; fi;
     fi;
-    echo -e "${G}Your current version of PHP [$version] matches EZcast's needs${N}";
-    echo " ";
-    echo "Press [Enter] to continue";
-    read whatever;
+    echo -e "${G}Your current version of PHP [$version] matches EZrecorder's needs${N}";
     echo " ";
     echo "*************************************************";
-    echo "Verification of SimpleXML extension for PHP5 ...";
+    echo "Verification of extensions for PHP ...";
     echo "*************************************************";
-    echo "";
-    echo "The script will now test if the SimpleXML extension for PHP is enabled.";
-    echo "Press [Enter] to continue or enter 'skip' to skip the test.";
-    read choice;
-    if [ "$choice" != "skip" ]; then
-        check=$($php_path -r "echo (function_exists('simplexml_load_file'))? 'enabled' : 'disabled';");
-        if [[ "$check" == "disabled" ]]; then
-            echo -e "${R}SimpleXML seems not to be enabled for PHP5.${N}";
-            echo "Press [Enter] to quit this script or enter 'continue' to go to the";
-            echo "next step anyway.";
-            read choice;
-            if [ "$choice" != "continue" ]; then exit; fi;
-        fi;
-        if [ "$choice" != "continue" ]; then echo -e "${G}SimpleXML is enabled for PHP5${N}"; fi;
-    fi;
-    echo "*************************************************";
-    echo "Verification of CURL extension for PHP5 ...";
-    echo "*************************************************";
-    echo "";
-    echo "The script will now test if the curl extension for PHP is enabled.";
-    echo "Press [Enter] to continue or enter 'skip' to skip the test.";
-    read choice;
-    if [ "$choice" != "skip" ]; then
-        check=$($php_path -r "echo (function_exists('curl_version'))? 'enabled' : 'disabled';");
-        if [[ "$check" == "disabled" ]]; then
-            echo -e "${R}CURL seems not to be enabled for PHP5.${N}";
-            echo "Press [Enter] to quit this script or enter 'continue' to go to the";
-            echo "next step anyway.";
-            read choice;
-            if [ "$choice" != "continue" ]; then exit; fi;
-        fi;
-        if [ "$choice" != "continue" ]; then echo -e "${G}CURL is enabled for PHP5${N}"; fi;
+    read -p "Do you want to check PHP extensions ? [y/n]: " choice;
+    if [ "$choice" != "n" ]; then
+        # Verification for CURL
+        check=0;
+        while [ $check -lt 1 ]; do
+            check=$($php_path -r "echo (function_exists('curl_version'))? 'enabled' : 'disabled';");
+            if [[ "$check" == "disabled" ]]; then
+                echo -e "${R}CURL seems not to be enabled for PHP.${N}";
+                echo "Enable CURL for PHP and press [Enter] to retry.";
+                read -p "Enter 'force' to continue without CURL enabled or 'quit' to leave: " choice;
+                if [ "$choice" == "quit" ]; then exit; fi;
+                check=0;
+                if [ "$choice" == "force" ]; then check=1; fi;
+            else 
+                echo -e "${G}CURL is enabled for PHP${N}";
+                check=1;
+            fi;
+        done;
+        # Verification for SIMPLE_XML
+        check=0;
+        while [ $check -lt 1 ]; do
+            check=$($php_path -r "echo (function_exists('simplexml_load_file'))? 'enabled' : 'disabled';");
+            if [[ "$check" == "disabled" ]]; then
+                echo -e "${R}SimpleXML seems not to be enabled for PHP.${N}";
+                echo "Enable SimpleXML for PHP and press [Enter] to retry.";
+                read -p "Enter 'force' to continue without SimpleXML enabled or 'quit' to leave: " choice;
+                if [ "$choice" == "quit" ]; then exit; fi;
+                check=0;
+                if [ "$choice" == "force" ]; then check=1; fi;
+            else 
+                echo -e "${G}SimpleXML is enabled for PHP${N}";
+                check=1;
+            fi;
+        done;
     fi;
     echo " ";
     echo "*************************************************";
@@ -197,8 +213,9 @@ then
     echo "Press [Enter] to continue";
     read whatever;
 else 
-    default_php_path="/usr/bin/php";
-    echo "Please, enter the path to PHP5 (with tailing 'php'):";
+    cmd_path_find php /usr/bin/php
+    default_php_path=$RES
+    echo "Please, enter the path to PHP5 (with trailing 'php'):";
     read -p "[default: $default_php_path]" php_path;
     if [ "$php_path" == "" ]; then 
         php_path=$default_php_path;

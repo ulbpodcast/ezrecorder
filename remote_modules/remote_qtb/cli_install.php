@@ -85,7 +85,7 @@ file_put_contents("$remoteqtb_basedir/config.inc", $config);
 
 echo PHP_EOL . "Changing values in bash/localdefs" . PHP_EOL;
 
-$bash_file = file_get_contents("$remoteqtb_basedir/bash/localdefs");
+$bash_file = file_get_contents("$remoteqtb_basedir/bash/localdefs_sample");
 $bash_file = str_replace("!PATH", $remoteqtb_basedir, $bash_file);
 $bash_file = str_replace("!RECORD_PATH", $remoteqtb_recorddir, $bash_file);
 $bash_file = str_replace("!CLASSROOM", $classroom, $bash_file);

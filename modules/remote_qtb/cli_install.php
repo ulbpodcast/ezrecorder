@@ -52,7 +52,7 @@ file_put_contents("$modules_basedir/remote_qtb/config.inc", $config);
 
 echo PHP_EOL . "Changing values in setperms.sh" . PHP_EOL;
 
-$perms_file = file_get_contents("$modules_basedir/remote_qtb/setperms.sh");
+$perms_file = file_get_contents("$modules_basedir/remote_qtb/setperms_sample.sh");
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$modules_basedir/remote_qtb/setperms.sh", $perms_file);
