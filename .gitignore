@@ -1,6 +1,8 @@
 global_config.inc
 *.log
+*_log
 **/var/**
+**/**/var/**
 **/**/config.inc
 **/pwfile.inc
 **/**/pwfile.inc

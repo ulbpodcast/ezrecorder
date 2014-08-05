@@ -25,7 +25,7 @@
  */
 
 function image_resize($input, $output, $maxwidth, $maxheight) {
-    global $axiscam_camstatus_file;
+    global $localfmle_status_file;
     
     $img_path = array();
     $img_path['broadcasting'] = dirname(__FILE__) . '/img/broadcasting.png';
@@ -70,8 +70,8 @@ function image_resize($input, $output, $maxwidth, $maxheight) {
 
     imagecopyresized($newimg, $img, $writex, $writey, 0, 0, $newwidth, $newheight, $width, $height);
     
-    if (file_exists($axiscam_camstatus_file)){
-        $cam_status = file_get_contents($axiscam_camstatus_file);
+    if (file_exists($localfmle_status_file)){
+        $cam_status = file_get_contents($localfmle_status_file);
         switch ($cam_status){
             case "recording":
                 $img_status = imagecreatefrompng($img_path['broadcasting']);

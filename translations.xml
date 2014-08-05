@@ -100,8 +100,8 @@
         <label id="Navigator_not_compatible" lang="en">Your browser is not compatible. Please run updates or change it.</label>
         <label id="Iframes_unsupported" lang="fr">Votre navigateur ne permet pas l'affichage d'aperçus.</label>
         <label id="Iframes_unsupported" lang="en">Your browser doesn't support iframes for visual feedback.</label>
-        <label id="launch_failure_message" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</label>
-        <label id="launch_failure_message" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</label>
+        <label id="launch_failure" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</label>
+        <label id="launch_failure" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</label>
         <label id="Ongoing_recording" lang="fr">Attention : enregistrement en cours.\nVoulez-vous arrêter l'enregistrement en cours et en lancer un nouveau?</label>
         <label id="Ongoing_recording" lang="en">Caution: ongoing recording.\nDo you want to stop the current recording and start your own?</label>
 
