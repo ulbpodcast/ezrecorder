@@ -37,6 +37,7 @@ require_once 'global_config.inc';
 require_once $cam_lib;
 require_once $slide_lib;
 require_once $session_lib;
+require_once 'lib_error.php';
 
 $fct = "session_" . $session_module . "_metadata_get";
 $meta_assoc = $fct();
@@ -98,13 +99,13 @@ $err=true;
 while($err && $nb_retry>0){
   $err=server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
   if($err){
-    print "Will retry later: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n";
+    log_append('EZcast_curl_call', "Will retry later: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
     sleep(120);
  }//endif error
 }//end while
 
 if($err){
-    print "Giving up: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n";
+    log_append('EZcast_curl_call',"Giving up: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
     sleep(120);
  }
 
@@ -149,16 +150,16 @@ curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);//don't send answer to stdout but in r
 $res=curl_exec($ch);
 $curlinfo=curl_getinfo($ch);
 curl_close($ch);
-
+file_put_contents("/Library/ezrecorder/var/curl.log", var_export($curlinfo, true).PHP_EOL. $res);
 if(!$res){//error
-  if(isset ($curlinfo['http_code']))
-      return $curlinfo['http_code'];
-    else
-      return "Curl error";
+  if(isset ($curlinfo['http_code'])){
+      return $curlinfo['http_code'];      
+  } else 
+      return "Curl error"; 
  }
 
  //All went well send http response in stderr to be logged
- fputs(STDERR, "curl result: $res", 2000);
+ fputs(STDERR, "curl result: $res", 2000); 
  
  return false;
 }

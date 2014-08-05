@@ -41,9 +41,9 @@ html{
 }
 
 body{
-    background-color:#FFFFFF;
+    background-color:#000000;
     height:100%;
-    color: #000000;
+    color: #FFFFFF;
     font-size: 14px;
 
 }
@@ -62,10 +62,7 @@ body{
     min-width:768px;
     width: 100%;
     margin: 0 auto;
-    background: #F8F8F8;
-    border-bottom-width:1px;
-    border-bottom-style:solid;
-    border-bottom-color:#004C93;
+    background: #202020;
     margin-bottom:15px;
 }
 
@@ -85,14 +82,15 @@ body{
     margin: 0 auto;
     padding-bottom:170px;
     width:768px;
-    color: #000000;	
+    color: #FFFFFF;	
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
     font-size: 12px;
 }
 
 #global a{
-    color: #444444;
+    color: #cccccb;
     text-decoration: none;
+    font-size: 14px;
 }
 
 #global a:hover{
@@ -111,16 +109,15 @@ body{
     width: 738px;
     padding-left: 15px;
     padding-right: 15px;
-    border: thin solid #CFCFCF;
     border-radius: 25px;
-    background-color: #FCFCFC;
+    background-color: #252525;
     margin-top: 20px;
 }
 
 #login_form{
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
     font-size:12px;
-    color:#000000;
+    color:#FFFFFF;
     margin-left:30px;
     line-height:40px;
 }
@@ -128,7 +125,7 @@ body{
 p{
     font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;
     font-size:16px;
-    color:#000000;
+    color:#FFFFFF;
     margin-left:30px;
     line-height:40px;
 }
@@ -138,7 +135,7 @@ p{
     bottom:0px;
     min-width:768px;
     width: 100%;
-    background: #222222;
+    background: #202020;
 }
 
 .footer_wrapper{
@@ -168,6 +165,7 @@ p{
     font-size: 11px;
     color: #7bb3b6;
     float: right;
+    font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
 }
 
 .copyright a {
@@ -216,10 +214,9 @@ p{
     padding-bottom:25px;
     padding-top:25px;
     margin:auto;
-
-    border: thin solid #CFCFCF;
+    
     border-radius: 25px;
-    background-color: #FCFCFC;
+    background-color: #252525;
     margin-top:40px;
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
 
@@ -240,17 +237,17 @@ p{
     text-align: right;
     width: 73px;
     padding-top:3px;
-    color:#444444;
+    color:#ffffff;
 }
 
 .ensembleUn input, .ensembleUn textarea, .ensembleUn select {
-    border: 1px solid #999999;
+    border: 1px solid #505050;
     float: left;
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
     font-size: 11px;
     margin: 2px 0 20px 10px;
     width: 353px;
-    color:#444444;
+    color:#000000;
     line-height: 18px;
 }
 
@@ -277,8 +274,8 @@ p{
 /*- Bouton Select box Radio ETC.. */
 
 .radioOne .radio{
-    width:110px;
-    height:113px;
+    width:111px;
+    height:111px;
     display:block;
     float:left;
     cursor:pointer;
@@ -287,8 +284,8 @@ p{
 }
 
 .radioTwo .radio{
-    width:110px;
-    height:113px;
+    width:111px;
+    height:111px;
     margin-left:10px;
     display:block;
     float:left;
@@ -298,8 +295,8 @@ p{
 }
 
 .radioThree .radio{
-    width:110px;
-    height:113px;
+    width:111px;
+    height:111px;
     margin-left:10px;
     display:block;
     float:left;
@@ -313,8 +310,8 @@ p{
     height: 136px;
     margin-bottom: 20px;
     margin-left: 233px;
-    border: 1px solid #999999;
-    background-color:#FFFFFF;
+    border: 1px solid #505050;
+    background-color:#202020;
 }
 
 
@@ -332,7 +329,7 @@ p{
 }
 
 #btn a{
-    background: #444444;
+    background: #505050;
     display:inline-block;
     float:left;
     margin-right:8px;
@@ -394,7 +391,7 @@ p{
     display: block;
     text-align: center;
     width: 128px;
-    color:#444444;
+    color:#cccccb;
     text-decoration:none;
     font-size:14px;
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;	
@@ -507,7 +504,7 @@ p{
     font-size:14px;
     font-weight:bold;
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
-    color:#444444;
+    color:#505050;
     text-decoration: none;
     text-align: center;
     text-transform: uppercase;
@@ -518,7 +515,7 @@ p{
 }
 
 #BoutonCancel a{
-    background: #444444;
+    background: #505050;
     display:inline-block;
     float:left;
     margin-top:35px;
@@ -568,27 +565,27 @@ p{
     text-align: center;
     margin-left:95px;
     text-decoration: none;
-    color: #444444;
+    color: #cccccb;
     font-size:14px;
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
 }
 
 #global a#btnCancel:hover{
-    color:#e51e44;
+    color:#ed6a56;
 }
 
 #global a#btnPriv:hover{
-    color:#009daa;
+    color:#efae3e;
 }
 
 #global a#btnPub:hover{
-    color:#9fc53f;
+    color:#8ec04d;
 }
 
 #record_cancel{
     font-family: Trebuchet,"Trebuchet MS",Arial,Helvetica,Sans-serif;
     font-size:12px;
-    color:#000000;
+    color:#ffffff;
     margin-left:30px;
     line-height:40px;
 }

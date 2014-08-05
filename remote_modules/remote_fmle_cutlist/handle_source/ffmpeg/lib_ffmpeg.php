@@ -202,8 +202,8 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     // deletes the temporary text file
     unlink("$movie_path/tmp.txt");
 
-    //   if ($tmp_dir != '')
-    //     exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
+    if ($tmp_dir != '')
+      exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
     //check returncode
     if ($returncode) {
         return join("\n", $cmdoutput);

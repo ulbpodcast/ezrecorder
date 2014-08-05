@@ -141,9 +141,9 @@ function starttime_get() {
  * Only used for local purposes
  */
 function lastmodtime_get() {
-    global $remoteqtbcapture_file;
+    global $remoteqtb_capture_file;
 
-    return filemtime($remoteqtbcapture_file);
+    return filemtime($remoteqtb_capture_file);
 }
 
 

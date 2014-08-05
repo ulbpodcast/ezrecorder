@@ -48,13 +48,23 @@ $recovery_threshold = 20; // Threshold before we start worrying about FMLE
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
 //$timeout = 30;
 $sleep_time = 20; // Duration of the sleep between two checks
+$pid = getmypid();
 
 set_time_limit(0);
-fwrite(fopen($localfmle_monitoring_file, 'w'), getmypid());
+fwrite(fopen($localfmle_monitoring_file, 'w'), $pid);
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
-
+        
+    // We stop if the file does not exist anymore ("kill -9" simulation)
+    // or the file containsan other pid
+    // or the status is not set (should be open / recording / paused / stopped)
+    if (!file_exists($localfmle_monitoring_file) 
+            || $pid != file_get_contents($localfmle_monitoring_file)
+            || capture_localfmle_status_get() == '') {
+        die;
+    }
+    
     // FMLE check
     clearstatcache();
     $files = glob("$localfmle_recorddir/$localfmle_movie_name*.f4v");
@@ -105,11 +115,6 @@ while (true) {
     //*/
 
     sleep($sleep_time);
-
-    // We stop if the file does not exist anymore ("kill -9" simulation)
-    if (!file_exists($localfmle_monitoring_file)) {
-        die;
-    }
 }
 
 function send_timeout() {

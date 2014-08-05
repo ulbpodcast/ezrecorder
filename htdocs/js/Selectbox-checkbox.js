@@ -1,7 +1,7 @@
 
 
 var checkboxHeight = "25";
-var radioHeight = "56";
+var radioHeight = "111";
 var selectWidth = "290";
 
 
@@ -23,7 +23,7 @@ var Custom = {
 						position = "0 -" + (checkboxHeight*2) + "px";
 						span[a].style.backgroundPosition = position;
 					} else {
-						position = "0 -" + (radioHeight*2) + "px";
+						position = "0 -" + (radioHeight) + "px";
 						span[a].style.backgroundPosition = position;
 					}
 				}
@@ -67,11 +67,11 @@ var Custom = {
 		if(element.checked == true && element.type == "checkbox") {
 			this.style.backgroundPosition = "0 -" + checkboxHeight*3 + "px";
 		} else if(element.checked == true && element.type == "radio") {
-			this.style.backgroundPosition = "0 -" + radioHeight*3 + "px";
+			this.style.backgroundPosition = "0 -" + radioHeight*2 + "px";
 		} else if(element.checked != true && element.type == "checkbox") {
 			this.style.backgroundPosition = "0 -" + checkboxHeight*2 + "px";
 		} else {
-			this.style.backgroundPosition = "0 -" + radioHeight*2 + "px";
+			this.style.backgroundPosition = "0 -" + radioHeight + "px";
 		}
 	},
 	check: function() {
@@ -83,7 +83,7 @@ var Custom = {
 			if(element.type == "checkbox") {
 				this.style.backgroundPosition = "0 -" + checkboxHeight*2 + "px";
 			} else {
-				this.style.backgroundPosition = "0 -" + radioHeight*2 + "px";
+				this.style.backgroundPosition = "0 -" + radioHeight + "px";
 				group = this.nextSibling.name;
 				inputs = document.getElementsByTagName("input");
 				for(a = 0; a < inputs.length; a++) {
@@ -103,7 +103,7 @@ var Custom = {
 			} else if(inputs[b].type == "checkbox" && inputs[b].className == "styled") {
 				inputs[b].previousSibling.style.backgroundPosition = "0 0";
 			} else if(inputs[b].type == "radio" && inputs[b].checked == true && inputs[b].className == "styled") {
-				inputs[b].previousSibling.style.backgroundPosition = "0 -" + radioHeight*2 + "px";
+				inputs[b].previousSibling.style.backgroundPosition = "0 -" + radioHeight + "px";
 			} else if(inputs[b].type == "radio" && inputs[b].className == "styled") {
 				inputs[b].previousSibling.style.backgroundPosition = "0 0";
 			}

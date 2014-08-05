@@ -95,7 +95,7 @@ switch ($choice) {
         $recorder = 'ezcast';
         break;
     default: 
-        $classroom = "podcs-s-v";
+        $classroom = "podcv-s-v";
         $recorder = 'ezrecorder';
         break;
 }

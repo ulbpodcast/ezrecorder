@@ -326,7 +326,6 @@ function capture_localfmle_thumbnail() {
     global $localfmle_capture_file;
     global $localfmle_last_request_file;
     global $localfmle_username;
-    global $localfmle_status_file;
 
     touch($localfmle_last_request_file);
 
@@ -342,7 +341,8 @@ function capture_localfmle_thumbnail() {
             copy("./nopic.jpg", $localfmle_capture_file);
         } else {
             //copy screencapture to actual snap
-            image_resize("$localfmle_basedir/var/pic_new.jpg", "$localfmle_basedir/var/pic_new_www.jpg", 235, 157, $localfmle_status_file);
+            $status = capture_localfmle_status_get();
+            image_resize("$localfmle_basedir/var/pic_new.jpg", "$localfmle_basedir/var/pic_new_www.jpg", 235, 157, $status, false);
             rename("$localfmle_basedir/var/pic_new_www.jpg", $localfmle_capture_file);
         }
     }

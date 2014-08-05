@@ -47,12 +47,23 @@ $recovery_threshold = 20; // Threshold before we start worrying about QTB
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
 //$timeout = 30;
 $sleep_time = 20; // Duration of the sleep between two checks
+$pid = getmygid();
 
+rec_status_set('');
 set_time_limit(0);
-fwrite(fopen($remotefmle_monitoring_file, 'w'), getmypid());
+fwrite(fopen($remotefmle_monitoring_file, 'w'), $pid);
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
+    
+    // We stop if the file does not exist anymore ("kill -9" simulation)
+    // or the file containsan other pid
+    // or the status is not set (should be open / recording / paused / stopped)
+    if (!file_exists($remotefmle_monitoring_file) 
+            || $pid != file_get_contents($remotefmle_monitoring_file)
+            || status_get() == '') {
+        die;
+    }
 
     // FMLE check
     clearstatcache();
@@ -62,7 +73,7 @@ while (true) {
         rec_status_set('recording');
 
     // Checking when was the last modif
-    // (remember: quicktime broadcaster uses several qtbmovie files)
+    // (remember: FMLE uses several movie files)
     $last_modif = 0;
     foreach ($files as $file) {
         $last_modif = max($last_modif, filemtime($file));
@@ -74,7 +85,7 @@ while (true) {
         rec_status_set('stopped');
         system("osascript $remotefmle_open; wait;");
         system("osascript $remotefmle_action; wait");
-        //log_append('warning', 'Quicktime Broadcaster crashed. Recording will resume, but rendering will probably fail.');
+
         mail($mailto_admins, 'FMLE crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
 
 
@@ -105,11 +116,15 @@ while (true) {
     //*/
 
     sleep($sleep_time);
+}
 
-    // We stop if the file does not exist anymore ("kill -9" simulation)
-    if (!file_exists($remotefmle_monitoring_file)) {
-        die;
-    }
+function status_get() {
+    global $remotefmle_status_file;
+
+    if (!file_exists($remotefmle_status_file))
+        return '';
+
+    return trim(file_get_contents($remotefmle_status_file));
 }
 
 function rec_status_get() {
@@ -147,9 +162,9 @@ function starttime_get() {
  * Only used for local purposes
  */
 function lastmodtime_get() {
-    global $remotefmlecapture_file;
+    global $remotefmle_capture_file;
 
-    return filemtime($remotefmlecapture_file);
+    return filemtime($remotefmle_capture_file);
 }
 
 function send_timeout() {
