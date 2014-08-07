@@ -1,0 +1,188 @@
+<html><body>
+<h2>Pan/Tilt Commands:</h2>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_reset</strong><br>
+    <input value="set_pantilt_reset" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Initialize pan/tilt motors
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_home</strong><br>
+    <input value="set_pantilt_home" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Set pan/tilt position to center
+</form>
+<form action="list.php" target="listtop">
+  <strong>GOTO</strong><br>
+    <input value="goto" type="hidden" name="command">
+     pan_position:<input name="var1" size="4">
+     tilt_position:<input name="var2" size="4">
+    <input type="submit" value="Go"><br>
+  Set pan/tilt position to center
+</form>
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_limit_upright</strong><br>
+  <input value="set_pantilt_limit_upright" type="hidden" name="command">
+  pan_limit:<input name="var1" size="4">
+  tilt_limit:<input name="var2" size="4">
+  <input type="submit" value="Go"><br>
+  Limit pan/tilt movement, set upper right corner.
+  Pan limit: -879 to 880, Tilt limit: -299 to 300
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_limit_upright_clear</strong><br>
+    <input value="set_pantilt_limit_upright_clear" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Remove pan/tilt limits for upper right position
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_limit_downleft</strong><br>
+  <input value="set_pantilt_limit_downleft" type="hidden" name="command">
+  pan_limit:<input name="var1" size="4">
+  tilt_limit:<input name="var2" size="4">
+  <input type="submit" value="Go"><br>
+  Limit pan/tilt movement, set lower left corner.
+  Pan limit: -879 to 880, Tilt limit: -299 to 300
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_limit_downleft_clear</strong><br>
+    <input value="set_pantilt_limit_downleft_clear" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Remove pan/tilt limits for lower left position
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_absolute_position</strong><br>
+  <input value="set_pantilt_absolute_position" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  pan_position:<input name="var3" size="4">
+  tilt_position:<input name="var4" size="4">
+  <input type="submit" value="Go"><br>
+  Set absolute pan/tilt position.
+  pan_speed from 1 to 24, tilt_speed from 1 to 20,
+  pan_position: -879 to 880, tilt_position: -299 to 300
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_relative_position</strong><br>
+  <input value="set_pantilt_relative_position" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  pan_position:<input name="var3" size="4">
+  tilt_position:<input name="var4" size="4">
+  <input type="submit" value="Go"><br>
+  Set relative pan/tilt position.
+  pan_speed from 1 to 24, tilt_speed from 1 to 20,
+  pan_position: -879 to 880, tilt_position: -299 to 300
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_up</strong><br>
+  <input value="set_pantilt_up" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt upwards with a pan_speed between 1 and 24
+  and a tilt_speed between 1 and 20
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_down</strong><br>
+  <input value="set_pantilt_down" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt downwards with a pan_speed between 1 and 24
+  and a tilt_speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_left</strong><br>
+  <input value="set_pantilt_left" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Pan left with a pan_speed between 1 and 24
+  and a tilt_speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_right</strong><br>
+  <input value="set_pantilt_right" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Pan right with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_upleft</strong><br>
+  <input value="set_pantilt_upleft" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt upwards and pan left with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_upright</strong><br>
+  <input value="set_pantilt_upright" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt upwards and pan right with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_downleft</strong><br>
+  <input value="set_pantilt_downleft" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt downwards and pan left with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_downright</strong><br>
+  <input value="set_pantilt_downright" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Tilt downwards and pan right with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_pantilt_stop</strong><br>
+  <input value="set_pantilt_stop" type="hidden" name="command">
+  pan_speed:<input name="var1" size="4" value="24">
+  tilt_speed:<input name="var2" size="4" value="20">
+  <input type="submit" value="Go"><br>
+  Stop panning and tilting with a pan_speed between 1 and 24
+  and a tilt speed between 1 and 20  
+</form>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+</body>
+</html>

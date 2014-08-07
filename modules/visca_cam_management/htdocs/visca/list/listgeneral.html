@@ -1,0 +1,114 @@
+<html><body>
+<h2>General Commands:</h2>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_power</strong><br>
+    <input value="set_power" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the power state to on (1) or off (0)
+</form>
+
+<hr>
+
+
+<form action="list.php" target="listtop">
+  <strong>set_irreceive_on</strong><br>
+    <input value="set_irreceive_on" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Enable IR remote controller
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_irreceive_off</strong><br>
+    <input value="set_irreceive_off" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Disable IR remote controller
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_irreceive_onoff</strong><br>
+    <input value="set_irreceive_onoff" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Toggle IR remote controller
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_datascreen_on</strong><br>
+    <input value="set_datascreen_on" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Show data display
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_datascreen_off</strong><br>
+    <input value="set_datascreen_off" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Hide data display
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_datascreen_onoff</strong><br>
+    <input value="set_datascreen_onoff" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Toggle data display
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_keylock</strong><br>
+    <input value="set_keylock" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the keylock to on (1) or off (0)  
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>memory_set</strong><br>
+    <input value="memory_set" type="hidden" name="command">
+    channel:<input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Save the current position to a channel
+  between 0 and 5
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>memory_recall</strong><br>
+    <input value="memory_recall" type="hidden" name="command">
+    channel:<input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Recall the current position from
+  a channel between 0 and 5
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>memory_reset</strong><br>
+    <input value="memory_reset" type="hidden" name="command">
+    channel:<input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Reset a channel between 0 and 5
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_wide_con_lens</strong><br>
+  <input value="set_wide_con_lens" type="hidden" name="command">
+  conversion:<input name="var1" size="4">
+  <input type="submit" value="Go"><br>
+  AT compensation when a wide conversion lens is installed,
+  0: No conversion to 7: X0.6 conversion)
+</form>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+</body></html>

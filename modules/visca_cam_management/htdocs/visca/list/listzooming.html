@@ -1,0 +1,57 @@
+<html><body>
+<h2>Zooming Commands:</h2>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_value</strong><br>
+    <input value="set_zoom_value" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the zoom to a given value between 0 and 1023
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_tele</strong><br>
+    <input value="set_zoom_tele" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Set the zoom to maximum
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_tele_speed</strong><br>
+    <input value="set_zoom_tele_speed" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the zoom to maximum with a speed 
+  between 2 and 7
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_wide</strong><br>
+    <input value="set_zoom_wide" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Set the zoom to minimum
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_wide_speed</strong><br>
+    <input value="set_zoom_wide_speed" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the zoom to minimum with a speed between 2 and 7
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_zoom_stop</strong><br>
+    <input value="set_zoom_stop" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Stop zooming
+</form>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+</body></html>
+
