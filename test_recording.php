@@ -47,55 +47,86 @@ echo "First, you are going to enter some specific settings for the tests." . PHP
 echo "-------------------------------------------------------------------" . PHP_EOL . PHP_EOL;
 echo "Select the classroom you want to perform the tests: " . PHP_EOL;
 echo " - S-V (Recorder devl) [1]" . PHP_EOL;
-echo " - S-R42-5-503         [2]" . PHP_EOL;
-echo " - S-R42-5-110         [3]" . PHP_EOL;
-echo " - S-UB2-147           [4]" . PHP_EOL;
-echo " - S-UD2-118           [5]" . PHP_EOL;
-echo " - S-K                 [6]" . PHP_EOL;
-echo " - P-FORUM-B           [7]" . PHP_EOL;
-echo " - E-J                 [8]" . PHP_EOL;
-echo " - E-BREMER            [9]" . PHP_EOL;
-echo " - E-F2-303            [10]" . PHP_EOL;
+echo " - S-R42-4-502         [2]" . PHP_EOL;
+echo " - S-R42-5-503         [3]" . PHP_EOL;
+echo " - S-R42-5-110         [4]" . PHP_EOL;
+echo " - S-UB2-147           [5]" . PHP_EOL;
+echo " - S-UB5-230           [6]" . PHP_EOL;
+echo " - S-UD2-120           [7]" . PHP_EOL;
+echo " - S-UD2-218           [8]" . PHP_EOL;
+echo " - S-K                 [9]" . PHP_EOL;
+echo " - S-H2215             [10]" . PHP_EOL;
+echo " - S-AY2-112           [11]" . PHP_EOL;
+echo " - P-FORUM-B           [12]" . PHP_EOL;
+echo " - E-J                 [13]" . PHP_EOL;
+echo " - E-BREMER            [14]" . PHP_EOL;
+echo " - E-F2-303            [15]" . PHP_EOL;
+echo " - E-SAND              [16]" . PHP_EOL;
+
 $choice = readline("Choice [default: $default_classroom]: ");
 switch ($choice) {
     case 2: 
-        $classroom = "podcv-s-r42-5-503";
-        $recorder = 'ezcast';
+        $classroom = "164.15.50.212";
+        $recorder = 'ezrecorder';
         break;
     case 3: 
-        $classroom = "podc-s-r42-5-110";
+        $classroom = "podcv-s-r42-5-503.ulb.ac.be";
         $recorder = 'ezcast';
         break;
     case 4: 
-        $classroom = "podcv-s-ub2";
-        $recorder = 'ezcast';
+        $classroom = "podc-s-r42-5-110.ulb.ac.be";
+        $recorder = 'ezrecorder';
         break;
     case 5: 
-        $classroom = "podcv-s-ud2";
+        $classroom = "podcv-s-ub2.ulb.ac.be";
         $recorder = 'ezcast';
         break;
     case 6: 
-        $classroom = "podcv-s-k";
-        $recorder = 'ezcast';
+        $classroom = "podcv-s-ub5-230.ulb.ac.be";
+        $recorder = 'ezrecorder';
         break;
     case 7: 
-        $classroom = "podcv-p-forumb";
-        $recorder = 'ezcast';
+        $classroom = "podcv-s-ud2-120.ulb.ac.be";
+        $recorder = 'ezrecorder';
         break;
     case 8: 
-        $classroom = "podcv-e-j";
+        $classroom = "podcv-s-ud2.ulb.ac.be";
         $recorder = 'ezcast';
         break;
     case 9: 
-        $classroom = "podcv-e-bremer";
+        $classroom = "podcv-s-k.ulb.ac.be";
         $recorder = 'ezcast';
         break;
     case 10: 
-        $classroom = "podcv-e-f2";
+        $classroom = "podcv-s-h2215.ulb.ac.be";
+        $recorder = 'ezrecorder';
+        break;
+    case 11: 
+        $classroom = "podcv-s-ay2-112.ulb.ac.be";
+        $recorder = 'ezrecorder';
+        break;
+    case 12: 
+        $classroom = "podcv-p-forumb.ulb.ac.be";
         $recorder = 'ezcast';
         break;
+    case 13: 
+        $classroom = "podcv-e-j.ulb.ac.be";
+        $recorder = 'ezcast';
+        break;
+    case 14: 
+        $classroom = "podcv-e-bremer.ulb.ac.be";
+        $recorder = 'ezcast';
+        break;
+    case 15: 
+        $classroom = "podcv-e-f2.ulb.ac.be";
+        $recorder = 'ezcast';
+        break;
+    case 16: 
+        $classroom = "podcv-e-sand.ulb.ac.be";
+        $recorder = 'ezrecorder';
+        break;
     default: 
-        $classroom = "podcv-s-v";
+        $classroom = "podcv-s-v.ulb.ac.be";
         $recorder = 'ezrecorder';
         break;
 }
@@ -107,7 +138,7 @@ $settings = false;
 do {
 // Login the user
     display_logs("Logins the user [$username]");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?action=login&login=$username&passwd=$password");
+    $response = curl_read_url("http://$classroom/$recorder/index.php?action=login&login=$username&passwd=$password");
     $response = explode("\n", $response);
     display_logs($response[1]);
     if (strpos($response[1], 'login screen') !== false) {
@@ -147,7 +178,9 @@ do {
         if ($records > 1){
             $choice = readline("Enter delay between two recordings (in seconds) [default: $default_delay_between_records]: ");
             $delay_between_records = (is_numeric($choice) && $choice > 5) ? $choice : $default_delay_between_records;
-        }
+        } else {
+		$delay_between_records = $default_delay_between_records;
+	}
 
         file_put_contents($logs_file, "***********************************************************" . PHP_EOL, FILE_APPEND);
         file_put_contents($logs_file, "*              R E C O R D E R    T E S T                 *" . PHP_EOL, FILE_APPEND);
@@ -172,10 +205,10 @@ do {
 // Submit values for recording
     display_logs("Submits form values for the recording");
 
-    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
+    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
             "action=submit_record_infos" .
             "&course=$album" .
-            "&title=${classroom}_${date}_" . (($default_records+1) - $records) .
+            "&title=${classroom}%0A-%0A${date}%0A-%0A" . (($default_records+1) - $records) .
             "&description=Record%3A+$default_records%0D%0APause%3A+$default_pause%0D%0APause+duration%3A+$pause_delay%0D%0APart+duration%3A+$part_duration%0D%0AType%3A+$camslide" .
             "&record_type=$camslide");
 
@@ -185,7 +218,7 @@ do {
     do {
 // Recording start
         display_logs((($action == "recording_start") ? "Starts" : "Resumes") . " the recording [" . (($default_records+1) - $records) ."]");
-        $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
+        $response = curl_read_url("http://$classroom/$recorder/index.php?" .
                 "action=$action");
 
 // Records for N seconds
@@ -194,7 +227,7 @@ do {
 // Pauses the recording if required
         if ($pause > 0) {
             display_logs("Pauses the recording");
-            $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
+            $response = curl_read_url("http://$classroom/$recorder/index.php?" .
                     "action=recording_pause");
 
 // Wait for the pause
@@ -206,12 +239,12 @@ do {
 
 // Recording stop
     display_logs("Stops the recording");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
+    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
             "action=view_record_submit");
 
 // Publish in private album
     display_logs("Publishes recording in album [moderation : $moderation]");
-    $response = curl_read_url("http://$classroom.ulb.ac.be/$recorder/index.php?" .
+    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
             "action=recording_stop" .
             "&moderation=$moderation");
 
