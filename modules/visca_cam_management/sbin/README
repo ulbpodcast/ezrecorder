@@ -1,0 +1,17 @@
+For controlling VISCA camera, follow these steps:
+-------------------------------------------------
+
+1. Install the appropriate Keyspan driver (from www.tripplite.com)
+2. Copy visca-daemon and visca-daemon.bash from 
+   <ezrecorder_root_dir>/modules/visca_cam_management/sbin to /usr/local/sbin
+3. Copy be.ulb.visca-daemon.plist from 
+   <ezrecorder_root_dir>/modules/visca_cam_management/sbin to /Library/LaunchDaemons/
+4. Copy visca directory from <ezrecorder_root_dir>/modules/visca_cam_management/htdocs
+   to your Webspace (/Library/WebServer/Documents/)
+5. Make sure /usr/local/sbin/visca-daemon is executable (chmod 655)
+6. Make sure <Apache user> has write permissions on <Webspace>/visca
+7. Plug the keyspan in the Mac mini
+
+==> You can verify that Visca server is running by using:
+telnet localhost 3376
+

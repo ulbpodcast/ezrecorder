@@ -1,0 +1,114 @@
+<html><body>
+<img src="ir2.jpg" width="166" height="600" border="0" usemap="#ir-map" />
+<br><br>
+
+<form action="remote.php" target="remotetop">
+<p>Choose speed of Pan/Tilt operations:</p>
+<p>
+<!--<input type="radio" name="speed" value="1">Very Low<br>
+<input type="radio" name="speed" value="5">Low<br>
+<input type="radio" name="speed" value="10">Average<br>
+<input type="radio" name="speed" value="15">High<br>
+<input type="radio" name="speed" value="20">Very High<br>
+<input type="submit" value="Set">
+-->
+<select onchange="" name="speed">
+    <option value="" selected>Speed</option>
+    <option value="1" >Very Low</option>
+    <option value="5" >Low</option>
+    <option value="10" >Average</option>
+    <option value="15" >High</option>
+    <option value="20" >Very High</option>
+</select>
+<select onchange="" name="speed">
+    <option value="" selected>Set position</option>
+<?php for($idx=0;$idx<$nbpos;$idx++){ ?>
+    <option value="<?php " ></option>
+<?php } //end for ?>
+</select>
+</p>
+</form>
+
+<map name="ir-map">
+<!-- #$-:Image Map file created by GIMP Imagemap Plugin -->
+<!-- #$-:GIMP Imagemap Plugin by Maurits Rijk -->
+<!-- #$-:Please do not edit lines starting with "#$" -->
+<!-- #$VERSION:1.4 -->
+<!-- #$AUTHOR:Simon Bichler -->
+<area shape="circle" coords="136,52,10" alt="Power" target="remotetop" 
+  href="remote.php?button=power" />
+<area shape="circle" coords="41,51,10" alt="Back Light" target="remotetop" 
+  href="remote.php?button=backlight" />
+<area shape="circle" coords="40,120,7" alt="Focus Far" target="remotetop" 
+  href="remote.php?button=far" />
+<area shape="circle" coords="39,147,7" alt="Focus Near" target="remotetop" 
+  href="remote.php?button=near" />
+<area shape="rect" coords="27,165,52,176" alt="Focus Manual" target="remotetop" 
+  href="remote.php?button=manualfocus" />
+<area shape="circle" coords="72,120,7" alt="AT On/Off" target="remotetop" 
+  href="remote.php?button=atonoff" />
+<area shape="circle" coords="105,122,8" alt="AT Offset" target="remotetop" 
+  href="remote.php?button=offset" />
+<area shape="rect" coords="28,89,53,101" alt="Focus Auto" target="remotetop" 
+  href="remote.php?button=autofocus" />
+<area shape="circle" coords="136,121,8" alt="AT Entry" target="remotetop" 
+  href="remote.php?button=atentry" />
+<area shape="circle" coords="72,146,8" alt="AT Chase Mode" target="remotetop" 
+  href="remote.php?button=atchase" />
+<area shape="circle" coords="104,147,9" alt="AT AE Mode" target="remotetop" 
+  href="remote.php?button=atae" />
+<area shape="circle" coords="136,148,8" alt="AT Auto Zoom" target="remotetop" 
+  href="remote.php?button=ataz" />
+<area shape="rect" coords="59,166,84,177" alt="MD On/Off" target="remotetop" 
+  href="remote.php?button=mdonoff" />
+<area shape="rect" coords="91,166,115,177" alt="MD Frame" target="remotetop" 
+  href="remote.php?button=mdframe" />
+<area shape="rect" coords="124,167,147,178" alt="MD Detect" target="remotetop" 
+  href="remote.php?button=mddetect" />
+<area shape="circle" coords="55,197,11" alt="Data Screen" target="remotetop" 
+  href="remote.php?button=datascreen" />
+<area shape="circle" coords="88,197,11" alt="Start / Stop" target="remotetop" 
+  href="remote.php?button=startstop" />
+<area shape="circle" coords="120,197,11" alt="Frame Display" target="remotetop" 
+  href="remote.php?button=framedisplay" />
+<area shape="circle" coords="55,226,12" alt="Memory 1" target="remotetop" 
+  href="remote.php?button=mem1" />
+<area shape="circle" coords="87,225,12" alt="Memory 2" target="remotetop" 
+  href="remote.php?button=mem2" />
+<area shape="circle" coords="119,225,11" alt="Memory 3" target="remotetop" 
+  href="remote.php?button=mem3" />
+<area shape="circle" coords="54,253,12" alt="Memory 4" target="remotetop" 
+  href="remote.php?button=mem4" />
+<area shape="circle" coords="87,254,12" alt="Memory 5" target="remotetop" 
+  href="remote.php?button=mem5" />
+<area shape="circle" coords="118,254,12" alt="Memory 6" target="remotetop" 
+  href="remote.php?button=mem6" />
+<area shape="circle" coords="54,281,9" alt="Memory Preset" target="remotetop" 
+  href="remote.php?button=preset" />
+<area shape="circle" coords="118,281,9" alt="Memory Reset" target="remotetop" 
+  href="remote.php?button=reset" />
+<area shape="rect" coords="67,329,103,349" alt="Home" target="remotetop" 
+  href="remote.php?button=home" />
+<area shape="rect" coords="121,364,146,378" alt="Pan-Tilt Reset" target="remotetop" 
+  href="remote.php?button=ptreset" />
+<area shape="poly" coords="63,311,70,308,101,309,108,313,101,323,69,323" 
+  alt="Up" target="remotetop" href="remote.php?button=up" />
+<area shape="poly" coords="56,316,65,327,60,337,64,351,56,359,48,346,48,331" 
+  alt="Left" target="remotetop" href="remote.php?button=left" />
+<area shape="poly" 
+  coords="114,318,122,329,123,346,115,361,106,351,111,339,105,328" 
+  alt="Right" target="remotetop" href="remote.php?button=right" />
+<area shape="poly" coords="71,355,99,355,108,366,97,369,71,369,64,365" 
+  alt="Down" target="remotetop" href="remote.php?button=down" />
+<area shape="rect" coords="22,469,48,482" alt="L/R Direction Set" target="remotetop" 
+  href="remote.php?button=direction" />
+<area shape="circle" coords="62,407,14" alt="Slow Zoom In" target="remotetop" 
+  href="remote.php?button=slowtele" />
+<area shape="circle" coords="61,444,13" alt="Slow Zoom Out" target="remotetop" 
+  href="remote.php?button=slowwide" />
+<area shape="circle" coords="106,408,14" alt="Fast Zoom In" target="remotetop" 
+  href="remote.php?button=fasttele" />
+<area shape="circle" coords="106,443,14" alt="Fast Zoom Out" target="remotetop" 
+  href="remote.php?button=fastwide" />
+</map>
+</body></html>

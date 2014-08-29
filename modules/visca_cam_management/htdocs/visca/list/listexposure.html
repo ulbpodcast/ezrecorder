@@ -1,0 +1,169 @@
+<html><body>
+<h2>Exposure Commands:</h2>
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_backlight_comp</strong><br>
+    <input value="set_backlight_comp" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Turn the backlight compensation on (1) or off (0)
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_whitebal_mode</strong><br>
+    <input value="set_whitebal_mode" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the whitebalance mode to 0: Auto, 1: Indoor, 2: Outdoor, 3: OnePush
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_whitebal_one_push</strong><br>
+    <input value="set_whitebal_one_push" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Push trigger for whitebalance in OnePush mode
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_auto_exp_mode</strong><br>
+    <input value="set_auto_exp_mode" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the AE mode to 0: Full Auto, 
+  3: Manual, 10: Shutter priority, 
+  11: Iris priority, 13: Bright Mode
+</form>
+
+<hr>
+
+
+<form action="list.php" target="listtop">
+  <strong>set_shutter_value</strong><br>
+    <input value="set_shutter_value" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  Set the shutter value between
+  0: 1/60 and 27: 1/10000
+</form>
+
+
+<form action="list.php" target="listtop">
+  <strong>set_shutter_up</strong><br>
+    <input value="set_shutter_up" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Increase the shutter speed, available only 
+  with shutter_priority or AE_Manual
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_shutter_down</strong><br>
+    <input value="set_shutter_down" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Decrease the shutter speed, available only 
+  with shutter_priority or AE_Manual
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_shutter_reset</strong><br>
+    <input value="set_shutter_reset" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Reset the shutter speed, available only 
+  with shutter_priority or AE_Manual
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_iris_value</strong><br>
+    <input value="set_iris_value" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  set the iris opening to a value 
+  between 0: closed and 17: F1.8
+</form>
+<form action="list.php" target="listtop">
+  <strong>set_iris_up</strong><br>
+    <input value="set_iris_up" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Open up the iris, available only 
+  with iris_priority or AE_Manual
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_iris_down</strong><br>
+    <input value="set_iris_down" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Close the iris, available only with
+  iris_priority or AE_Manual
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_iris_reset</strong><br>
+    <input value="set_iris_reset" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Reset the iris, available only with
+  iris_priority or AE_Manual
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_gain_value</strong><br>
+    <input value="set_gain_value" type="hidden" name="command">
+    <input name="var1" size="4">
+    <input type="submit" value="Go"><br>  
+  set the gain value between
+  1: 0dB and 7: +18dB
+</form>
+
+
+<form action="list.php" target="listtop">
+  <strong>set_gain_up</strong><br>
+    <input value="set_gain_up" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Increase the gain, available only with AE_Manual
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_gain_down</strong><br>
+    <input value="set_gain_down" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Reset the gain, available only with AE_Manual
+</form>
+
+<hr>
+
+<form action="list.php" target="listtop">
+  <strong>set_bright_up</strong><br>
+    <input value="set_bright_up" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  brighten the image, available only with bright_mode
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_bright_down</strong><br>
+    <input value="set_bright_down" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Darken the image, available only with bright_mode
+</form>
+
+<form action="list.php" target="listtop">
+  <strong>set_bright_reset</strong><br>
+    <input value="set_bright_reset" type="hidden" name="command">
+    <input type="submit" value="Go"><br>  
+  Reset the image brightness, available only with bright_mode
+</form>
+
+<hr>
+
+<a href="listoverview.html" target="listbottom">Back to overview</a>
+
+</body></html>
+

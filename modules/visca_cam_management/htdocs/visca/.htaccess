@@ -1,0 +1,4 @@
+AuthUserfile /Library/WebServer/Documents/visca/.htpasswd 
+AuthType Basic
+AuthName "VISCA Sony camera control"
+Require valid-user

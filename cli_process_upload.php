@@ -124,10 +124,12 @@ function server_start_download($record_type,$record_date,$course_name, $cam_down
 global $ezcast_submit_url;
 global $tmp_dir;
 global $recorder_version;
+global $php_cli_cmd;
 
 $post_array['record_type']=$record_type;
 $post_array['record_date']=$record_date;
 $post_array['course_name']=$course_name;
+$post_array['php_cli']=$php_cli_cmd;
 
 $post_array['metadata_file'] = $tmp_dir."/metadata.xml";
 
