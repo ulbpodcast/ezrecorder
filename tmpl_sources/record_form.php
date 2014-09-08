@@ -70,7 +70,8 @@ This it the template of the new record form. This template is displayed when a n
             }
             
             function loading_popup() {
-                $.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
+    //            $.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
+                $("#loading").show();                
             }
         </script>
     </head>
@@ -91,10 +92,10 @@ This it the template of the new record form. This template is displayed when a n
 
 </div>
     
-    <div style="display: none;">
+    <div id="loading">
         <div class="popup" id="loading_popup" style="background-color: black">
-            <div style="text-align: center"><img src="images/loading.gif" /></div>
-            <br/><br/>
+            <!--div style="text-align: center;"><img src="images/loading.gif" /></div>
+            <br/><br/-->
             <div style="color:white; text-align: center; border-style: solid; border-width: 1px; border-color: white; padding: 5px; font-family: Arial; font-size: 0.85em">®wait®</div>
         </div>
     </div>

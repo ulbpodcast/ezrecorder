@@ -79,6 +79,10 @@ body{
     margin: 0 auto;
 }
 
+.logo a {
+    margin-right: 15px;
+}
+
 #global{
     position:relative;
     min-height:100%;

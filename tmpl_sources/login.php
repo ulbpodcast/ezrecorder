@@ -42,47 +42,46 @@ This is the template for the login screen.
                 font-size: 10px;
             }
         </style>
-        
+
         <script type="text/javascript">
             function iecheck() {
-                if(navigator.appVersion.indexOf("MSIE 6.")!=-1 || navigator.appVersion.indexOf("MSIE 7.")!=-1) {
+                if (navigator.appVersion.indexOf("MSIE 6.") != -1 || navigator.appVersion.indexOf("MSIE 7.") != -1) {
                     document.getElementById('IEalert').style.display = '';
                 }
             }
         </script>
     </head>
 
-<body onload="iecheck();">
-<div class="container">
-    <?php include 'div_main_header.php'; ?>
-<div id="global">
-    <p>
-        <div style="padding-left: 30px; color: red; font-weight: bold;"><?php echo $error; ?></div>
-        <form id="login_form" method="post" action="index.php">
-            <input type="hidden" name="action" value="login" />
-            <div style="color: red; display: none;" id="IEalert">®Navigator_not_compatible®</div>
-            <div style="float: left; margin-right: 50px;">
-                <label>®Login®:&nbsp;&nbsp;<input type="text" name="login" autocapitalize="off" autocorrect="off" tabindex="1" style="width: 150px;" /></label>
-                <br/>
-                <select name="lang" style="width: 100px;" tabindex="3">
-                    <option value="en">English</option>
-                    <option value="fr" selected="selected">Français</option>
-                </select>
+    <body onload="iecheck();">
+        <div class="container">
+            <?php include 'div_main_header.php'; ?>
+            <div id="global">
+                <p>
+                    <div style="padding-left: 30px; color: red; font-weight: bold;"><?php echo $error; ?></div>
+                    <form id="login_form" method="post" action="index.php">
+                        <input type="hidden" name="action" value="login" />
+                        <div style="color: red; display: none;" id="IEalert">®Navigator_not_compatible®</div>
+                        <div id="login_fields">
+                            <label>®Login®:&nbsp;&nbsp;<input type="text" name="login" autocapitalize="off" autocorrect="off" tabindex="1" style="width: 150px;" /></label>
+                            <br/>
+                            <label>®Password®:&nbsp;&nbsp;<input type="password" name="passwd" autocapitalize="off" autocorrect="off" tabindex="2" /></label>
+                        </div>
+
+                        <select name="lang" style="width: 100px;" tabindex="3">
+                            <option value="en">English</option>
+                            <option value="fr" selected="selected">Français</option>
+                        </select>
+
+                        <input type="submit" style="width: 100px;" tabindex="4" name="®Enter®" value="®Enter®" />
+
+                    </form>
+                </p>
+
             </div>
-            
-            <div style="float: left;">
-                <label>®Password®:&nbsp;&nbsp;<input type="password" name="passwd" autocapitalize="off" autocorrect="off" tabindex="2" /></label>
-                <br/>
-                <input type="submit" style="width: 100px;" tabindex="4" name="®Enter®" value="®Enter®" />
-            </div>
-        </form>
-    </p>
 
-</div>
-    
-<?php include 'div_main_footer.php'; ?>
+            <?php include 'div_main_footer.php'; ?>
 
-</div>
+        </div>
 
-</body>
+    </body>
 </html>

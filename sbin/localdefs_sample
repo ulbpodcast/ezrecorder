@@ -2,8 +2,8 @@
 #global variables for scripts
 CLASSROOM="!CLASSROOM"
 MESSAGE="$CLASSROOM wifi connection failed"
-PING_TIMEOUT=5
-WAIT_DELAY=40
+PING_TIMEOUT=45
+WAIT_DELAY=60
 IP="10.0.2.1"
 MAIL_TO="!MAIL_TO"
 EZCASTDIR="!PATH" 
