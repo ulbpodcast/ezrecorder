@@ -8,7 +8,7 @@
 	<string>be.ac.ulb.websharingfix</string>
 	<key>ProgramArguments</key>
 	<array>
-	  <string>/Library/ezcast_recorder/sbin/websharingfix.sh</string>
+	  <string>/Library/ezrecorder/sbin/websharingfix.sh</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>

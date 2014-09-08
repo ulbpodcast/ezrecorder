@@ -8,7 +8,7 @@
 	<string>be.ac.ulb.checkinternetsharing</string>
 	<key>ProgramArguments</key>
 	<array>
-	  <string>/Library/ezcast_recorder/sbin/checkinternetsharing.bash</string>
+	  <string>/Library/ezrecorder/sbin/checkinternetsharing.bash</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
