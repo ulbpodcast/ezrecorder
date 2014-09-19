@@ -56,8 +56,17 @@ if ($output > 1) {
     $res = movie_join_parts($movies_path, $commonpart, $outputfilename); //movie span on multiple files
     if ($res)
         myerror("Join movies error:$res");
-}else {
-    copy("$movies_path/$commonpart.f4v", "$movies_path/$outputfilename");
+}else {    
+    global $localfmle_mono;
+    if ($localfmle_mono){
+        global $ffmpegpath;
+        // reencodes video to duplicates mono source in right and left channels
+         $cmd="$ffmpegpath -i $movies_path/$commonpart.f4v -vcodec copy -ac 1 $movies_path/$outputfilename";
+         print $cmd . PHP_EOL;
+         exec($cmd, $cmdoutput, $returncode);
+    } else {        
+        copy("$movies_path/$commonpart.f4v", "$movies_path/$outputfilename");
+    }
 }
 
 function myerror($msg) {

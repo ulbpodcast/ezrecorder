@@ -57,7 +57,16 @@ if ($output > 1) {
     if ($res)
         myerror("Join movies error:$res");
 }else {
-    copy("$movies_path/$commonpart.mov", "$movies_path/$outputfilename");
+    global $localqtb_mono;
+    if ($localqtb_mono){
+        global $ffmpegpath;
+        // reencodes video to duplicates mono source in right and left channels
+         $cmd="$ffmpegpath -i $movies_path/$commonpart.mov -vcodec copy -ac 1 $movies_path/$outputfilename";
+         print $cmd . PHP_EOL;
+         exec($cmd, $cmdoutput, $returncode);
+    } else {        
+        copy("$movies_path/$commonpart.mov", "$movies_path/$outputfilename");
+    }
 }
 
 function myerror($msg) {

@@ -46,6 +46,7 @@ $localfmle_capture_file = $localfmle_basedir.'var/screencapture.jpg'; // Camera 
 $localfmle_processing_tool = "ffmpeg"; 
 $localfmle_processing_tools = array("ffmpeg");
 $ffmpegpath = "/usr/local/bin/ffmpeg";
+$localfmle_mono = true; // determines whether the input audio channel is mono or stereo
 
 $localfmle_upload_dir = $localfmle_recorddir . 'upload_to_server/';
 

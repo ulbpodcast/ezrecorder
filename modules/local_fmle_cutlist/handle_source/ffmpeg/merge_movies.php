@@ -59,7 +59,16 @@ if ($output > 1) {
     if ($res)
         myerror("Join movies error:$res");
 }else {
-    copy("$movies_path/$commonpart.f4v", "$movies_path/$outputfilename");
+    global $localfmle_mono;
+    if ($localfmle_mono){
+        global $ffmpegpath;
+        // reencodes video to duplicates mono source in right and left channels
+         $cmd="$ffmpegpath -i $movies_path/$commonpart.f4v -vcodec copy -ac 1 $movies_path/$outputfilename";
+         print $cmd . PHP_EOL;
+         exec($cmd, $cmdoutput, $returncode);
+    } else {        
+        copy("$movies_path/$commonpart.f4v", "$movies_path/$outputfilename");
+    }
 }
 
 //The recording is now concatenated (may have been in multiple parts)

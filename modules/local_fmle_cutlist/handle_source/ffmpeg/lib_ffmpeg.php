@@ -42,6 +42,7 @@ require_once dirname(__FILE__) . '/../../config.inc';
  */
 function movie_join_parts($movies_path, $commonpart, $output) {
     global $ffmpegpath;
+    global $localfmle_mono;
     $tmpdir = 'tmpdir';
 
     chdir($movies_path);
@@ -85,11 +86,12 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     // creates a temporary text file containing all video files to join
     $cmd = "for f in $movies_path/$tmpdir/$commonpart*.f4v; do echo \"file '\$f'\" >> $movies_path/tmp.txt; done";
     exec($cmd, $cmdoutput, $returncode);
+    $avcodecs = ($localfmle_mono) ? '-vcodec copy -ac 1' : '-c copy';
     // uses the temporary text file to concatenate the video files
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpegpath -f concat -i $movies_path/tmp.txt -c copy $movies_path/$output";
+    $cmd = "$ffmpegpath -f concat -i $movies_path/tmp.txt $avcodecs $movies_path/$output";
     print $cmd . PHP_EOL;
     exec($cmd, $cmdoutput, $returncode);
     // deletes the temporary text file

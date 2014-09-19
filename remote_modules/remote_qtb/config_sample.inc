@@ -44,6 +44,7 @@ $qtbposition = $remoteqtb_basedir . 'applescript/positionqtb.scpt';
 $remoteqtb_capture_file = $remoteqtb_basedir . 'var/pic_new.jpg';
 $remoteqtb_script_qtbpause = $remoteqtb_basedir . 'bash/qtbpause';
 $remoteqtb_script_qtbstop = $remoteqtb_basedir . 'bash/qtbstop';
+$remoteqtb_mono = true; // determines whether the input audio source is mono or stereo
 $ffmpegpath = "/usr/local/bin/ffmpeg";
 $php_path = "/usr/bin/php";
 ?>

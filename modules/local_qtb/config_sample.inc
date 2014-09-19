@@ -45,6 +45,7 @@ $localqtb_capture_file = $localqtb_basedir.'var/screencapture.jpg'; // Camera sc
 $localqtb_processing_tool = "ffmpeg"; // [ffmpeg | pcastaction]
 $localqtb_processing_tools = array("ffmpeg", "pcastaction");
 $ffmpegpath = "/usr/local/bin/ffmpeg";
+$localqtb_mono = true; // determines whether the input audio channel is mono or stereo
 
 $localqtb_upload_dir = $localqtb_recorddir . 'upload_to_server/';
 

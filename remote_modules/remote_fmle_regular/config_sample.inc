@@ -43,4 +43,5 @@ $remotefmle_action = $remotefmle_basedir . '/applescript/fmle_action.scpt';
 $remotefmle_capture_file = $remotefmle_basedir . 'var/pic_new.jpg';
 $ffmpegpath = "/usr/local/bin/ffmpeg";
 $php_path = "/usr/bin/php";
+$remotefmle_mono = true; // determines whether the input audio source is mono or stereo
 ?>

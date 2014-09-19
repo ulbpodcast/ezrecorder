@@ -45,6 +45,7 @@ $clifmle_capture_file = $clifmle_basedir.'var/screencapture.jpg'; // Camera scre
 $clifmle_processing_tool = "ffmpeg"; 
 $clifmle_processing_tools = array("ffmpeg");
 $ffmpegpath = "/usr/local/bin/ffmpeg";
+$clifmle_mono = true; // determines whether the input audio channel is mono or stereo
 
 $clifmle_upload_dir = $clifmle_recorddir . 'upload_to_server/';
 
