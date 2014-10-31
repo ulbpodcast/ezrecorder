@@ -58,7 +58,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     $files = array();
     if ($handle = opendir('.')) {
         // loops on files and put them in an array
-        while (false !== ($file = readdir($handle))) {
+        while (false !== ($file = readdir($handle))) { 
             if (strpos($file, $commonpart) !== false) {
                 $files[filectime($file)] = $file;
             }
@@ -69,7 +69,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         $index = 1;
         foreach ($files as $file) {
             // renames files 
-            rename($file, $commonpart . $index . ".f4v");
+            rename($file, $commonpart . sprintf("%03s", $index) . ".f4v");
             $index++;
         }
     }

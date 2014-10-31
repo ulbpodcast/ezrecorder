@@ -1,5 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!--
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=8" />
+        <meta name="viewport" content="width=device-width" />
+        <!--
  * EZCAST EZrecorder
  *
  * Copyright (C) 2014 Université libre de Bruxelles
@@ -24,12 +29,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Last step in the recording: we ask the user if they want their record to be submitted.
--->
-<html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=8" />
-        <meta name="viewport" content="width=device-width" />
+        -->
         <title>®Page_title®</title>
         <link rel="shortcut icon" type="image/ico" href="images/Generale/favicon.ico" />
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
@@ -42,39 +42,39 @@ Last step in the recording: we ask the user if they want their record to be subm
             $(document).ready(function() {
                 $.colorbox.remove();
             });
-            
+
             function publish(moderation) {
                 var message = '';
-                if(moderation == 'true') {
+                if (moderation == 'true') {
                     message = "®Unpublish®";
                 }
                 else {
                     message = "®Publish®";
                 }
-                
+
                 var res = window.confirm(message);
-                if(res)
-                    makeRequest('index.php', '?action=recording_stop&moderation='+moderation, 'global');
+                if (res)
+                    makeRequest('index.php', '?action=recording_stop&moderation=' + moderation, 'global');
             }
-            
+
             function cancel() {
                 var message = "®Cancel®";
-                
+
                 var res = window.confirm(message);
-                if(res) {
+                if (res) {
                     makeRequest('index.php', '?action=recording_cancel', 'global');
                 }
             }
-            
+
             function loading_popup() {
                 $.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
             }
         </script>
     </head>
 
-    <body onload="MM_preloadImages('images/page3/BsupEnr.png','images/page3/BpubEnr.png','images/page3/BpubDEnr.png', 'images/loading.gif')">
+    <body onload="MM_preloadImages('images/page3/BsupEnr.png', 'images/page3/BpubEnr.png', 'images/page3/BpubDEnr.png', 'images/loading.gif')">
         <div class="container">
-    <?php include 'div_main_header.php'; ?>
+            <?php include 'div_main_header.php'; ?>
             <div id="global">
 
                 <!-- Eventuel message d'erreur -->
@@ -83,9 +83,9 @@ Last step in the recording: we ask the user if they want their record to be subm
 
                 <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT -->
                 <div id="troisbouton">
-                    <a id="btnCancel" href="javascript:cancel();" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2','','images/page3/BsupEnr.png',1)"><img src="images/page3/AsupEnr.png" name="Image2" title="®Delete_record®" width="128" border="0" id="Image2" />®Delete_record®</a>
-                    <a id="btnPriv" href="javascript:publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3','','images/page3/BpubEnr.png',1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
-                    <a id="btnPub" href="javascript:publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4','','images/page3/BpubDEnr.png',1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
+                    <a id="btnCancel" href="javascript:cancel();" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page3/BsupEnr.png', 1)"><img src="images/page3/AsupEnr.png" name="Image2" title="®Delete_record®" width="128" border="0" id="Image2" />®Delete_record®</a>
+                    <a id="btnPriv" href="javascript:publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page3/BpubEnr.png', 1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
+                    <a id="btnPub" href="javascript:publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page3/BpubDEnr.png', 1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
                 </div>
             </div>  
             <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT [FIN] -->
@@ -95,7 +95,7 @@ Last step in the recording: we ask the user if they want their record to be subm
 
             <!-- FOOTER - INFOS COPYRIGHT [FIN] -->
         </div>
-        
+
         <div style="display: none;">
             <div class="popup" id="loading_popup">
                 <img src="images/loading.gif" />

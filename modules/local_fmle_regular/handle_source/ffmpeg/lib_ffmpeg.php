@@ -69,7 +69,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         $index = 1;
         foreach ($files as $file) {
             // renames files 
-            rename($file, $commonpart . $index . ".f4v");
+            rename($file, $commonpart . sprintf("%03s", $index) . ".f4v");
             $index++;
         }
     }
