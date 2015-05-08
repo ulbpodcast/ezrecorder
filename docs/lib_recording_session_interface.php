@@ -91,6 +91,19 @@ function session_modulename_metadata_xml_get(){}
 
 /**
  * @implements
+ * Saves the time when the recording has been init
+ * @param type $init the time in seconds
+ */
+function session_modulename_initstarttime_set($init) {}
+
+/**
+ * @implements
+ * Returns the time when the recording has been init
+ */
+function session_modulename_initstarttime_get() {}
+
+/**
+ * @implements
  * Saves the time when the recording is started
  * @param type $startrec_info
  */
@@ -99,10 +112,24 @@ function session_modulename_recstarttime_set($startrec_info) {}
 /**
  * @implements
  * Returns the time when the recording is started
- * @param type $startrec_info
  */
 function session_modulename_recstarttime_get() {}
 
+/**
+ * @implements
+ * Saves the time of the last request
+ * @global type $time the time in seconds
+ * @param type $startrec_info
+ */
+function session_xml_last_request_set($time = '') {}
+
+/**
+ * @implements
+ * Returns the time of the last request
+ * @global type $recstarttime_file
+ * @return type
+ */
+function session_xml_last_request_get() {}
 //
 // Exclusive lock and concurrency management
 //

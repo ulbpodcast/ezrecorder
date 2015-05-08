@@ -30,6 +30,7 @@
  */
 require_once dirname(__FILE__)."/../../global_config.inc";
 
+$remotefmle_features = array('recording');
 $remotefmle_ip = "127.0.0.1"; // ip address of the remote recorder
 $remotefmle_download_protocol = "rsync";
 $remotefmle_username = "podclient"; // username on the remote recorder
@@ -40,9 +41,7 @@ $remotefmle_local_basedir = dirname(__FILE__)."/"; // basedir on this machine
 $remotefmle_recorddir = '~/Movies/';
 $remotefmle_upload_dir = $remotefmle_recorddir . '/upload_to_server/';
 
-$remotefmle_time_started_file = $remotefmle_basedir . 'var/_first_started'; // The file containing timestamp of creation
 $remotefmle_status_file = $remotefmle_basedir . 'var/status'; // Current recorder status (paused, recording, stopped,...)
-$remotefmle_last_request_file = $remotefmle_basedir . 'var/_last_request'; // Time of this file says when the last refresh happened
 $remotefmle_recorder_logs = $remotefmle_basedir . 'var/_log'; // Log file
 
 $remotefmle_capture_file = $remotefmle_local_basedir.'var/screencapture.jpg'; // Camera screenshot

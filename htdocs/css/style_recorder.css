@@ -38,6 +38,7 @@ img, a, fieldset, ul, li, p, h1, h2, h3, h4, h5, h6, div{
 
 html{
     height:100%;
+    background-color:#000000;
 }
 
 body{
@@ -362,15 +363,17 @@ p{
 
 #btn{
     height:25px;
-    width:200px;
-    margin-left:407px;
     margin-top:50px;
+}
+
+#btn label.stream {
+    margin-left: 235px;
+    margin-right: 70px;
 }
 
 #btn a{
     background: #505050;
     display:inline-block;
-    float:left;
     margin-right:8px;
     padding: 5px 8px;
     font-size:12px;
@@ -447,6 +450,10 @@ p{
 
 #btnScenes a:hover{
     color:#7ab2b5;
+}
+
+#id1, #id3, #id4{
+    display: inline-block;
 }
 
 #id1{

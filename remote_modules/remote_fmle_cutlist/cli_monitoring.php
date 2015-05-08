@@ -30,24 +30,15 @@
  *  This CLI script performs various monitoring tasks. It is started when the user starts a recording, and stopped when they stop recording.
  * This script is called by qtbstart and qtbstop.
  * Current checks performed:
- * - timeout check (checks whether the user has forgotten to stop recording, and publish the recording if they did)
  * - recovery check (checks whether QTB has crashed, and restart it if it hs)
  */
-/**
- * Timeout check:
- * For the first "threshold" seconds (typically 2 or 3 hours), we decide to trust the user.
- * After that, we check that there has been activity at least once every "timeout" seconds (typically 15 min).
- * This program is meant to be run as a crontask at least once every "timeout" seconds
- */
+
 require_once 'config.inc';
 
 // Delays, in seconds
-$threshold_timeout = 7200; // Threshold before we start worrying about the user
-$recovery_threshold = 20; // Threshold before we start worrying about QTB
-$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-//$timeout = 30;
+$recovery_threshold = 20; // Threshold before we start worrying about FMLE
 $sleep_time = 20; // Duration of the sleep between two checks
-$pid = getmygid();
+$pid = getmypid();
 
 rec_status_set('');
 set_time_limit(0);
@@ -101,20 +92,6 @@ while (true) {
         rec_status_set('recording');
     }
 
-    // Timeout check
-    //*
-
-    $startrec_time = starttime_get();
-    $lastmod_time = lastmodtime_get();
-    $now = time();
-
-    if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
-        send_timeout();
-    }
-
-    //*/
-
     sleep($sleep_time);
 }
 
@@ -138,53 +115,9 @@ function rec_status_get() {
 
 function rec_status_set($status) {
     global $remotefmle_rec_status_file;
-    global $remotefmle_last_request_file;
 
     file_put_contents($remotefmle_rec_status_file, $status);
-    file_put_contents($remotefmle_last_request_file, time());
 }
 
-/**
- * Returns time of creation of the recording file
- * Only used for local purposes
- */
-function starttime_get() {
-    global $remotefmle_time_started_file;
-
-    if (!file_exists($remotefmle_time_started_file))
-        return false;
-
-    return trim(file_get_contents($remotefmle_time_started_file));
-}
-
-/**
- * Returns time of last action
- * Only used for local purposes
- */
-function lastmodtime_get() {
-    global $remotefmle_capture_file;
-
-    return filemtime($remotefmle_capture_file);
-}
-
-function send_timeout() {
-//sends a request to the 'main core' to let it know that a recording has timed out
-    global $remotefmle_force_quit_url;
-
-    $ch = curl_init($remotefmle_force_quit_url);
-    $res = curl_exec($ch);
-    $curlinfo = curl_getinfo($ch);
-    curl_close($ch);
-
-    if (!$res) {//error
-        if (isset($curlinfo['http_code']))
-            return $curlinfo['http_code'];
-        else
-            return "Curl error";
-    }
-
-    //All went well send http response in stderr to be logged
-    return false;
-}
 
 ?>

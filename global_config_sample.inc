@@ -40,6 +40,8 @@ $modules_basedir = "$basedir/modules/";
 
 // cli script for recording processing and uploading to server
 $process_upload = "$basedir/cli_process_upload.php";
+// cli script for monitoring the timeout on a recording
+$cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php"; 
 
 $ezcast_submit_url = "http://your.ezcast.server/ezmanager/recorder/index.php"; // URL to EZmanager server
 $ezrecorder_url = "http://127.0.0.1/ezrecorder"; // URL to this recorder
@@ -51,6 +53,7 @@ $nopic_file = "$basedir/nopic.jpg";
 $recorder_logs = "$basedir/var/_log"; // Log file
 $tmp_meta_file = "$basedir/var/metadata.xml"; // used by cli_process_upload.php
 $recorder_session = "$basedir/var/session";
+$recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";
 
 $dir_date_format = "Y_m_d_H\hi";// ls friendly date to create directories/files
 $title_max_length = 70; // Max. number of characters

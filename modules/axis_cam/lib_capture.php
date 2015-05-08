@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -110,8 +111,8 @@ function capture_axiscam_start($asset) {
     $status = capture_axiscam_status_get();
     if ($status == "open") {
         capture_axiscam_status_set('recording');
-        file_put_contents($axiscam_camstatus_file, "pending");  
-   //     system("echo '$php_cli_cmd $axiscam_cli_monitoring $asset'| at now");
+        file_put_contents($axiscam_camstatus_file, "pending");
+        //     system("echo '$php_cli_cmd $axiscam_cli_monitoring $asset'| at now");
         system("$php_cli_cmd $axiscam_cli_monitoring $asset > /dev/null &");
     } else {
         capture_axiscam_status_set("error");
@@ -133,7 +134,7 @@ function capture_axiscam_pause($asset) {
     global $axiscam_input_nb;
     global $axiscam_camstatus_file;
     global $axiscam_monitoring_file;
-    
+
     $tmp_dir = capture_axiscam_tmpdir_get($asset);
     // get status of the current recording
     $status = capture_axiscam_status_get();
@@ -161,10 +162,9 @@ function capture_axiscam_pause($asset) {
         $monitoring_pid = file_get_contents($axiscam_monitoring_file);
         unlink($axiscam_monitoring_file);
         system("kill -9 $monitoring_pid");
-        
+
         file_put_contents("$tmp_dir/_records_ids", $last_record . PHP_EOL, FILE_APPEND);
         file_put_contents("$tmp_dir/paused", time());
-        
     } else {
         error_last_message("capture_pause: can't pause recording because current status: $status");
         return false;
@@ -185,11 +185,11 @@ function capture_axiscam_resume($asset) {
     // get status of the current recording
     $status = capture_axiscam_status_get();
     if ($status == 'paused' || $status == 'stopped') {
-        
-  
+
+
         // sets the new status of the current recording
         capture_axiscam_status_set('recording');
-        file_put_contents($axiscam_camstatus_file, "pending");  
+        file_put_contents($axiscam_camstatus_file, "pending");
         system("$php_cli_cmd $axiscam_cli_resume $asset > /dev/null &");
     } else {
         error_last_message("capture_resume: can't resume recording because current status: $status");
@@ -337,29 +337,32 @@ function capture_axiscam_finalize($asset) {
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for given action
  * @global type $axiscam_ip
  * @global type $axiscam_download_protocol
  * @global type $axiscam_username
  * @return type
  */
-function capture_axiscam_download_info_get($asset) {
+function capture_axiscam_info_get($action, $asset = '') {
     global $axiscam_module_ip;
     global $axiscam_download_protocol;
     global $axiscam_module_username;
     global $axiscam_upload_dir;
 
-    $tmp_dir = capture_axiscam_tmpdir_get($asset);
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_axiscam_tmpdir_get($asset);
 
-    $meta_assoc = axiscam_xml_file2assoc_array("$tmp_dir/_metadata.xml");
+            $meta_assoc = axiscam_xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
-    // rsync requires ssh protocol is set (key sharing) on the remote server
-    $download_info_array = array("ip" => $axiscam_module_ip,
-        "protocol" => $axiscam_download_protocol,
-        "username" => $axiscam_module_username,
-        "filename" => $axiscam_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mkv");
-    return $download_info_array;
+            // rsync requires ssh protocol is set (key sharing) on the remote server
+            $download_info_array = array("ip" => $axiscam_module_ip,
+                "protocol" => $axiscam_download_protocol,
+                "username" => $axiscam_module_username,
+                "filename" => $axiscam_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mkv");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -426,6 +429,17 @@ function capture_axiscam_status_set($status) {
 }
 
 /**
+ * @implements
+ * Returns the features offered by the module
+ * @global type $axiscam_features
+ * @return type
+ */
+function capture_axiscam_features_get() {
+    global $axiscam_features;
+    return $axiscam_features;
+}
+
+/**
  * Returns time of creation of the recording file
  * Only used for local purposes
  */
@@ -476,7 +490,8 @@ function capture_axiscam_recordlist_get($record_id = "all") {
 
     $url = "http://$axiscam_username:$axiscam_password@$axiscam_ip/axis-cgi/record/list.cgi?recordingid=$record_id";
     $xml_string = curl_read_url($url);
-    if ($xml_string === false) return false;
+    if ($xml_string === false)
+        return false;
     $xml = new SimpleXMLElement($xml_string);
 
     $records = array();
@@ -512,17 +527,17 @@ function capture_axiscam_record_download($record_id, $asset) {
     };
 
 
-/*     $url = "http://$axiscam_username:$axiscam_password@$axiscam_ip/axis-cgi/record/download.cgi?recordingid=$record_id";
-    while ($max_try > 0 && !file_exists($tmp_dir . '/' . $record_id . '.zip')) {
-        file_put_contents($tmp_dir . "/_monitoring_log", "[" . date("Y-m-d H:i:s") . "] Downloading: Start downloading recording " . $record_id . PHP_EOL, FILE_APPEND);
-        curl_download_file($url, $tmp_dir . '/' . $record_id . '.zip');
-        if (!file_exists($tmp_dir . '/' . $record_id . '.zip')){
-            file_put_contents($tmp_dir . "/_monitoring_log", "[" . date("Y-m-d H:i:s") . "] Downloading: Failed to download recording " . $record_id . PHP_EOL, FILE_APPEND);
-            sleep(360);
-        }
-        $max_try--;
-    }; */
-    
+    /*     $url = "http://$axiscam_username:$axiscam_password@$axiscam_ip/axis-cgi/record/download.cgi?recordingid=$record_id";
+      while ($max_try > 0 && !file_exists($tmp_dir . '/' . $record_id . '.zip')) {
+      file_put_contents($tmp_dir . "/_monitoring_log", "[" . date("Y-m-d H:i:s") . "] Downloading: Start downloading recording " . $record_id . PHP_EOL, FILE_APPEND);
+      curl_download_file($url, $tmp_dir . '/' . $record_id . '.zip');
+      if (!file_exists($tmp_dir . '/' . $record_id . '.zip')){
+      file_put_contents($tmp_dir . "/_monitoring_log", "[" . date("Y-m-d H:i:s") . "] Downloading: Failed to download recording " . $record_id . PHP_EOL, FILE_APPEND);
+      sleep(360);
+      }
+      $max_try--;
+      }; */
+
     if ($max_try == 0)
         mail($mailto_admins, "Download error in $classroom", "Failed to download recording $record_id from Axis camera $axiscam_ip");
 }

@@ -26,6 +26,7 @@
 
 require_once dirname(__FILE__).'/../../global_config.inc';
 
+$localfmle_features = array('recording');
 $localfmle_ip = $ezrecorder_ip;
 $localfmle_username = $ezrecorder_username;
 $localfmle_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 

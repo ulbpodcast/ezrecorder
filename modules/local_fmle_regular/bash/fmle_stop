@@ -26,7 +26,6 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
-#SDAT=`cat ${STARTRECTIMEPATH}`
 COURSE=$1
 SDAT=$2
 PROCESSING_TOOL=$3

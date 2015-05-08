@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -86,7 +87,6 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
  */
 function capture_localqtb_start($asset) {
     global $localqtb_script_qtbrec;
-    global $localqtb_time_started_file;
     global $localqtb_last_request_file;
     global $localqtb_recorder_logs;
     global $localqtb_username;
@@ -94,10 +94,6 @@ function capture_localqtb_start($asset) {
     // qtbrec starts the recording in QTB
     // $pid is used in web_index.php
     system("sudo -u $localqtb_username $localqtb_script_qtbrec >> $localqtb_recorder_logs 2>&1 &");
-
-    // saves start time in text file
-    file_put_contents($localqtb_time_started_file, time());
-    file_put_contents($localqtb_last_request_file, time());
 
     //update recording status
     $status = capture_localqtb_status_get();
@@ -284,35 +280,37 @@ function capture_localqtb_finalize($asset) {
     // launches finalization bash script
     $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    $res = exec($cmd, $output, $errorcode);       
-    
+    $res = exec($cmd, $output, $errorcode);
 }
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for given action
  * @global type $localqtb_ip
  * @global type $localqtb_download_protocol
  * @global type $localqtb_username
  * @return type
  */
-function capture_localqtb_download_info_get($asset) {
+function capture_localqtb_info_get($action, $asset = '') {
     global $localqtb_ip;
     global $localqtb_download_protocol;
     global $localqtb_username;
     global $localqtb_upload_dir;
 
-    $tmp_dir = capture_localqtb_tmpdir_get($asset);
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
+            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
-    // rsync requires ssh protocol is set (key sharing) on the remote server
-    $download_info_array = array("ip" => $localqtb_ip,
-        "protocol" => $localqtb_download_protocol,
-        "username" => $localqtb_username,
-        "filename" => $localqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov");
-    return $download_info_array;
+            // rsync requires ssh protocol is set (key sharing) on the remote server
+            $download_info_array = array("ip" => $localqtb_ip,
+                "protocol" => $localqtb_download_protocol,
+                "username" => $localqtb_username,
+                "filename" => $localqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -324,12 +322,7 @@ function capture_localqtb_thumbnail() {
     global $localqtb_basedir;
     global $localqtb_script_qtbthumbnail;
     global $localqtb_capture_file;
-    global $localqtb_last_request_file;
     global $localqtb_username;
-
-    touch($localqtb_last_request_file);
-
-    $minperiod = 5;
 
     // Camera screenshot
     $diff = time() - filemtime($localqtb_capture_file);
@@ -375,37 +368,45 @@ function capture_localqtb_status_set($status) {
 }
 
 /**
- * Returns time of creation of the recording file
- * Only used for local purposes
+ * @implements
+ * updates the last_request time (for cli_monitoring)
  */
-function private_capture_localqtb_starttime_get() {
-    global $localqtb_time_started_file;
-
-    if (!file_exists($localqtb_time_started_file))
-        return false;
-
-    return trim(file_get_contents($localqtb_time_started_file));
+function capture_localqtb_last_request_set(){
+    global $localqtb_last_request_file;
+    
+    touch($localqtb_last_request_file);
 }
 
 /**
- * Returns time of last action
- * Only used for local purposes
+ * Returns the last_request time
+ * @global type $localqtb_last_request_file
  */
-function private_capture_localqtb_lastmodtime_get() {
-    global $localqtb_capture_file;
+function capture_localqtb_last_request_get(){
+    global $localqtb_last_request_file;
+    
+    return filemtime($localqtb_last_request_file);
+}
 
-    return filemtime($localqtb_capture_file);
+/**
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $localqtb_features
+ * @return type
+ */
+function capture_localqtb_features_get() {
+    global $localqtb_features;
+    return $localqtb_features;
 }
 
 function capture_localqtb_tmpdir_get($asset) {
     global $localqtb_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $localqtb_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
 
 ?>

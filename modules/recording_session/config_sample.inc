@@ -30,5 +30,7 @@ $session_basedir = $modules_basedir . '/recording_session/';
 $metadata_file = $session_basedir . 'var/metadata.xml'; // Where to temporarily store the metadata
 $lock_file = $session_basedir . 'var/_current_user'; // Exclusive lock file
 $recstarttime_file = $session_basedir . 'var/recstarttime'; // The file containing the start time and album
+$initstarttime_file = $session_basedir . 'var/initstarttime'; // The file containing the moment when the recording has been init
+$last_request_file = $session_basedir . 'var/last_request'; // The time of the last request from user
 
 ?>

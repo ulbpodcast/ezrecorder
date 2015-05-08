@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -38,6 +39,7 @@ require_once $cam_lib;
 require_once $slide_lib;
 require_once $session_lib;
 require_once 'lib_error.php';
+require_once 'lib_various.php';
 
 $fct = "session_" . $session_module . "_metadata_get";
 $meta_assoc = $fct();
@@ -51,7 +53,7 @@ $asset = $record_date . '_' . $course_name;
 $tmp_dir = "$basedir/var/$asset/";
 if (!file_exists($tmp_dir . "/metadata.xml")) {
     echo "Error: metadata file $basedir/var/$asset/metadata.xml does not exist" . PHP_EOL;
-  //  die;
+    //  die;
 }
 
 $fct = "session_" . $session_module . "_metadata_delete";
@@ -70,8 +72,8 @@ if ($slide_enabled) {
 }
 
 // wait for local processing to finish
-while (is_process_running($cam_pid) || is_process_running($slide_pid)){
-    sleep(0.5); 
+while (is_process_running($cam_pid) || is_process_running($slide_pid)) {
+    sleep(0.5);
 }
 
 system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
@@ -80,35 +82,35 @@ system("echo \"`date` : local processing finished for both cam and slide modules
 
 ////call EZcast server and tell it a recording is ready to download
 
-$nb_retry=500;
+$nb_retry = 500;
 
 
 if ($cam_enabled) {
     // get downloading information required by EZcast server
-    $fct = 'capture_' . $cam_module . '_download_info_get';
-    $cam_download_info = $fct($asset);
+    $fct = 'capture_' . $cam_module . '_info_get';
+    $cam_download_info = $fct('download', $asset);
 }
 
 if ($slide_enabled) {
     // get downloading information required by EZcast server
-    $fct = 'capture_' . $slide_module . '_download_info_get';
-    $slide_download_info = $fct($asset);
-} 
+    $fct = 'capture_' . $slide_module . '_info_get';
+    $slide_download_info = $fct('download', $asset);
+}
 //try repeatedly to call EZcast server and send the right post parameters
-$err=true;
-while($err && $nb_retry>0){
-  $err=server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
-  if($err){
-    log_append('EZcast_curl_call', "Will retry later: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
-    sleep(120);
- }//endif error
+$err = true;
+while ($err && $nb_retry > 0) {
+    $err = server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
+    if ($err) {
+        log_append('EZcast_curl_call', "Will retry later: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
+        sleep(120);
+    }//endif error
+    $nb_retry--;
 }//end while
 
-if($err){
-    log_append('EZcast_curl_call',"Giving up: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
+if ($err) {
+    log_append('EZcast_curl_call', "Giving up: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
     sleep(120);
- }
-
+}
 
 /**
  *
@@ -119,54 +121,34 @@ if($err){
  * @param <associative_array> $slide_download_info information relative to the downloading of slide movie
  * @return false|error_code
  */
-function server_start_download($record_type,$record_date,$course_name, $cam_download_info, $slide_download_info){
+function server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info) {
 //tells the server that a recording is ready to be downloaded
-global $ezcast_submit_url;
-global $tmp_dir;
-global $recorder_version;
-global $php_cli_cmd;
+    global $ezcast_submit_url;
+    global $tmp_dir;
+    global $recorder_version;
+    global $php_cli_cmd;
 
-$post_array['record_type']=$record_type;
-$post_array['record_date']=$record_date;
-$post_array['course_name']=$course_name;
-$post_array['php_cli']=$php_cli_cmd;
+    $post_array['action'] = 'download';
+    $post_array['record_type'] = $record_type;
+    $post_array['record_date'] = $record_date;
+    $post_array['course_name'] = $course_name;
+    $post_array['php_cli'] = $php_cli_cmd;
 
-$post_array['metadata_file'] = $tmp_dir."/metadata.xml";
+    $post_array['metadata_file'] = $tmp_dir . "/metadata.xml";
 
-if (isset($cam_download_info) && count($cam_download_info) > 0){
-    $post_array['cam_info'] = serialize($cam_download_info);
+    if (isset($cam_download_info) && count($cam_download_info) > 0) {
+        $post_array['cam_info'] = serialize($cam_download_info);
+    }
+
+    if (isset($slide_download_info) && count($slide_download_info) > 0) {
+        $post_array['slide_info'] = serialize($slide_download_info);
+    }
+
+    if (isset($recorder_version) && !empty($recorder_version)) {
+        $post_array['recorder_version'] = $recorder_version;
+    }
+    return strpos(server_request_send($ezcast_submit_url, $post_array), 'Curl error') !== false;
 }
-
-if (isset($slide_download_info) && count($slide_download_info) > 0){
-    $post_array['slide_info'] = serialize($slide_download_info);
-}
-
-if (isset($recorder_version) && !empty($recorder_version)) {
-    $post_array['recorder_version'] = $recorder_version;
-}
-
-$ch=curl_init($ezcast_submit_url);
-curl_setopt($ch,CURLOPT_POST, 1);//activate POST parameters
-curl_setopt($ch,CURLOPT_POSTFIELDS, $post_array);
-curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);//don't send answer to stdout but in returned string
-$res=curl_exec($ch);
-$curlinfo=curl_getinfo($ch);
-curl_close($ch);
-file_put_contents("/Library/ezrecorder/var/curl.log", var_export($curlinfo, true).PHP_EOL. $res);
-if(!$res){//error
-  if(isset ($curlinfo['http_code'])){
-      return $curlinfo['http_code'];      
-  } else 
-      return "Curl error"; 
- }
-
- //All went well send http response in stderr to be logged
- fputs(STDERR, "curl result: $res", 2000); 
- 
- return false;
-}
-
-
 
 // determines if a process is running or not
 function is_process_running($pid) {

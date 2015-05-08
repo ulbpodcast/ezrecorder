@@ -30,6 +30,7 @@ CALLS=$2
 MAXCALLS=3 	# sends a mail after 3 fails
 
 #first clean up eventual movie remaining
+SDAT=`date +"%Y_%m_%d_%Hh%M"`
 mkdir  $RECORDDIR/trash/$SDAT 
 mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  $RECORDDIR/trash/$SDAT/
 
@@ -82,8 +83,6 @@ then
 else # currently recording
     #saves current date as recording init
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > $EZCASTDIR/var/$ASSET/_cut_list
-    #saves current date for monitoring
-    echo $SDAT > $FIRST_STARTED
     #start monitoring 
     echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now
 fi

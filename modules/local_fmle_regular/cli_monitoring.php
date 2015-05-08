@@ -41,11 +41,7 @@ require_once 'config.inc';
 require_once 'lib_capture.php';
 
 // Delays, in seconds
-$threshold_timeout = 7200; // Threshold before we start worrying about the user
-//$threshold_timeout = 120; // Threshold before we start worrying about the user
 $recovery_threshold = 20; // Threshold before we start worrying about QTB
-$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-//$timeout = 30;
 $sleep_time = 20; // Duration of the sleep between two checks
 
 set_time_limit(0);
@@ -80,46 +76,12 @@ while (true) {
 
     $status = capture_localfmle_status_get();
 
-    // Timeout check
-    //*
-    if ($status == 'recording') {
-        $startrec_time = private_capture_localfmle_starttime_get();
-        $lastmod_time = private_capture_localfmle_lastmodtime_get();
-        $now = time();
-
-        if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-            mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
-            send_timeout();
-        }
-    }
-    //*/
-
     sleep($sleep_time);
 
     // We stop if the file does not exist anymore ("kill -9" simulation)
     if (!file_exists($localfmle_monitoring_file)) {
         die;
     }
-}
-
-function send_timeout() {
-//sends a request to the 'main core' to let it know that a recording has timed out
-    global $localfmle_force_quit_url;
-
-    $ch = curl_init($localfmle_force_quit_url);
-    $res = curl_exec($ch);
-    $curlinfo = curl_getinfo($ch);
-    curl_close($ch);
-
-    if (!$res) {//error
-        if (isset($curlinfo['http_code']))
-            return $curlinfo['http_code'];
-        else
-            return "Curl error";
-    }
-
-    //All went well send http response in stderr to be logged
-    return false;
 }
 
 ?>

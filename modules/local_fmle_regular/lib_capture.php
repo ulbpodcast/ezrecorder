@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -86,18 +87,12 @@ function capture_localfmle_init(&$pid, $meta_assoc) {
  */
 function capture_localfmle_start($asset) {
     global $localfmle_script_start;
-    global $localfmle_time_started_file;
-    global $localfmle_last_request_file;
     global $localfmle_recorder_logs;
     global $localfmle_username;
 
     // starts the recording in FMLE
     // $pid is used in web_index.php
     system("sudo -u $localfmle_username $localfmle_script_start >> $localfmle_recorder_logs 2>&1 &");
-
-    // saves start time in text file
-    file_put_contents($localfmle_time_started_file, time());
-    file_put_contents($localfmle_last_request_file, time());
 
     //update recording status
     $status = capture_localfmle_status_get();
@@ -284,35 +279,37 @@ function capture_localfmle_finalize($asset) {
     // launches finalization bash script
     $cmd = 'sudo -u ' . $localfmle_username . ' ' . $localfmle_script_finalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localfmle_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    $res = exec($cmd, $output, $errorcode);       
-    
+    $res = exec($cmd, $output, $errorcode);
 }
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for given action
  * @global type $localfmle_ip
  * @global type $localfmle_download_protocol
  * @global type $localfmle_username
  * @return type
  */
-function capture_localfmle_download_info_get($asset) {
+function capture_localfmle_info_get($action, $asset = '') {
     global $localfmle_ip;
     global $localfmle_download_protocol;
     global $localfmle_username;
     global $localfmle_upload_dir;
 
-    $tmp_dir = capture_localfmle_tmpdir_get($asset);
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_localfmle_tmpdir_get($asset);
 
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
+            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
-    // rsync requires ssh protocol is set (key sharing) on the remote server
-    $download_info_array = array("ip" => $localfmle_ip,
-        "protocol" => $localfmle_download_protocol,
-        "username" => $localfmle_username,
-        "filename" => $localfmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/fmle_movie.f4v");
-    return $download_info_array;
+            // rsync requires ssh protocol is set (key sharing) on the remote server
+            $download_info_array = array("ip" => $localfmle_ip,
+                "protocol" => $localfmle_download_protocol,
+                "username" => $localfmle_username,
+                "filename" => $localfmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/fmle_movie.f4v");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -324,10 +321,8 @@ function capture_localfmle_thumbnail() {
     global $localfmle_basedir;
     global $localfmle_script_thumbnail;
     global $localfmle_capture_file;
-    global $localfmle_last_request_file;
     global $localfmle_username;
 
-    touch($localfmle_last_request_file);
 
     $minperiod = 5;
 
@@ -347,7 +342,6 @@ function capture_localfmle_thumbnail() {
         }
     }
     return file_get_contents($localfmle_capture_file);
-    
 }
 
 /**
@@ -370,45 +364,30 @@ function capture_localfmle_status_get() {
  */
 function capture_localfmle_status_set($status) {
     global $localfmle_status_file;
-    global $localfmle_last_request_file;
 
     file_put_contents($localfmle_status_file, $status);
-    file_put_contents($localfmle_last_request_file, time());
 }
 
 /**
- * Returns time of creation of the recording file
- * Only used for local purposes
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $localfmle_features
+ * @return type
  */
-function private_capture_localfmle_starttime_get() {
-    global $localfmle_time_started_file;
-
-    if (!file_exists($localfmle_time_started_file))
-        return false;
-
-    return trim(file_get_contents($localfmle_time_started_file));
+function capture_localfmle_features_get() {
+    global $localfmle_features;
+    return $localfmle_features;
 }
-
-/**
- * Returns time of last action
- * Only used for local purposes
- */
-function private_capture_localfmle_lastmodtime_get() {
-    global $localfmle_capture_file;
-
-    return filemtime($localfmle_capture_file);
-}
-
 
 function capture_localfmle_tmpdir_get($asset) {
     global $localfmle_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $localfmle_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
 
 ?>

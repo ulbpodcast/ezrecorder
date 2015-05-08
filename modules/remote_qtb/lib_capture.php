@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -52,11 +53,11 @@ function capture_remoteqtb_init(&$pid, $meta_assoc) {
 
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    
+
     $xml = escapeshellarg(capture_assoc_array2metadata($meta_assoc));
     // put the xml string in a metadata file on the local mac mini
-    file_put_contents($tmp_dir . "/_metadata.xml", $xml);    
-    
+    file_put_contents($tmp_dir . "/_metadata.xml", $xml);
+
     if (capture_remoteqtb_status_get() == '') {
         /* remote script call requires:
          * - the remote ip
@@ -87,8 +88,6 @@ function capture_remoteqtb_init(&$pid, $meta_assoc) {
  */
 function capture_remoteqtb_start($asset) {
     global $remoteqtb_script_qtbrec;
-    global $remoteqtb_time_started_file;
-    global $remoteqtb_last_request_file;
     global $remoteqtb_ip;
     global $remote_script_call;
     global $remote_script_datafile_set;
@@ -103,14 +102,6 @@ function capture_remoteqtb_start($asset) {
      * - optional args for the script to execute
      */
     system("sudo -u $remoteqtb_username $remote_script_call $remoteqtb_ip $remoteqtb_recorder_logs $remoteqtb_script_qtbrec > /dev/null &");
-
-    $curr_time = time();
-    // saves the current time in the time_started file
-    $cmd = "sudo -u $remoteqtb_username $remote_script_datafile_set $remoteqtb_ip $curr_time $remoteqtb_time_started_file &";
-    $res = exec($cmd, $outputarray, $errorcode);
-    // saves the current time in the last_request file
-    $cmd = "sudo -u $remoteqtb_username $remote_script_datafile_set $remoteqtb_ip $curr_time $remoteqtb_last_request_file &";
-    $res = exec($cmd, $outputarray, $errorcode);
 
     //update recording status
     if (capture_remoteqtb_status_get() == "open") {
@@ -179,9 +170,9 @@ function capture_remoteqtb_stop(&$pid, $asset) {
     global $remote_script_call;
     global $remoteqtb_recorder_logs;
     global $remoteqtb_username;
-    
+
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    
+
     $status = capture_remoteqtb_status_get();
     if ($status == 'recording') {
         system("sudo -u $remoteqtb_username $remote_script_call $remoteqtb_ip $remoteqtb_recorder_logs $remoteqtb_script_qtbpause > /dev/null & echo $! > $tmp_dir/pid");
@@ -209,7 +200,7 @@ function capture_remoteqtb_cancel($asset) {
     global $remoteqtb_username;
 
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    
+
     $status = capture_remoteqtb_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
 
@@ -239,10 +230,10 @@ function capture_remoteqtb_process($meta_assoc, &$pid) {
     global $remote_script_datafile_set;
     global $remoteqtb_username;
     global $remoteqtb_basedir;
-    
+
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    
+
     if (capture_remoteqtb_status_get() != 'recording' && capture_remoteqtb_status_get() != 'open') {
 
         if (!in_array($remoteqtb_processing_tool, $remoteqtb_processing_tools))
@@ -252,7 +243,7 @@ function capture_remoteqtb_process($meta_assoc, &$pid) {
         // put the xml string in a metadata file on the remote mac mini
         system("sudo -u $remoteqtb_username $remote_script_datafile_set $remoteqtb_ip " . escapeshellarg($xml) . " $remoteqtb_basedir/var/_metadata.xml &");
         // put the xml string in a metadata file on the local mac mini
-        file_put_contents($tmp_dir . "/_metadata.xml", $xml);    
+        file_put_contents($tmp_dir . "/_metadata.xml", $xml);
 
         $course_name = $meta_assoc['course_name'];
         $record_date = $meta_assoc['record_date'];
@@ -300,7 +291,7 @@ function capture_remoteqtb_finalize($asset) {
     // retrieves the metadata relative to the recording
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
     $meta_assoc = capture_metadata2assoc_array($tmp_dir . '/_metadata.xml');
-    
+
     $record_date = $meta_assoc['record_date'];
     $course_name = $meta_assoc['course_name'];
 
@@ -309,7 +300,7 @@ function capture_remoteqtb_finalize($asset) {
     log_append("finalizing: execute cmd '$cmd'");
 
     $pid = system($cmd);
-    
+
     system("rm -rf $tmp_dir");
 }
 
@@ -322,19 +313,9 @@ function capture_remoteqtb_thumbnail() {
     global $remoteqtb_script_qtbthumbnail;
     global $remoteqtb_capture_file;
     global $remoteqtb_capture_tmp_file;
-    global $remoteqtb_last_request_file;
     global $remoteqtb_ip;
     global $remote_script_thumbnail_create;
-    global $remote_script_datafile_set;
     global $remoteqtb_username;
-
-    $curr_time = time();
-    // saves the current time in the last_request file
-    $cmd = "sudo -u podclient $remote_script_datafile_set $remoteqtb_ip $curr_time $remoteqtb_last_request_file";
-    $res = exec($cmd, $outputarray, $errorcode);
-
-
-    $minperiod = 5;
 
     // Slide screenshot
     if (!file_exists($remoteqtb_capture_file) || (time() - filemtime($remoteqtb_capture_file) > 3)) {
@@ -355,28 +336,31 @@ function capture_remoteqtb_thumbnail() {
 
 /**
  * @implements
- * Returns information relative to the downloading of the video 
+ * Returns an associative array containing information required for given action
  * @global type $remoteqtb_ip
  * @global type $remoteqtb_download_protocol
  * @global type $remoteqtb_username
- * @global type $remoteqtb_upload_dir
- * @return <associative_array> $download_info_array the information relative to the downloading 
+ * @return type
  */
-function capture_remoteqtb_download_info_get($asset) {
+function capture_remoteqtb_info_get($action, $asset = '') {
     global $remoteqtb_ip;
     global $remoteqtb_download_protocol;
     global $remoteqtb_username;
     global $remoteqtb_upload_dir;
     global $remoteqtb_username;
 
-    $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
+            $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
 
-    $download_info_array = array("ip" => $remoteqtb_ip,
-        "protocol" => $remoteqtb_download_protocol,
-        "username" => $remoteqtb_username,
-        "filename" => $remoteqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/slide.mov");
-    return $download_info_array;
+            $download_info_array = array("ip" => $remoteqtb_ip,
+                "protocol" => $remoteqtb_download_protocol,
+                "username" => $remoteqtb_username,
+                "filename" => $remoteqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/slide.mov");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -407,7 +391,6 @@ function capture_remoteqtb_status_set($status) {
 
     global $remoteqtb_ip;
     global $remoteqtb_status_file;
-    global $remoteqtb_last_request_file;
     global $remote_script_datafile_set;
     global $remoteqtb_username;
 
@@ -416,8 +399,17 @@ function capture_remoteqtb_status_set($status) {
     $curr_time = time();
     $cmd = "sudo -u $remoteqtb_username $remote_script_datafile_set $remoteqtb_ip $status $remoteqtb_status_file";
     $res = exec($cmd, $outputarray, $errorcode);
-    $cmd = "sudo -u $remoteqtb_username $remote_script_datafile_set $remoteqtb_ip $curr_time $remoteqtb_last_request_file";
-    $res = exec($cmd, $outputarray, $errorcode);
+}
+
+/**
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $remoteqtb_features
+ * @return type
+ */
+function capture_remoteqtb_features_get() {
+    global $remoteqtb_features;
+    return $remoteqtb_features;
 }
 
 /**
@@ -461,11 +453,12 @@ function capture_metadata2assoc_array($meta_path, $xml_file = true) {
 function capture_remoteqtb_tmpdir_get($asset) {
     global $remoteqtb_local_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $remoteqtb_local_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
+
 ?>

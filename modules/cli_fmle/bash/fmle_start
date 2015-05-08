@@ -28,7 +28,6 @@ source $(dirname $0)/localdefs
 
 #first clean up eventual movie remains
 SDAT=`date +"%Y_%m_%d_%Hh%M"`
-echo $SDAT > $STARTRECTIMEPATH
 
 mkdir  $RECORDDIR/trash/$SDAT 
 mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  $RECORDDIR/trash/$SDAT/

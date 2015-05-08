@@ -90,6 +90,26 @@ function session_xml_metadata_xml_get(){
 /**
  * @implements
  * Saves the time when the recording is started
+ * @gparam type $init the current time in seconds
+ */
+function session_xml_initstarttime_set($init) {
+    global $initstarttime_file;
+    file_put_contents($initstarttime_file, $init);
+}
+
+/**
+ * @implements
+ * Returns the time when the recording is started
+ * @return type
+ */
+function session_xml_initstarttime_get() {
+    global $initstarttime_file;
+    return file_get_contents($initstarttime_file);
+}
+
+/**
+ * @implements
+ * Saves the time when the recording is started
  * @global type $recstarttime_file
  * @param type $startrec_info
  */
@@ -98,9 +118,40 @@ function session_xml_recstarttime_set($startrec_info) {
     file_put_contents($recstarttime_file, $startrec_info);
 }
 
+/**
+ * @implements
+ * Returns the time when the recording is started
+ * @global type $recstarttime_file
+ * @return type
+ */
 function session_xml_recstarttime_get() {
     global $recstarttime_file;
     return file_get_contents($recstarttime_file);
+}
+
+/**
+ * @implements
+ * Saves the time of the last request
+ * @global type $recstarttime_file
+ * @param type $startrec_info
+ */
+function session_xml_last_request_set($time = '') {
+    global $last_request_file;
+    if ($time == ''){
+        $time = time();
+    }
+    file_put_contents($last_request_file, $time);
+}
+
+/**
+ * @implements
+ * Returns the time of the last request
+ * @global type $recstarttime_file
+ * @return type
+ */
+function session_xml_last_request_get() {
+    global $last_request_file;
+    return file_get_contents($last_request_file);
 }
 
 //

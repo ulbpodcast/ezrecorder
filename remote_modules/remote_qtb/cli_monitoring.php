@@ -44,10 +44,7 @@ require_once 'config.inc';
 require 'lib_tools.php';
 
 // Delays, in seconds
-$threshold_timeout = 7200; // Threshold before we start worrying about the user
 $recovery_threshold = 20; // Threshold before we start worrying about QTB
-$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-//$timeout = 30;
 $sleep_time = 20; // Duration of the sleep between two checks
 
 set_time_limit(0);
@@ -82,22 +79,6 @@ while(true) {
     
     $status = status_get();
     
-    // Timeout check
-    //*
-     if($status == 'recording') {
-        $startrec_time = starttime_get();
-        $lastmod_time = lastmodtime_get();
-        $now = time();
-
-         if($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-            //log_append('warning', 'Recording timed out: no request since '.($now - $lastmod_time).' seconds ago. Recording has been stopped and published into private album.');
-             
-            mail($mailto_admins, 'Recording timed out', 'The recording in classroom '.$classroom.' was stopped and published in private album because there has been no user activity since '.($now - $lastmod_time). ' seconds ago.');
-            send_timeout();
-         }
-    }
-    //*/
-    
     sleep($sleep_time);
     
     // We stop if the file does not exist anymore ("kill -9" simulation)
@@ -117,54 +98,8 @@ function status_get(){
 
 function status_set($status) {
     global $status_file;
-    global $last_request_file;
 
     file_put_contents($status_file, $status);
-    file_put_contents($last_request_file, time());
 }
 
-/**
- * Returns time of creation of the recording file
- * Only used for local purposes
- */
-function starttime_get() {
-    global $time_started_file;
-
-    if (!file_exists($time_started_file))
-        return false;
-
-    return trim(file_get_contents($time_started_file));
-}
-
-/**
- * Returns time of last action
- * Only used for local purposes
- */
-function lastmodtime_get() {
-    global $remoteqtb_capture_file;
-
-    return filemtime($remoteqtb_capture_file);
-}
-
-
-
-function send_timeout() {
-//sends a request to the 'main core' to let it know that a recording has timed out
-    global $remoteqtb_force_quit_url;
-
-    $ch = curl_init($remoteqtb_force_quit_url);
-    $res = curl_exec($ch);
-    $curlinfo = curl_getinfo($ch);
-    curl_close($ch);
-
-    if (!$res) {//error
-        if (isset($curlinfo['http_code']))
-            return $curlinfo['http_code'];
-        else
-            return "Curl error";
-    }
-
-    //All went well send http response in stderr to be logged
-    return false;
-}
 ?>

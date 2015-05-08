@@ -79,12 +79,12 @@ if (!user_logged_in()) {
         // sure that the caller ip address is one of the recorders. 
         // It is an access restriction on ip address
         if ($cam_enabled) {
-            $fct = "capture_" . $cam_module . "_download_info_get";
-            $cam_info = $fct();
+            $fct = "capture_" . $cam_module . "_info_get";
+            $cam_info = $fct('download');
         }
         if ($slide_enabled) {
-            $fct = "capture_" . $slide_module . "_download_info_get";
-            $slide_info = $fct();
+            $fct = "capture_" . $slide_module . "_info_get";
+            $slide_info = $fct('download');
         }
         $caller_ip = trim($_SERVER["REMOTE_ADDR"]);
         // if caller ip is one of the recorders (cam or slide), the current recording is stopped
@@ -194,7 +194,7 @@ switch ($action) {
 //
 
 /**
- * We are called by a browser with no action, but sessions is alive and login has succeeded, so go to thecaccording screen
+ * We are called by a browser with no action, but sessions is alive and login has succeeded, so go to the according screen
  * @global <type> $status
  * @global <type> $already_recording
  */
@@ -216,8 +216,7 @@ function reconnect_active_session() {
         //stopped means we have already clicked on stop
         $_SESSION['recorder_mode'] = 'view_record_submit';
         view_record_submit();
-    }
-    else
+    } else
         view_record_form(); //none of the above cases to this is a first form screen
 }
 
@@ -245,6 +244,8 @@ function recording_submit_infos() {
         die;
     }
 
+    $streaming = (isset($input['streaming']) && $input['streaming'] == 'enabled') ? 'true' : 'false';
+
     // authorization check
     $fct_user_has_course = "auth_" . $auth_module . "_user_has_course";
     if (!$fct_user_has_course($_SESSION['user_login'], $input['course'])) {
@@ -267,7 +268,8 @@ function recording_submit_infos() {
         'moderation' => 'true',
         'author' => $_SESSION['user_full_name'],
         'netid' => $_SESSION['user_login'],
-        'record_date' => $datetime
+        'record_date' => $datetime,
+        'streaming' => $streaming
     );
 
 
@@ -363,6 +365,10 @@ function recording_stop() {
     global $process_upload;
     global $session_module;
     global $basedir;
+    global $recorder_monitoring_pid;
+
+    // stops the timeout monitoring
+    unlink($recorder_monitoring_pid);
 
     $moderation = 'false';
     if (isset($input['moderation']) && $input['moderation'] == 'true')
@@ -430,6 +436,10 @@ function recording_cancel() {
     global $cam_management_module;
     global $input;
     global $session_module;
+    global $recorder_monitoring_pid;
+
+    // stops the timeout monitoring
+    unlink($recorder_monitoring_pid);
 
     // Logging the operation
     $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
@@ -491,10 +501,14 @@ function recording_force_quit() {
     global $process_upload;
     global $recorder_session;
     global $basedir;
+    global $recorder_monitoring_pid;
+
+    // stops the timeout monitoring
+    unlink($recorder_monitoring_pid);
 
     $session = explode(';', file_get_contents($recorder_session));
     $asset = $session[0];
-    
+
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
     log_append('warning', $_SESSION['user_login'] . ' trying to log in but recorder is already in use by ' . $fct_current_user_get() . '. Stopping current record.');
     $status = status_get();
@@ -687,6 +701,11 @@ function view_record_form() {
     global $session_module;
     global $auth_module;
     global $notice; // Possible errors that occurred at previous steps.
+    global $streaming_available;
+    global $recorder_monitoring_pid;
+
+    // stops the timeout monitoring
+    unlink($recorder_monitoring_pid);
     //
     // Retrieving the course list (to display in the web interface)
     $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
@@ -716,6 +735,21 @@ function view_record_form() {
             $fct_cam_move = 'cam_' . $cam_management_module . '_move';
             $fct_cam_move($GLOBALS['cam_default_scene']); //set ptz to the initial position
         }
+    }
+
+    // if cam module is enabled
+    if ($cam_enabled) {
+        $fct_capture_features_get = 'capture_' . $cam_module . '_features_get';
+        $cam_features = $fct_capture_features_get();
+    }
+    // if slide module is enabled
+    if ($slide_enabled) {
+        $fct_capture_features_get = 'capture_' . $slide_module . '_features_get';
+        $slide_features = $fct_capture_features_get();
+    }
+
+    if (in_array('streaming', $cam_features) || in_array('streaming', $slide_features)) {
+        $streaming_available = true;
     }
 
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
@@ -843,6 +877,7 @@ function user_login($login, $passwd) {
  */
 function view_record_screen() {
     global $url;
+    global $session_module;
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
@@ -850,10 +885,11 @@ function view_record_screen() {
     global $cam_management_enabled;
     global $cam_management_module;
     global $cam_management_views_dir;
-    global $session_module;
     global $redraw;
     global $already_recording;
     global $status;
+    global $php_cli_cmd;
+    global $cli_timeout_monitoring;
 
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $metadata = $fct_metadata_get();
@@ -913,6 +949,9 @@ function view_record_screen() {
     // DIsplaying a "disabled" image if one of the two video sources has been disabled
     $has_camera = (strpos($metadata['record_type'], 'cam') !== false);
     $has_slides = (strpos($metadata['record_type'], 'slide') !== false);
+
+    // launches the timeout monitoring process in background
+    exec("$php_cli_cmd $cli_timeout_monitoring > /dev/null &", $output, $errno);
 
     log_append("recording_init", "initiated recording by request (record_type: " .
             $metadata['record_type'] . " - cam module enabled : $cam_enabled - slide module enabled : $slide_enabled");
@@ -977,7 +1016,13 @@ function view_screenshot_image() {
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
+    global $session_module;
     global $nopic_file;
+
+    // updates the last_request time
+    $fct_last_request_set = 'session_' . $session_module . '_last_request_set';
+    $fct_last_request_set();
+
 
     if (isset($input['source']) && in_array($input['source'], array('cam', 'slides'))) {
         if ($input['source'] == 'cam' && $cam_enabled) {
@@ -1033,8 +1078,7 @@ function get_lang() {
     //if(isset($_SESSION['lang']) && in_array($_SESSION['lang'], $accepted_languages)) {
     if (isset($_SESSION['lang']) && !empty($_SESSION['lang'])) {
         return $_SESSION['lang'];
-    }
-    else
+    } else
         return 'en';
 }
 

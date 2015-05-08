@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -55,8 +56,8 @@ function capture_localqt_init(&$pid, $meta_assoc) {
     $tmp_dir = capture_localqt_tmpdir_get($asset);
     // saves recording metadata as xml file 
     assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
-    
-    
+
+
     // status of the current recording
     $status = capture_localqt_status_get();
     if ($status == '') { // no status yet
@@ -64,7 +65,7 @@ function capture_localqt_init(&$pid, $meta_assoc) {
         // launched in background to save time (pid is returned to be handled by web_index.php)
         system("sudo -u $localqt_username $localqt_script_qtnew >> $localqt_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
         $pid = file_get_contents("$tmp_dir/pid");
-        
+
         // error occured while launching QuickTime
         if (capture_localqt_status_get() == 'launch_failure') {
             error_last_message("can't open because QTB failed to launch");
@@ -86,8 +87,6 @@ function capture_localqt_init(&$pid, $meta_assoc) {
  */
 function capture_localqt_start($asset) {
     global $localqt_script_qtrec;
-    global $localqt_time_started_file;
-    global $localqt_last_request_file;
     global $localqt_recorder_logs;
     global $localqt_username;
 
@@ -95,10 +94,6 @@ function capture_localqt_start($asset) {
     // qtrec starts the recording in QuickTime
     // $pid is used in web_index.php
     system("sudo -u $localqt_username $localqt_script_qtrec >> $localqt_recorder_logs 2>&1 &");
-
-    // saves start time in text file
-    file_put_contents($localqt_time_started_file, time());
-    file_put_contents($localqt_last_request_file, time());
 
     //update recording status
     $status = capture_localqt_status_get();
@@ -168,9 +163,9 @@ function capture_localqt_stop(&$pid, $asset) {
     global $localqt_script_qtpause;
     global $localqt_recorder_logs;
     global $localqt_username;
-    
+
     $tmp_dir = capture_localqt_tmpdir_get($asset);
-    
+
     // get status of the current recording
     $status = capture_localqt_status_get();
     if ($status == 'recording') {
@@ -203,7 +198,7 @@ function capture_localqt_cancel($asset) {
     $status = capture_localqt_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
         // qtbcancel cancels the current recording, saves it in archive dir and stops the monitoring
-        $cmd = 'sudo -u '. $localqt_username . ' ' . $localqt_script_qtcancel . ' ' . $asset . ' >> ' . $localqt_recorder_logs . ' 2>&1';
+        $cmd = 'sudo -u ' . $localqt_username . ' ' . $localqt_script_qtcancel . ' ' . $asset . ' >> ' . $localqt_recorder_logs . ' 2>&1';
         log_append('recording', "launching command: $cmd");
         $fpart = exec($cmd, $outputarray, $errorcode);
     } else {
@@ -226,10 +221,10 @@ function capture_localqt_process($meta_assoc, &$pid) {
 
     $asset = $meta_assoc['course_name'] . '_' . $meta_assoc['record_date'];
     $tmp_dir = capture_localqt_tmpdir_get($asset);
-    
+
     // saves recording metadata in xml file
     assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
-    
+
     $status = capture_localqt_status_get();
     if ($status != 'recording' && $status != 'open') {
         // saves recording in processing dir and processes it
@@ -286,30 +281,33 @@ function capture_localqt_finalize($asset) {
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for given action
  * @global type $localqt_ip
  * @global type $localqt_download_protocol
  * @global type $localqt_username
  * @return type
  */
-function capture_localqt_download_info_get($asset) {
+function capture_localqt_info_get($action, $asset = '') {
     global $localqt_ip;
     global $localqt_download_protocol;
     global $localqt_username;
     global $localqt_upload_dir;
     global $localqt_movie_name;
-    
-    $tmp_dir = capture_localqt_tmpdir_get($asset);
-    
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
-    // rsync requires ssh protocol is set (key sharing) on the remote server
-    $download_info_array = array("ip" => $localqt_ip,
-        "protocol" => $localqt_download_protocol,
-        "username" => $localqt_username,
-        "filename" => $localqt_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/$localqt_movie_name.mov");
-    return $download_info_array;
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_localqt_tmpdir_get($asset);
+
+            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
+
+            // rsync requires ssh protocol is set (key sharing) on the remote server
+            $download_info_array = array("ip" => $localqt_ip,
+                "protocol" => $localqt_download_protocol,
+                "username" => $localqt_username,
+                "filename" => $localqt_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/$localqt_movie_name.mov");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -321,12 +319,8 @@ function capture_localqt_thumbnail() {
     global $localqt_basedir;
     global $localqt_script_qtthumbnail;
     global $localqt_capture_file;
-    global $localqt_last_request_file;
     global $localqt_username;
 
-    touch($localqt_last_request_file);
-
-    $minperiod = 5;
 
     // Camera screenshot
     $diff = time() - filemtime($localqt_capture_file);
@@ -365,44 +359,31 @@ function capture_localqt_status_get() {
  */
 function capture_localqt_status_set($status) {
     global $localqt_status_file;
-    global $localqt_last_request_file;
 
     file_put_contents($localqt_status_file, $status);
-    file_put_contents($localqt_last_request_file, time());
 }
 
 /**
- * Returns time of creation of the recording file
- * Only used for local purposes
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $localqt_features
+ * @return type
  */
-function private_capture_localqt_starttime_get() {
-    global $localqt_time_started_file;
-
-    if (!file_exists($localqt_time_started_file))
-        return false;
-
-    return trim(file_get_contents($localqt_time_started_file));
+function capture_localqt_features_get() {
+    global $localqt_features;
+    return $localqt_features;
 }
 
-/**
- * Returns time of last action
- * Only used for local purposes
- */
-function private_capture_localqt_lastmodtime_get() {
-    global $localqt_capture_file;
-
-    return filemtime($localqt_capture_file);
-}
 
 function capture_localqt_tmpdir_get($asset) {
     global $localqt_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $localqt_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
 
 ?>

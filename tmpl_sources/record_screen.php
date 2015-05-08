@@ -43,17 +43,96 @@
         <script src="js/jquery.colorbox.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
         <script type="text/javascript">
+            function offline_alert(){
+                        window.alert("®offline_from_podc®");
+            }
             function recording_start() {
-                document.getElementById('BoutonCancel').style.display = 'none';
-                makeRequest('index.php', '?action=recording_start', 'errorBox');
+                $.ajax({
+                    type: 'GET',
+                    url: "index.php?action=recording_start",
+                    cache: false,
+                    timeout: 4000, // 4 seconds
+                    error: offline_alert,
+                    success: function (html) {
+                        if (html) {
+                            // Everything went fine
+                            document.getElementById('BoutonCancel').style.display = 'none';
+                            MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');
+                            window.location = 'index.php';
+                        }
+                        else {
+                            offline_alert();
+                        }
+                    }
+                }
+                );
+          //      makeRequest('index.php', '?action=recording_start', 'errorBox');
             }
 
-            function recording_pause() {
-                makeRequest('index.php', '?action=recording_pause', 'errorBox');
+            function recording_pause() {                
+                $.ajax({
+                    type: 'GET',
+                    url: "index.php?action=recording_pause", 
+                    cache: false,
+                    timeout: 4000, // 4 seconds
+                    error: offline_alert,
+                    success: function (html) {
+                        if (html) {
+                            // Everything went fine
+                            MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');
+                        }
+                        else {
+                            offline_alert();
+                        }
+                    }
+                }
+                );
+            //    makeRequest('index.php', '?action=recording_pause', 'errorBox');
             }
 
-            function recording_resume() {
-                makeRequest('index.php', '?action=recording_resume', 'errorBox');
+            function recording_resume() {                
+                $.ajax({
+                    type: 'GET',
+                    url: "index.php?action=recording_resume", 
+                    cache: false,
+                    timeout: 4000, // 4 seconds
+                    error: offline_alert,
+                    success: function (html) {
+                        if (html) {
+                            // Everything went fine
+                            MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');
+                        }
+                        else {
+                            offline_alert()
+                        }
+                    }
+                }
+                );
+            //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
+            }
+            
+            function recording_stop() {   
+                var res = window.confirm('®Stop_recording®');
+                if (!res)
+                    return false;             
+                $.ajax({
+                    type: 'GET',
+                    url: "index.php?action=view_record_submit", 
+                    cache: false,
+                    timeout: 4000, // 4 seconds
+                    error: offline_alert,
+                    success: function (html) {
+                        if (html) {
+                            // Everything went fine
+                            $('html').html(html);
+                        }
+                        else {
+                            offline_alert()
+                        }
+                    }
+                }
+                );
+            //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
             }
 
             function move_camera(posname) {
@@ -104,7 +183,7 @@
                     <div id="boutonEnregistrement">
                         <!-- BOUTON ENREGISTREMENT PLAY / PAUSE / STOP -->
                         <div id="id1" <?php if ($redraw && $already_recording) echo 'style="display: none;"'; ?>>
-                            <a href="javascript:recording_start();" onclick="MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page2/BDemEnrg.png', 1)"><img src="images/page2/ADemEnrg.png" name="Image2" title="®Start_recording®" border="0" id="Image2" />®Start_recording®</a>
+                            <a href="javascript:recording_start();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page2/BDemEnrg.png', 1)"><img src="images/page2/ADemEnrg.png" name="Image2" title="®Start_recording®" border="0" id="Image2" />®Start_recording®</a>
                         </div>
                         <!-- BOUTON ENREGISTREMENT PLAY / PAUSE / STOP [FIN] -->
 
@@ -122,19 +201,17 @@
                         <div id="id2" <?php if (!$redraw || !$already_recording) echo 'style="display:none"'; ?>>
                             <!-- BOUTON STOP -->
                             <div id='btnStop' class="BtnStop">
-                                <a href="index.php?action=view_record_submit" onclick="var res = window.confirm('®Stop_recording®');
-                if (!res)
-                    return false;" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page2/BStopEnr.png', 1)"><img src="images/page2/AStopEnr.png" name="Image3" title="®Stop_recording_hover®" border="0" id="Image3" />®Stop_recording_hover®</a>
+                                <a href="javascript:recording_stop();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page2/BStopEnr.png', 1)"><img src="images/page2/AStopEnr.png" name="Image3" title="®Stop_recording_hover®" border="0" id="Image3" />®Stop_recording_hover®</a>
                             </div>
 
                             <!-- Bouton pause -->
                             <div id="id3" <?php if ($redraw && $already_recording && $status == 'paused') echo 'style="display: none;"' ?>>
-                                <span class="btnPause"><a href="javascript:recording_pause();" onclick="MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page2/BPauseEnr.png', 1)"><img src="images/page2/APauseEnr.png" name="Image4" border="0" title="®Pause_recording®" id="Image4" />®Pause_recording®</a></span>
+                                <span class="btnPause"><a href="javascript:recording_pause();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page2/BPauseEnr.png', 1)"><img src="images/page2/APauseEnr.png" name="Image4" border="0" title="®Pause_recording®" id="Image4" />®Pause_recording®</a></span>
                             </div>
 
                             <!-- BOUTON resume -->
                             <div id="id4" <?php if (!$redraw || !$already_recording || $status == 'recording') echo 'style="display:none"'; ?>>
-                                <span class="btnPause"><a href="javascript:recording_resume();" onclick="MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image16', '', 'images/page2/BReprendreEnr.png', 1)"><img src="images/page2/AReprendreEnr.png" name="Image16" title="®Resume_recording®" border="0" id="Image16" />®Resume_recording®</a> </span>
+                                <span class="btnPause"><a href="javascript:recording_resume();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image16', '', 'images/page2/BReprendreEnr.png', 1)"><img src="images/page2/AReprendreEnr.png" name="Image16" title="®Resume_recording®" border="0" id="Image16" />®Resume_recording®</a> </span>
                             </div>
                         </div>  
                     </div>

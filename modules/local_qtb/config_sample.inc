@@ -26,6 +26,7 @@
 
 require_once dirname(__FILE__).'/../../global_config.inc';
 
+$localqtb_features = array('recording');
 $localqtb_ip = $ezrecorder_ip;
 $localqtb_username = $ezrecorder_username;
 $localqtb_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
@@ -35,10 +36,8 @@ $localqtb_basedir = $modules_basedir . '/local_qtb/';
 $localqtb_recorddir = $ezrecorder_recorddir;
 $localqtb_movie_name = 'qtbmovie';
 
-$localqtb_time_started_file = $localqtb_basedir.'var/_first_started'; // The file containing timestamp of creation
 $localqtb_monitoring_file = $localqtb_basedir.'var/_monitoring_pid';
 $localqtb_status_file = $localqtb_basedir.'var/status'; // Current recorder status (paused, recording, stopped,...)
-$localqtb_last_request_file = $localqtb_basedir.'var/_last_request'; // Time of this file says when the last refresh happened
 $localqtb_recorder_logs = $localqtb_basedir.'var/_log'; // Log file
 $localqtb_capture_file = $localqtb_basedir.'var/screencapture.jpg'; // Camera screenshot
 

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -74,18 +75,12 @@ function capture_clifmle_init(&$pid, $meta_assoc) {
  */
 function capture_clifmle_start($asset) {
     global $clifmle_script_start;
-    global $clifmle_time_started_file;
-    global $clifmle_last_request_file;
     global $clifmle_recorder_logs;
     global $clifmle_username;
 
     // starts the recording in FMLE
     // $pid is used in web_index.php
     system("sudo -u $clifmle_username $clifmle_script_start >> $clifmle_recorder_logs 2>&1 &");
-
-    // saves start time in text file
-    file_put_contents($clifmle_time_started_file, time());
-    file_put_contents($clifmle_last_request_file, time());
 
     //update recording status
     $status = capture_clifmle_status_get();
@@ -272,35 +267,37 @@ function capture_clifmle_finalize($asset) {
     // launches finalization bash script
     $cmd = 'sudo -u ' . $clifmle_username . ' ' . $clifmle_script_finalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $clifmle_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    $res = exec($cmd, $output, $errorcode);       
-    
+    $res = exec($cmd, $output, $errorcode);
 }
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for given action
  * @global type $clifmle_ip
  * @global type $clifmle_download_protocol
  * @global type $clifmle_username
  * @return type
  */
-function capture_clifmle_download_info_get($asset) {
+function capture_clifmle_info_get($action, $asset = '') {
     global $clifmle_ip;
     global $clifmle_download_protocol;
     global $clifmle_username;
     global $clifmle_upload_dir;
 
-    $tmp_dir = capture_clifmle_tmpdir_get($asset);
+    switch ($action) {
+        case 'download':
+            $tmp_dir = capture_clifmle_tmpdir_get($asset);
 
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
+            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
-    // rsync requires ssh protocol is set (key sharing) on the remote server
-    $download_info_array = array("ip" => $clifmle_ip,
-        "protocol" => $clifmle_download_protocol,
-        "username" => $clifmle_username,
-        "filename" => $clifmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/clifmle_movie.f4v");
-    return $download_info_array;
+            // rsync requires ssh protocol is set (key sharing) on the remote server
+            $download_info_array = array("ip" => $clifmle_ip,
+                "protocol" => $clifmle_download_protocol,
+                "username" => $clifmle_username,
+                "filename" => $clifmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/clifmle_movie.f4v");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -312,13 +309,8 @@ function capture_clifmle_thumbnail() {
     global $clifmle_basedir;
     global $clifmle_script_thumbnail;
     global $clifmle_capture_file;
-    global $clifmle_last_request_file;
     global $clifmle_username;
     global $clifmle_status_file;
-
-    touch($clifmle_last_request_file);
-
-    $minperiod = 5;
 
     // Camera screenshot
     $diff = time() - filemtime($clifmle_capture_file);
@@ -335,7 +327,6 @@ function capture_clifmle_thumbnail() {
         }
     }
     return file_get_contents($clifmle_capture_file);
-    
 }
 
 /**
@@ -358,45 +349,31 @@ function capture_clifmle_status_get() {
  */
 function capture_clifmle_status_set($status) {
     global $clifmle_status_file;
-    global $clifmle_last_request_file;
 
     file_put_contents($clifmle_status_file, $status);
-    file_put_contents($clifmle_last_request_file, time());
 }
 
 /**
- * Returns time of creation of the recording file
- * Only used for local purposes
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $clifmle_features
+ * @return type
  */
-function private_capture_clifmle_starttime_get() {
-    global $clifmle_time_started_file;
-
-    if (!file_exists($clifmle_time_started_file))
-        return false;
-
-    return trim(file_get_contents($clifmle_time_started_file));
-}
-
-/**
- * Returns time of last action
- * Only used for local purposes
- */
-function private_capture_clifmle_lastmodtime_get() {
-    global $clifmle_capture_file;
-
-    return filemtime($clifmle_capture_file);
+function capture_clifmle_features_get() {
+    global $clifmle_features;
+    return $clifmle_features;
 }
 
 
 function capture_clifmle_tmpdir_get($asset) {
     global $clifmle_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $clifmle_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
 
 ?>

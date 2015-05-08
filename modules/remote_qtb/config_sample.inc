@@ -30,6 +30,7 @@
  */
 require_once dirname(__FILE__)."/../../global_config.inc";
 
+$remoteqtb_features = array('recording');
 $remoteqtb_ip = "127.0.0.1"; // ip address of the remote recorder
 $remoteqtb_download_protocol = "rsync";
 $remoteqtb_username = "podclient"; // username on the remote recorder
@@ -40,9 +41,7 @@ $remoteqtb_local_basedir = $modules_basedir . '/remote_qtb/'; // basedir on this
 $remoteqtb_recorddir = '~/Movies/';
 $remoteqtb_upload_dir = $remoteqtb_recorddir . '/upload_to_server/';
 
-$remoteqtb_time_started_file = $remoteqtb_basedir . 'var/_first_started'; // The file containing timestamp of creation
 $remoteqtb_status_file = $remoteqtb_basedir . 'var/status'; // Current recorder status (paused, recording, stopped,...)
-$remoteqtb_last_request_file = $remoteqtb_basedir . 'var/_last_request'; // Time of this file says when the last refresh happened
 $remoteqtb_recorder_logs = $remoteqtb_basedir . 'var/_log'; // Log file
 
 $remoteqtb_capture_file = $remoteqtb_local_basedir.'var/screencapture.jpg'; // Camera screenshot

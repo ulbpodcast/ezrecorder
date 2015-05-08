@@ -34,8 +34,6 @@ $remotefmle_recorddir = '~/Movies/';
 $remotefmle_movie_name = "fmlemovie";
 $remotefmle_monitoring_file = $remotefmle_basedir . 'var/_monitoring_pid';
 $remotefmle_status_file = $remotefmle_basedir . 'var/status';
-$remotefmle_last_request_file = $remotefmle_basedir . 'var/_last_request'; // Time of this file says when the last refresh happened
-$remotefmle_time_started_file = $remotefmle_basedir . 'var/_first_started'; // The file containing timestamp of creation
 
 $remotefmle_open = $remotefmle_basedir . '/applescript/fmle_open.scpt';
 $remotefmle_action = $remotefmle_basedir . '/applescript/fmle_action.scpt';

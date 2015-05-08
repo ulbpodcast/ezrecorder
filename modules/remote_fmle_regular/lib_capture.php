@@ -1,4 +1,5 @@
 <?php
+
 /*
  * EZCAST EZrecorder
  *
@@ -53,11 +54,11 @@ function capture_remotefmle_init(&$pid, $meta_assoc) {
 
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    
+
     $xml = escapeshellarg(capture_assoc_array2metadata($meta_assoc));
     // put the xml string in a metadata file on the local mac mini
-    file_put_contents($tmp_dir . "/_metadata.xml", $xml);    
-    
+    file_put_contents($tmp_dir . "/_metadata.xml", $xml);
+
     if (capture_remotefmle_status_get() == '') {
         /* remote script call requires:
          * - the remote ip
@@ -88,8 +89,6 @@ function capture_remotefmle_init(&$pid, $meta_assoc) {
  */
 function capture_remotefmle_start($asset) {
     global $remotefmle_script_start;
-    global $remotefmle_time_started_file;
-    global $remotefmle_last_request_file;
     global $remotefmle_ip;
     global $remote_script_call;
     global $remote_script_datafile_set;
@@ -104,14 +103,6 @@ function capture_remotefmle_start($asset) {
      * - optional args for the script to execute
      */
     system("sudo -u $remotefmle_username $remote_script_call $remotefmle_ip $remotefmle_recorder_logs $remotefmle_script_start > /dev/null &");
-
-    $curr_time = time();
-    // saves the current time in the time_started file
-    $cmd = "sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip $curr_time $remotefmle_time_started_file &";
-    $res = exec($cmd, $outputarray, $errorcode);
-    // saves the current time in the last_request file
-    $cmd = "sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip $curr_time $remotefmle_last_request_file &";
-    $res = exec($cmd, $outputarray, $errorcode);
 
     //update recording status
     if (capture_remotefmle_status_get() == "open") {
@@ -180,9 +171,9 @@ function capture_remotefmle_stop(&$pid, $asset) {
     global $remote_script_call;
     global $remotefmle_recorder_logs;
     global $remotefmle_username;
-    
+
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    
+
     $status = capture_remotefmle_status_get();
     if ($status == 'recording') {
         system("sudo -u $remotefmle_username $remote_script_call $remotefmle_ip $remotefmle_recorder_logs $remotefmle_script_action > /dev/null & echo $! > $tmp_dir/pid");
@@ -210,7 +201,7 @@ function capture_remotefmle_cancel($asset) {
     global $remotefmle_username;
 
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    
+
     $status = capture_remotefmle_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
 
@@ -240,10 +231,10 @@ function capture_remotefmle_process($meta_assoc, &$pid) {
     global $remote_script_datafile_set;
     global $remotefmle_username;
     global $remotefmle_basedir;
-    
+
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    
+
     if (capture_remotefmle_status_get() != 'recording' && capture_remotefmle_status_get() != 'open') {
 
         if (!in_array($remotefmle_processing_tool, $remotefmle_processing_tools))
@@ -253,7 +244,7 @@ function capture_remotefmle_process($meta_assoc, &$pid) {
         // put the xml string in a metadata file on the remote mac mini
         system("sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip " . escapeshellarg($xml) . " $remotefmle_basedir/var/_metadata.xml &");
         // put the xml string in a metadata file on the local mac mini
-        file_put_contents($tmp_dir . "/_metadata.xml", $xml);    
+        file_put_contents($tmp_dir . "/_metadata.xml", $xml);
 
         $course_name = $meta_assoc['course_name'];
         $record_date = $meta_assoc['record_date'];
@@ -301,7 +292,7 @@ function capture_remotefmle_finalize($asset) {
     // retrieves the metadata relative to the recording
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
     $meta_assoc = capture_metadata2assoc_array($tmp_dir . '/_metadata.xml');
-    
+
     $record_date = $meta_assoc['record_date'];
     $course_name = $meta_assoc['course_name'];
 
@@ -310,7 +301,7 @@ function capture_remotefmle_finalize($asset) {
     log_append("finalizing: execute cmd '$cmd'");
 
     $pid = system($cmd);
-    
+
     system("rm -rf $tmp_dir");
 }
 
@@ -323,20 +314,12 @@ function capture_remotefmle_thumbnail() {
     global $remotefmle_script_thumbnail;
     global $remotefmle_capture_file;
     global $remotefmle_capture_tmp_file;
-    global $remotefmle_last_request_file;
     global $remotefmle_ip;
     global $remote_script_thumbnail_create;
-    global $remote_script_datafile_set;
     global $remotefmle_username;
-
-    $curr_time = time();
-    // saves the current time in the last_request file
-    $cmd = "sudo -u podclient $remote_script_datafile_set $remotefmle_ip $curr_time $remotefmle_last_request_file";
-    $res = exec($cmd, $outputarray, $errorcode);
 
     $status = capture_remotefmle_status_get();
 
-    $minperiod = 5;
 
     // Slide screenshot
     if (!file_exists($remotefmle_capture_file) || (time() - filemtime($remotefmle_capture_file) > 3)) {
@@ -357,28 +340,32 @@ function capture_remotefmle_thumbnail() {
 
 /**
  * @implements
- * Returns information relative to the downloading of the video 
+ * Returns an associative array containing information required for given action
  * @global type $remotefmle_ip
  * @global type $remotefmle_download_protocol
  * @global type $remotefmle_username
- * @global type $remotefmle_upload_dir
- * @return <associative_array> $download_info_array the information relative to the downloading 
+ * @return type
  */
-function capture_remotefmle_download_info_get($asset) {
+function capture_remotefmle_info_get($action, $asset = '') {
     global $remotefmle_ip;
     global $remotefmle_download_protocol;
     global $remotefmle_username;
     global $remotefmle_upload_dir;
     global $remotefmle_username;
 
-    $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
+    switch ($action) {
+        case 'download':
 
-    $download_info_array = array("ip" => $remotefmle_ip,
-        "protocol" => $remotefmle_download_protocol,
-        "username" => $remotefmle_username,
-        "filename" => $remotefmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/fmle_movie.f4v");
-    return $download_info_array;
+            $tmp_dir = capture_remotefmle_tmpdir_get($asset);
+            $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
+
+            $download_info_array = array("ip" => $remotefmle_ip,
+                "protocol" => $remotefmle_download_protocol,
+                "username" => $remotefmle_username,
+                "filename" => $remotefmle_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/fmle_movie.f4v");
+            return $download_info_array;
+            break;
+    }
 }
 
 /**
@@ -409,7 +396,6 @@ function capture_remotefmle_status_set($status) {
 
     global $remotefmle_ip;
     global $remotefmle_status_file;
-    global $remotefmle_last_request_file;
     global $remote_script_datafile_set;
     global $remotefmle_username;
 
@@ -418,8 +404,17 @@ function capture_remotefmle_status_set($status) {
     $curr_time = time();
     $cmd = "sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip $status $remotefmle_status_file";
     $res = exec($cmd, $outputarray, $errorcode);
-    $cmd = "sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip $curr_time $remotefmle_last_request_file";
-    $res = exec($cmd, $outputarray, $errorcode);
+}
+
+/**
+ * @implements
+ * Returns an array containing the features offered by the module
+ * @global type $remotefmle_features
+ * @return type
+ */
+function capture_remotefmle_features_get() {
+    global $remotefmle_features;
+    return $remotefmle_features;
 }
 
 /**
@@ -463,11 +458,12 @@ function capture_metadata2assoc_array($meta_path, $xml_file = true) {
 function capture_remotefmle_tmpdir_get($asset) {
     global $remotefmle_local_basedir;
     static $tmp_dir;
-    
+
     $tmp_dir = $remotefmle_local_basedir . '/var/' . $asset;
     if (!dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
-    
-    return $tmp_dir; 
+
+    return $tmp_dir;
 }
+
 ?>

@@ -26,6 +26,7 @@
 
 require_once dirname(__FILE__).'/../../global_config.inc';
 
+$clifmle_features = array('recording');
 $clifmle_ip = $ezrecorder_ip;
 $clifmle_username = $ezrecorder_username;
 $clifmle_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
@@ -35,10 +36,8 @@ $clifmle_basedir = $modules_basedir . '/cli_fmle/';
 $clifmle_recorddir = $ezrecorder_recorddir;
 $clifmle_movie_name = 'clifmlemovie';
 
-$clifmle_time_started_file = $clifmle_basedir.'var/_first_started'; // The file containing timestamp of creation
 $clifmle_monitoring_file = $clifmle_basedir.'var/_monitoring_pid';
 $clifmle_status_file = $clifmle_basedir.'var/status'; // Current recorder status (paused, recording, stopped,...)
-$clifmle_last_request_file = $clifmle_basedir.'var/_last_request'; // Time of this file says when the last refresh happened
 $clifmle_recorder_logs = $clifmle_basedir.'var/_log'; // Log file
 $clifmle_capture_file = $clifmle_basedir.'var/screencapture.jpg'; // Camera screenshot
 

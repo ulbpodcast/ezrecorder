@@ -1,0 +1,54 @@
+#!/bin/bash -x
+
+# EZCAST EZrecorder
+#
+# Copyright (C) 2014 Université libre de Bruxelles
+#
+# Written by Michel Jansens <mjansens@ulb.ac.be>
+# 	     Arnaud Wijns <awijns@ulb.ac.be>
+# UI Design by Julien Di Pietrantonio
+#
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#include localdefs
+source $(dirname $0)/localdefs
+
+unlink $EZCASTDIR/var/_monitoring_pid
+
+#first stops the recording
+osascript $EZCASTDIR/applescript/fmle_action.scpt
+wait;
+
+#then quit FMLE
+osascript $EZCASTDIR/applescript/fmle_quit.scpt&
+wait
+# Kill FMLE if it hasn't been quit
+FMLE_CAM_PID=`ps ax | grep -i "FlashMediaLiveEncoder" | grep -v grep | cut -c 1-6`
+# Test if FMLE_CAM_PID is set
+if [ $FMLE_CAM_PID -gt 0 ]; then kill -9 $FMLE_CAM_PID; fi;
+
+#Finally clean up eventual movie remains
+SDAT=`date +"%Y_%m_%d_%Hh%M"`
+ASSET=$1
+
+mkdir  $RECORDDIR/trash/$SDAT 
+wait
+mv $RECORDDIR/${COMMON_MOVIE_NAME}*.f4v  $RECORDDIR/trash/$SDAT/
+mv $RECORDDIR/fmle_session*.log  $RECORDDIR/trash/$SDAT/
+if [ "$ASSET" != "" ]
+then
+mv $EZCASTDIR/var/$ASSET/_cut_list $RECORDDIR/trash/$SDAT/
+rm -rf $EZCASTDIR/var/$ASSET
+fi

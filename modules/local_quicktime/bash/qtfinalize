@@ -38,6 +38,4 @@ mv $UPLOADDIR $STORDIR
 
 # removes all temp files used for the recording
 rm $METADATAPATH
-rm $EZCASTDIR/var/_first_started
-rm $EZCASTDIR/var/_last_request
 rm $EZCASTDIR/var/status

@@ -134,12 +134,12 @@ function capture_modulename_finalize($asset) {};
 
 /**
  * @implements
- * Returns an associative array containing information required for downloading the movie
- * from the server
+ * Returns an associative array containing information required for the given action
+ * @param string $action the action we want information about
  * @param string $asset the unique id for video : YYYY_MM_DD_hh\hmm_COURSE_ID (i.e 2014_01_01_00h00_COURSE_ID)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_modulename_download_info_get($asset) {};
+function capture_modulename_info_get($action, $asset) {};
 
 /**
  * @implements
@@ -161,4 +161,9 @@ function capture_modulename_status_get() {};
  */
 function capture_modulename_status_set($status) {};
 
+/**
+ * @implements
+ * Returns the features offered by the module
+ */
+function capture_modulename_features_get(){};
 ?>

@@ -26,6 +26,7 @@
 
 require_once dirname(__FILE__).'/../../global_config.inc';
 
+$axiscam_features = array('recording');
 $axiscam_ip = "127.0.0.1"; // static IP address of Axis camera
 $axiscam_module_ip = $ezrecorder_ip;  
 $axiscam_module_username = $ezrecorder_username; // user of axis_cam module
