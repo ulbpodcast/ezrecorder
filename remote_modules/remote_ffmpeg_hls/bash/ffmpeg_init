@@ -1,0 +1,158 @@
+#!/bin/bash -x
+
+# EZCAST EZrecorder
+#
+# Copyright (C) 2014 Université libre de Bruxelles
+#
+# Written by Michel Jansens <mjansens@ulb.ac.be>
+# 	     Arnaud Wijns <awijns@ulb.ac.be>
+# UI Design by Julien Di Pietrantonio
+#
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#include localdefs
+source $(dirname $0)/localdefs
+
+ASSET=$1
+STREAMING=$2
+CALLS=$3
+
+MAXCALLS=3 	# sends a mail after 3 fails
+EXISTS_VIDEO=0 		# 1 if ${COMMON_MOVIE_NAME}* exists on EZrecorder
+
+if [ ! -d $EZCASTDIR/var/$ASSET ]
+then  
+    mkdir $EZCASTDIR/var/$ASSET
+fi
+
+#first clean up eventual movie remaining
+SDAT=`date +"%Y_%m_%d_%Hh%M"`
+mkdir  $RECORDDIR/trash/$SDAT 
+mv $MOVIESDIR/${COMMON_MOVIE_NAME}*  $RECORDDIR/trash/$SDAT/
+
+# loop while delay hasn't expired and cam file doesn't exist
+while [ $CALLS -le $MAXCALLS -a \( $EXISTS_VIDEO -eq 0 \) ]
+do 
+
+if [ $FFMPEG_MONO -eq 1 ]
+then
+    AC='-ac 1'
+fi
+
+case "$INPUT_SOURCE" in
+    "UltraStudioMiniRecorder" )
+        if [ $STREAMING == 'true' ]
+        then 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low
+            # streaming is enabled. We prepare low and high resolution
+            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        else 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            # streaming is disabled. We prepare high resolution only
+            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        fi ;;
+    "IntensityShuttle" )
+        if [ $STREAMING == 'true' ]
+        then 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low
+            # streaming is enabled. We prepare low and high resolution
+            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        else 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            # streaming is disabled. We prepare high resolution only
+            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        fi ;;  
+    "avfoundation" )
+        if [ -e $STREAMING_INFO ]
+        then 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low
+            # streaming is enabled. We prepare low and high resolution
+            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        else 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high
+            # streaming is disabled. We prepare high resolution only
+            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        fi ;;   
+        # -f decklink = force BMD source
+        # -i = input source
+        # -vcodec = video codec (H264)
+        # -r = framerate
+        # -crf = encoding quality (higher = lower quality / best = 0)
+        # -profile:v = video profile (baseline | main | high)
+        # -maxrate = max bitrate
+        # -bufsize = buffer size
+        # -pix_fmt = pixel format
+        # -force_key_frames = regular expression for setting keyframe every 3sec
+        # -flags ?
+        # -global_header ?
+        # -hls_time = segment duration in seconds for HLS (related to keyframe)
+        # -hls_list_size = limitation for HLS segments
+        # -hls_wrap = number of segments before overwritting
+        # -start_number = first segment starts at ...
+esac
+
+
+SDAT=`date +"%s"` 	#start date
+WAITING_DELAY=10 	#if the file doesn't exist after 10s, we consider FFMPEG has planted
+
+# loop while delay hasn't expired and cam file doesn't exist
+while [ $(( `date +"%s"`- $SDAT )) -le $WAITING_DELAY -a \( $EXISTS_VIDEO -eq 0 \) ]
+do 
+	# if video didn't exist yet, checks if it exists now
+	[ $EXISTS_VIDEO -eq 0 ] && test -e $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 && EXISTS_VIDEO=1;
+	# if cam doesn't exist yet, wait 
+	if [ $EXISTS_VIDEO -eq 0 ]
+	then
+		sleep 1
+	fi
+done
+
+
+# add entry in log file 
+[ $CALLS -eq 1 ] && echo "********************************************" >> $EZCASTDIR/var/_check_log
+[ $CALLS -gt 1 ] && echo "--------------------------------------------" >> $EZCASTDIR/var/_check_log
+echo `date +"%d/%m/%y - %Hh%Mm%Ss"` : Attempt $CALLS >> $EZCASTDIR/var/_check_log
+echo "--------------------------------------------" >> $EZCASTDIR/var/_check_log
+if [ $EXISTS_VIDEO -eq 1 ]; then echo "CAM (EZrecorder)   : Success" >> $EZCASTDIR/var/_check_log; else echo "CAM (EZrecorder)   : Failure" >> $EZCASTDIR/var/_check_log; fi;
+
+#increments CALLS
+CALLS=$(( $CALLS + 1 ))
+
+done
+
+# the file has not been found
+if [ $EXISTS_VIDEO -eq 0 ]
+then 
+    echo "FAILURE FFMPEG"
+    echo "FFMPEG Launch Failure in $CLASSROOM" | mail -s "FFMPEG Failure $CLASSROOM" $MAIL_TO
+    echo -n "launch_failure" > $EZCASTDIR/var/status
+
+else # currently recording
+    #saves current date as recording init
+    echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > $EZCASTDIR/var/$ASSET/_cut_list
+    echo -n "open" > $EZCASTDIR/var/status
+    
+    if [ $STREAMING == 'true' ]
+    then
+        # initialisation of the streaming
+        $PHP_PATH $CLI_STREAMING "init"
+    fi
+
+    #start monitoring 
+    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now
+fi

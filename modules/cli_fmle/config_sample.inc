@@ -55,9 +55,7 @@ $clifmle_script_resume = $clifmle_basedir.'bash/fmle_rec';
 $clifmle_script_stop = $clifmle_basedir.'bash/fmle_stop';
 $clifmle_script_finalize = $clifmle_basedir.'bash/fmle_finalize';
 $clifmle_script_thumbnail = $clifmle_basedir.'bash/fmle_thumbnail';
-
-$clifmle_open = $clifmle_basedir.'applescript/fmle_open.scpt'; //used in cli_monitoring.php
-$clifmle_action = $clifmle_basedir.'applescript/fmle_action.scpt'; //used in cli_monitoring.php
+ 
 $clifmle_download_protocol = "rsync"; // if you change the protocol, you might
 // have to adapt the function 'capture_localfmle_download_info_get()' in 'lib_capture.php'
 

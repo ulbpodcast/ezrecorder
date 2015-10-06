@@ -23,9 +23,9 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  
-cd $(dirname $0)
-chown !USER *
+cd $(dirname $0) 
+chown !USER * 
 chgrp !WEB_USER *
-chown !WEB_USER ./var
+chown -R !WEB_USER ./var
 chmod +a "!USER allow list,add_file,search,add_subdirectory,delete_child,file_inherit,directory_inherit" ./var
 chmod +a "!WEB_USER allow list,add_file,search,add_subdirectory,delete_child,file_inherit,directory_inherit" ./var

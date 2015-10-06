@@ -30,7 +30,6 @@
  * This script is called by qtbstart and qtbstop.
  * Current checks performed:
  * - timeout check (checks whether the user has forgotten to stop recording, and publish the recording if they did)
- * - recovery check (checks whether QTB has crashed, and restart it if it hs)
  */
 /**
  * Timeout check:
