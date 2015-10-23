@@ -4,30 +4,32 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=8" />
         <meta name="viewport" content="width=device-width" />
-        <!--
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-        -->
+        <?php
+        /*
+         * EZCAST EZrecorder
+         *
+         * Copyright (C) 2014 Université libre de Bruxelles
+         *
+         * Written by Michel Jansens <mjansens@ulb.ac.be>
+         * 	      Arnaud Wijns <awijns@ulb.ac.be>
+         *            Antoine Dewilde
+         * UI Design by Julien Di Pietrantonio
+         *
+         * This software is free software; you can redistribute it and/or
+         * modify it under the terms of the GNU Lesser General Public
+         * License as published by the Free Software Foundation; either
+         * version 3 of the License, or (at your option) any later version.
+         *
+         * This software is distributed in the hope that it will be useful,
+         * but WITHOUT ANY WARRANTY; without even the implied warranty of
+         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+         * Lesser General Public License for more details.
+         *
+         * You should have received a copy of the GNU Lesser General Public
+         * License along with this software; if not, write to the Free Software
+         * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+         */
+        ?>
         <title>®Page_title®</title>
         <link rel="shortcut icon" type="image/ico" href="images/Generale/favicon.ico" />
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
@@ -43,8 +45,8 @@
         <script src="js/jquery.colorbox.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
         <script type="text/javascript">
-            function offline_alert(){
-                        window.alert("®offline_from_podc®");
+            function offline_alert() {
+                window.alert("®offline_from_podc®");
             }
             function recording_start() {
                 $.ajax({
@@ -66,13 +68,13 @@
                     }
                 }
                 );
-          //      makeRequest('index.php', '?action=recording_start', 'errorBox');
+                //      makeRequest('index.php', '?action=recording_start', 'errorBox');
             }
 
-            function recording_pause() {                
+            function recording_pause() {
                 $.ajax({
                     type: 'GET',
-                    url: "index.php?action=recording_pause", 
+                    url: "index.php?action=recording_pause",
                     cache: false,
                     timeout: 4000, // 4 seconds
                     error: offline_alert,
@@ -87,13 +89,13 @@
                     }
                 }
                 );
-            //    makeRequest('index.php', '?action=recording_pause', 'errorBox');
+                //    makeRequest('index.php', '?action=recording_pause', 'errorBox');
             }
 
-            function recording_resume() {                
+            function recording_resume() {
                 $.ajax({
                     type: 'GET',
-                    url: "index.php?action=recording_resume", 
+                    url: "index.php?action=recording_resume",
                     cache: false,
                     timeout: 4000, // 4 seconds
                     error: offline_alert,
@@ -108,16 +110,16 @@
                     }
                 }
                 );
-            //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
+                //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
             }
-            
-            function recording_stop() {   
+
+            function recording_stop() {
                 var res = window.confirm('®Stop_recording®');
                 if (!res)
-                    return false;             
+                    return false;
                 $.ajax({
                     type: 'GET',
-                    url: "index.php?action=view_record_submit", 
+                    url: "index.php?action=view_record_submit",
                     cache: false,
                     timeout: 4000, // 4 seconds
                     error: offline_alert,
@@ -132,7 +134,7 @@
                     }
                 }
                 );
-            //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
+                //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
             }
 
             function move_camera(posname) {

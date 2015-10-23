@@ -55,7 +55,7 @@ function log_append($operation, $message = '') {
     global $recorder_logs;
     
     // 1) Date/time at which the event occurred
-    $data = date('Y-m-d-H:i');
+    $data = date('Y-m-d-H:i:s');
     $data .= ' ';
     
     // 2) IP address of the user that provoked the event
