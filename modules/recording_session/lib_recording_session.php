@@ -60,7 +60,8 @@ function session_xml_metadata_save($metadata_assoc_array) {
  */
 function session_xml_metadata_delete() {
     global $metadata_file;
-    unlink($metadata_file);
+    if(file_exists($metadata_file))
+        unlink($metadata_file);
 }
 
 /**

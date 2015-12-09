@@ -48,10 +48,13 @@ function auth_file_check($login, $passwd) {
 
     // We could get a login of type "real_login/user_login"
     // In that case, we split it into two different variables
-    list($real_login, $user_login) = explode('/', $login);
-    if (empty($user_login))
-        $user_login = $real_login;
-
+    if (strpos($login,'/') !== false) {
+        list($real_login, $user_login) = explode('/', $login);
+    } else {
+        $real_login = $login;
+        $user_login = $login;
+    }
+    
     // If there was a real_login and a user_login, that means somone is trying to take another's identity.
     // The only persons allowed to do that are admins so we check if $real_login is in admin list
     require_once $admin_file;

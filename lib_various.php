@@ -157,7 +157,7 @@ function server_request_send($server_url, $post_array) {
             return "Curl error";
     }
     //All went well send http response in stderr to be logged
-    fputs(STDERR, "curl result: $res", 2000);
+    //fputs(STDERR, "curl result: $res", 2000);
 
     return $res;
 }

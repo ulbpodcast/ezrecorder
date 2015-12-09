@@ -74,7 +74,7 @@ if (!user_logged_in()) {
         // If the action is 'recording_force_quit', it might be a request from 
         // the recorder. The quicktime modules, for instance, use curl to
         // stop the recording after a timeout. 
-    } else if ($input['action'] == 'recording_force_quit') {
+    } else if (isset($input['action']) && $input['action'] == 'recording_force_quit') {
         // We get information from both cam and slide modules to make 
         // sure that the caller ip address is one of the recorders. 
         // It is an access restriction on ip address
@@ -118,7 +118,10 @@ if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
 
 // At this point of the code, we know the user is logged in.
 // So now, we must see what action they wanted to perform, and do it.
-$action = $input['action'];
+$action = '';
+if(isset($input['action']))
+    $action = $input['action'];
+
 switch ($action) {
 
     // Someone submitted record information.
@@ -368,7 +371,8 @@ function recording_stop() {
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    unlink($recorder_monitoring_pid);
+    if(file_exists($recorder_monitoring_pid))
+        unlink($recorder_monitoring_pid);
 
     $moderation = 'false';
     if (isset($input['moderation']) && $input['moderation'] == 'true')
@@ -439,7 +443,8 @@ function recording_cancel() {
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    unlink($recorder_monitoring_pid);
+    if(file_exists($recorder_monitoring_pid))
+        unlink($recorder_monitoring_pid);
 
     // Logging the operation
     $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
@@ -504,7 +509,8 @@ function recording_force_quit() {
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    unlink($recorder_monitoring_pid);
+    if(file_exists($recorder_monitoring_pid))
+        unlink($recorder_monitoring_pid);
 
     $session = explode(';', file_get_contents($recorder_session));
     $asset = $session[0];
@@ -705,13 +711,14 @@ function view_record_form() {
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    unlink($recorder_monitoring_pid);
-    //
+    if(file_exists($recorder_monitoring_pid))
+        unlink($recorder_monitoring_pid);
+    
     // Retrieving the course list (to display in the web interface)
     $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
     $courselist = $fct_user_courselist_get($_SESSION['user_login']);
 
-    if ($input['reset_player'] == 'true') {
+    if (isset($input['reset_player']) && $input['reset_player'] == 'true') {
         // if cam module is enabled
         if ($cam_enabled) {
             $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';
@@ -876,6 +883,7 @@ function user_login($login, $passwd) {
  * Displays the screen with "pause/resume", video feedback, etc.
  */
 function view_record_screen() {
+
     global $url;
     global $session_module;
     global $cam_enabled;
@@ -909,20 +917,28 @@ function view_record_screen() {
             }
         }
 
+        $cam_pid = 0;
+        $slide_pid = 0;
+        
         // if cam module is enabled
         if ($cam_enabled) {
             $fct_capture_init = 'capture_' . $cam_module . '_init';
             $res_cam = $fct_capture_init($cam_pid, $metadata);
+            if($res_cam == false)
+                log_append('error', "view_record_screen: Cam capture init failed.");
         }
         // if slide module is enabled
         if ($slide_enabled) {
             $fct_capture_init = 'capture_' . $slide_module . '_init';
             $res_slide = $fct_capture_init($slide_pid, $metadata);
+            if($res_slide == false)
+                log_append('error', "view_record_screen: Slides capture init failed.");
         }
 
         // capture_init is launched in background in order to save time.
         // waits until both processes are finished to continue.
-        while (is_process_running($cam_pid) || is_process_running($slide_pid))
+        while (   ($cam_enabled   && is_process_running($cam_pid)  ) 
+               || ($slide_enabled && is_process_running($slide_pid)) )
             sleep(0.5);
 
         // something wrong happened while init the recorders
