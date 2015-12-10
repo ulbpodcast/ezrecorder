@@ -123,9 +123,9 @@
             <?php include 'div_main_header.php'; ?>
             <div id="global2">
                 <div id="global3">
-                    <!-- Eventuel message d'erreur -->
+                    <!-- ERROR MESSAGE -->
                     <div id="errorBox" style="color: red; padding: 10px;"></div>
-                    <!-- Message d'erreur FIN -->
+                    <!-- ERROR MESSAGE FIN -->
 
                     <!-- Plan Quicktime video+Slides etc... -->
                     <div style="text-align: center; height: 180px;">
@@ -157,13 +157,13 @@
                     <!-- Plan Quicktime video+Slides etc... [FIN] -->
 
                     <div id="boutonEnregistrement">
-                        <!-- BOUTON ENREGISTREMENT PLAY / PAUSE / STOP -->
+                        <!-- RECORD BUTTON PLAY / PAUSE / STOP -->
                         <div id="id1" <?php if ($redraw && $already_recording) echo 'style="display: none;"'; ?>>
                             <a href="javascript:recording_start();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page2/BDemEnrg.png', 1)"><img src="images/page2/ADemEnrg.png" name="Image2" title="®Start_recording®" border="0" id="Image2" />®Start_recording®</a>
                         </div>
-                        <!-- BOUTON ENREGISTREMENT PLAY / PAUSE / STOP [FIN] -->
+                        <!-- RECORD BUTTON PLAY / PAUSE / STOP [END] -->
 
-                        <!-- BOUTON CAMERA + PLAN -->
+                        <!-- CAMERA BUTTON + PLAN -->
                         <?php if ($cam_management_enabled && $_SESSION['recorder_type'] != 'slide') {
                             ?>
                             <div id='btnScenes' class="PlanCamera">
@@ -173,28 +173,27 @@
                         }
                         ?>
 
-
                         <div id="id2" <?php if (!$redraw || !$already_recording) echo 'style="display:none"'; ?>>
-                            <!-- BOUTON STOP -->
+                            <!-- STOP BUTTON -->
                             <div id='btnStop' class="BtnStop">
                                 <a href="javascript:recording_stop();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page2/BStopEnr.png', 1)"><img src="images/page2/AStopEnr.png" name="Image3" title="®Stop_recording_hover®" border="0" id="Image3" />®Stop_recording_hover®</a>
                             </div>
 
-                            <!-- Bouton pause -->
+                            <!-- PAUSE BUTTON -->
                             <div id="id3" <?php if ($redraw && $already_recording && $status == 'paused') echo 'style="display: none;"' ?>>
-                                <span class="btnPause"><a href="javascript:recording_pause();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page2/BPauseEnr.png', 1)"><img src="images/page2/APauseEnr.png" name="Image4" border="0" title="®Pause_recording®" id="Image4" />®Pause_recording®</a></span>
+                                <a href="javascript:recording_pause();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page2/BPauseEnr.png', 1)"><img src="images/page2/APauseEnr.png" name="Image4" border="0" title="®Pause_recording®" id="Image4" />®Pause_recording®</a>
                             </div>
 
-                            <!-- BOUTON resume -->
+                            <!-- RESUME BUTTON -->
                             <div id="id4" <?php if (!$redraw || !$already_recording || $status == 'recording') echo 'style="display:none"'; ?>>
-                                <span class="btnPause"><a href="javascript:recording_resume();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image16', '', 'images/page2/BReprendreEnr.png', 1)"><img src="images/page2/AReprendreEnr.png" name="Image16" title="®Resume_recording®" border="0" id="Image16" />®Resume_recording®</a> </span>
+                                <a href="javascript:recording_resume();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image16', '', 'images/page2/BReprendreEnr.png', 1)"><img src="images/page2/AReprendreEnr.png" name="Image16" title="®Resume_recording®" border="0" id="Image16" />®Resume_recording®</a>
                             </div>
                         </div>  
+                        <!-- CAMERA BUTTON + PLAN [END] -->
                     </div>
-                    <!-- BOUTON CAMERA + PLAN [FIN] -->
                 </div>
 
-                <!-- Bloc cache avec choix des plans -->
+                <!-- Camera position bloc -->
                 <?php if ($cam_management_enabled) {
                     ?>
                     <div id="divid5" style="display:none;">
@@ -222,9 +221,9 @@
                     <?php
                 }
                 ?>
-                <!-- Bloc cache aevc choix des plans [Fin] -->
+                <!-- Camera position bloc [Fin] -->
 
-                <!-- BOUTON "RETOUR" -->
+                <!-- CANCEL BUTTON -->
                 <?php
                 if (!$redraw || !$already_recording) {
                     ?>
@@ -234,7 +233,7 @@
                     <?php
                 }
                 ?>
-                <!-- BOUTON RETOUR FIN -->
+                <!-- CANCEL BUTTON FIN -->
             </div>
 
             <!-- FOOTER - INFOS COPYRIGHT -->
