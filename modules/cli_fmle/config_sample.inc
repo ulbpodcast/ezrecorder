@@ -29,8 +29,6 @@ require_once dirname(__FILE__).'/../../global_config.inc';
 $clifmle_features = array('recording');
 $clifmle_ip = $ezrecorder_ip;
 $clifmle_username = $ezrecorder_username;
-$clifmle_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
-// used in cli_monitoring.php to stop the recording after a timeout
 
 $clifmle_basedir = $modules_basedir . '/cli_fmle/';
 $clifmle_recorddir = $ezrecorder_recorddir;

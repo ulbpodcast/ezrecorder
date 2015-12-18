@@ -29,8 +29,6 @@ require_once dirname(__FILE__).'/../../global_config.inc';
 $localqtb_features = array('recording');
 $localqtb_ip = $ezrecorder_ip;
 $localqtb_username = $ezrecorder_username;
-$localqtb_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
-// used in cli_monitoring.php to stop the recording after a timeout
 
 $localqtb_basedir = $modules_basedir . '/local_qtb/';
 $localqtb_recorddir = $ezrecorder_recorddir;

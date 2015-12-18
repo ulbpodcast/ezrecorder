@@ -26,6 +26,7 @@
  */
 
 require 'config.inc';
+require_once '../../global_config.inc';
 require 'lib_curl.php';
 require_once $basedir . '/lib_various.php';
 include_once $basedir . '/lib_error.php';
@@ -323,14 +324,14 @@ function capture_axiscam_finalize($asset) {
     global $axiscam_script_finalize;
     global $axiscam_recorder_logs;
     global $dir_date_format;
-    global $axiscam_module_username;
+    global $ezrecorder_username;
 
     $tmp_dir = capture_axiscam_tmpdir_get($asset);
     // retrieves course_name and record_date
     $meta_assoc = axiscam_xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
     // launches finalization bash script
-    $cmd = 'sudo -u ' . $axiscam_module_username . ' ' . $axiscam_script_finalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $axiscam_recorder_logs . ' 2>&1  & echo $!';
+    $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $axiscam_script_finalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $axiscam_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
     $res = exec($cmd, $output, $errorcode);
 }
@@ -346,7 +347,7 @@ function capture_axiscam_finalize($asset) {
 function capture_axiscam_info_get($action, $asset = '') {
     global $axiscam_module_ip;
     global $axiscam_download_protocol;
-    global $axiscam_module_username;
+    global $ezrecorder_username;
     global $axiscam_upload_dir;
 
     switch ($action) {
@@ -358,7 +359,7 @@ function capture_axiscam_info_get($action, $asset = '') {
             // rsync requires ssh protocol is set (key sharing) on the remote server
             $download_info_array = array("ip" => $axiscam_module_ip,
                 "protocol" => $axiscam_download_protocol,
-                "username" => $axiscam_module_username,
+                "username" => $ezrecorder_username,
                 "filename" => $axiscam_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mkv");
             return $download_info_array;
             break;
@@ -595,7 +596,7 @@ function capture_axiscam_tmpdir_get($asset) {
     global $axiscam_basedir;
 
     $tmp_dir = $axiscam_basedir . '/var/' . $asset;
-    if (!dir($tmp_dir))
+    if (!file_exists($tmp_dir) && !dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;

@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_quicktime";
-$module_description = "This module is designed to record videos using QuickTime.";
+$module_description = "Record videos using QuickTime.";
 $module_name = "localqt";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

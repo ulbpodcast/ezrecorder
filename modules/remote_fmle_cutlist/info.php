@@ -25,7 +25,7 @@
  */
 
 $module_title = "remote_fmle_cutlist";
-$module_description = "This module is designed to record videos using Flash Media Live Encoder on a remote recorder. It records as soon as the recording form has been submitted.";
+$module_description = "Record videos using Flash Media Live Encoder on a remote recorder. It records as soon as the recording form has been submitted.";
 $module_name = "remotefmle";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

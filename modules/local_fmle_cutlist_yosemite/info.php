@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_fmle_cutlist_yosemite";
-$module_description = "This module is designed to record videos using Adobe Flash Media Live Encoder. It records as soon as the recording form has been submitted and uses cutlist to deliver the final video file. It is specific to Yosemite because it uses ssh to open the FMLE application";
+$module_description = "Record videos using Adobe Flash Media Live Encoder. It records as soon as the recording form has been submitted and uses cutlist to deliver the final video file. It is specific to Yosemite because it uses ssh to open the FMLE application";
 $module_name = "localfmle";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

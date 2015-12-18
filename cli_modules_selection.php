@@ -78,7 +78,7 @@ if (strtoupper($value) != 'N' && strtoupper($value) != 'NO') {
             echo "Select the module you want to enable for cam recording: " . PHP_EOL;
             echo "---------------------------------------------------------------- " . PHP_EOL;
             foreach ($modules_array['recording'] as $index => $module) {
-                echo ($index + 1) . ". " . $module['title'] . ": " . $module['description'] . PHP_EOL;
+                echo ($index + 1) . ". " . $module['title'] . ": " . PHP_EOL . "\t". $module['description'] . PHP_EOL;
             }
             $index++;
             do {

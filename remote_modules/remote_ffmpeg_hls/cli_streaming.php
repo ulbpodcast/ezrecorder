@@ -31,6 +31,8 @@
  * It opens and closes the connection to EZmanager
  */
 require_once 'lib_tools.php';
+require_once 'config.inc';
+require_once '../../global_config.inc';
 
 if ($argc !== 2) {
     print "Expected 1 parameter (found $argc) " . PHP_EOL;
@@ -52,8 +54,8 @@ switch ($action) {
 function streaming_init() {
     global $remoteffmpeg_streaming_info;
     global $remoteffmpeg_cli_streaming;
-    global $php_path;
-
+    global $php_cli_cmd;
+    
     // init the streamed asset
     $post_array = xml_file2assoc_array($remoteffmpeg_streaming_info);
     if ($post_array['module_quality'] == 'none') return false;
@@ -70,9 +72,9 @@ function streaming_init() {
     // executes the command for sending TS segments to EZmanager in background
     // for low and high qualities
     if (strpos($post_array['module_quality'], 'high') !== false)
-        exec("$php_path $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " high > /dev/null &", $output, $errno);    
+        exec("$php_cli_cmd $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " high > /dev/null &", $output, $errno);    
     if (strpos($post_array['module_quality'], 'low') !== false)
-        exec("$php_path $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " low > /dev/null &", $output, $errno);
+        exec("$php_cli_cmd $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " low > /dev/null &", $output, $errno);
 }
 
 function streaming_close() {

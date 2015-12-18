@@ -29,7 +29,7 @@
  *  This CLI script sends the TS segments for HLS video to EZmanager.
  * This script is called by capture_ffmpeg_init() in lib_capture.php
  */
-require_once 'config.inc';
+require_once 'etc/config.inc';
 require_once $basedir . '/lib_various.php';
 require_once 'lib_capture.php';
 

@@ -38,7 +38,8 @@
  * After that, we check that there has been activity at least once every "timeout" seconds (typically 15 min).
  * This program is meant to be run as a crontask at least once every "timeout" seconds
  */
-require_once 'config.inc';
+require_once 'etc/config.inc';
+require_once '../../global_config.inc';
 require_once 'lib_capture.php';
 
 // Delays, in seconds
@@ -61,12 +62,11 @@ while (true) {
 
     clearstatcache();
 
-    $movie_count = trim(system("ls -la $ffmpeg_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
-    $files = glob("$ffmpeg_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
+    $movie_count = trim(system("ls -la $ezrecorder_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
+    $files = glob("$ezrecorder_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
     $status = capture_ffmpeg_recstatus_get();
     if ($status == '')
         capture_ffmpeg_recstatus_set('recording');
-
 
     // Checking when was the last modif
     // (remember: QTB-FFMPEG uses several fmlemovie files)
@@ -76,7 +76,7 @@ while (true) {
     }
 
     // Compares with current microtime
-    $now = (int) microtime(true);
+    $now = time();
 
     if (($now - $last_modif) > $recovery_threshold) {
         capture_ffmpeg_recstatus_set('stopped');
@@ -85,8 +85,8 @@ while (true) {
 
         mail($mailto_admins, 'FFMPEG crash', 'FFMPEG crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
 
-        $movie_count = trim(system("ls -la $ffmpeg_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
-        $files = glob("$ffmpeg_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
+        $movie_count = trim(system("ls -la $ezrecorder_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
+        $files = glob("$ezrecorder_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
         foreach ($files as $file) {
             $last_modif = max($last_modif, filemtime($file));
         }

@@ -29,10 +29,8 @@ require_once dirname(__FILE__).'/../../global_config.inc';
 $localfmle_features = array('recording');
 $localfmle_ip = $ezrecorder_ip;
 $localfmle_username = $ezrecorder_username;
-$localfmle_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
-// used in cli_monitoring.php to stop the recording after a timeout
 
-$localfmle_basedir = dirname(__FILE__).'/';
+$localfmle_basedir = __DIR__.'/';
 $localfmle_recorddir = $ezrecorder_recorddir;
 $localfmle_movie_name = 'fmlemovie';
 

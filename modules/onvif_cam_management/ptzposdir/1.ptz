@@ -1,0 +1,5 @@
+pan=-double
+tilt=double
+zoom=integer
+autofocus=on
+autoiris=on

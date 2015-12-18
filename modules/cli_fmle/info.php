@@ -25,7 +25,7 @@
  */
 
 $module_title = "cli_fmle";
-$module_description = "This module is designed to record videos using Adobe Flash Media Live Encoder (command line).";
+$module_description = "Record videos using Adobe Flash Media Live Encoder (command line).";
 $module_name = "clifmle";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

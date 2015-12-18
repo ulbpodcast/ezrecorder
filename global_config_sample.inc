@@ -30,7 +30,7 @@ $recorder_version = "2.0";
 
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server 
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
-$ezrecorder_recorddir = "~/Movies/"; // basedir for the local video storage
+$ezrecorder_recorddir = "/Users/".$ezrecorder_username."/Movies/"; // basedir for the local video storage
 
  // Project URI
 $basedir = "/Library/ezrecorder/"; // Path to EZrecorder basedir 
@@ -44,14 +44,13 @@ $process_upload = "$basedir/cli_process_upload.php";
 $cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php"; 
 
 $ezcast_submit_url = "http://your.ezcast.server/ezmanager/recorder/index.php"; // URL to EZmanager server
-$ezrecorder_url = "http://127.0.0.1/ezrecorder"; // URL to this recorder
 $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZrecorder alerts
 $php_cli_cmd = "/usr/bin/php"; // PHP binary
+$ffmpeg_cli_cmd = "/usr/local/bin/ffmpeg"; //FFMPEG binary
 
 $nopic_file = "$basedir/nopic.jpg";
 
 $recorder_logs = "$basedir/var/_log"; // Log file
-$tmp_meta_file = "$basedir/var/metadata.xml"; // used by cli_process_upload.php
 $recorder_session = "$basedir/var/session";
 $recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";
 

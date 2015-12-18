@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_qtb";
-$module_description = "This module is designed to record videos using QuickTime Broadcaster.";
+$module_description = "Record videos using QuickTime Broadcaster.";
 $module_name = "localqtb";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

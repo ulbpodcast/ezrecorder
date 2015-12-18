@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_fmle_regular";
-$module_description = "This module is designed to record videos using Adobe Flash Media Live Encoder.";
+$module_description = "Record videos using Adobe Flash Media Live Encoder.";
 $module_name = "localfmle";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

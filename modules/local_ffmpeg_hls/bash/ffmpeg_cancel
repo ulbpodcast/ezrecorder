@@ -23,7 +23,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include localdefs
-source $(dirname $0)/localdefs
+source $(dirname $0)/../etc/localdefs
 
 unlink $EZCASTDIR/var/_monitoring_pid
 
@@ -32,12 +32,21 @@ PID=`cat $FFMPEG_PID`
 # ends FFMPEG
 kill -2 $PID
 while ps -p $PID > /dev/null; do sleep 1; done
+unlink $FFMPEG_PID
+
+# same process for pid2 if set
+if [ -e $FFMPEG_PID2 ]
+then
+    PID2=`cat $FFMPEG_PID2`
+    kill -2 $PID2
+    while ps -p $PID2 > /dev/null; do sleep 1; done
+    unlink $FFMPEG_PID2
+fi
 
 #Finally clean up eventual movie remains
 SDAT=`date +"%Y_%m_%d_%Hh%M"`
 ASSET=$1
 
-unlink $FFMPEG_PID
 
 mkdir  $RECORDDIR/trash/$SDAT 
 wait

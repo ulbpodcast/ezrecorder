@@ -38,6 +38,7 @@
  * This program is meant to be run as a crontask at least once every "timeout" seconds
  */
 require_once 'global_config.inc';
+require_once $basedir . 'lib_model.php';
 
 require_once $session_lib;
 
@@ -77,15 +78,16 @@ while (true) {
     $lastmod_time = $fct_last_request_get();
     $now = time();
 
+    // if record was started at least $threshold_timeout seconds ago
+    // and if no request received in the last $timeout seconds 
+    // force stop the recorder
     if ($now - $init_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
+        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 
+             . ' was stopped and published in private album because there has been no user activity since ' 
+             . ($now - $lastmod_time) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s",$lastmod_time)
+             . ' Start time: ' . date("y-m-d_H:s",$init_time) . '');
 
-        $ezrecorder_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit";
-
-        $ch = curl_init($ezrecorder_force_quit_url);
-        $res = curl_exec($ch);
-        $curlinfo = curl_getinfo($ch);
-        curl_close($ch);
+        recording_force_quit();
     }
 
     sleep($sleep_time);

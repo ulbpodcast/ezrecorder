@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include localdefs
-source $(dirname $0)/localdefs
+source $(dirname $0)/../etc/localdefs
 
 ASSET=$1
 INPUT=$2

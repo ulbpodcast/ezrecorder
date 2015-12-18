@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include localdefs
-source $(dirname $0)/localdefs
+source $(dirname $0)/../etc/localdefs
 
 INPUT=$1
 MOVIESNB=`ls -la $MOVIESDIR | grep $COMMON_MOVIE_NAME | wc -l  | sed -e 's/^[ \t]*//'`
@@ -72,6 +72,34 @@ case "$INPUT" in
             # streaming is disabled. We prepare high resolution only
             $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi ;;            
+    "rstp" )
+        if [ -z $FFMPEG_RTSP_MEDIA_HIGH_URI ]
+        then
+            echo "ffmpeg_init: FFMPEG_RTSP_MEDIA_HIGH_URI is not defined, cannot continue" >> $EZCASTDIR/var/_log
+            exit 1
+        fi
+
+        if [ -e $STREAMING_INFO ]
+        then 
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low 
+            # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
+            # low probsize allow for faster stream start
+            if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
+            then
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -probesize 32 -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+            else
+                # High
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -probesize 32 -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                # Low, thumbnails are created from this one
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -probesize 32 -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID2
+            fi
+        else 
+            # streaming is disabled. We prepare high resolution only
+            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
+            $FFMPEG_PATH -f rtsp -rtsp_transport tcp -probesize 32 -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $RECORDDIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        fi 
+        ;;
         # -f decklink = force BMD source
         # -i = input source
         # -vcodec = video codec (H264)

@@ -26,7 +26,7 @@
 #merge of movie parts + copy cam soundtrack to slide movie
 
 #include localdefs
-source $(dirname $0)/localdefs
+source $(dirname $0)/../etc/localdefs
 
 COURSE=$1
 SDAT=$2

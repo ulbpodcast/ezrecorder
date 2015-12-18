@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include localdefs
-source $(dirname $0)/localdefs
+source $(dirname $0)/../etc/localdefs
 
 COURSE=$1
 SDAT=$2
@@ -36,9 +36,17 @@ unlink $EZCASTDIR/var/_monitoring_pid
 
 #stop recording 
 PID=`cat $FFMPEG_PID`
-# ends FFMPEG
 kill -2 $PID
 while ps -p $PID > /dev/null; do sleep 1; done
+
+# same process for pid2 if set
+if [ -e $FFMPEG_PID2 ]
+then
+    PID2=`cat $FFMPEG_PID2`
+    kill -2 $PID2
+    while ps -p $PID2 > /dev/null; do sleep 1; done
+    unlink $FFMPEG_PID2
+fi
 
 METADATAPATH=$EZCASTDIR/var/${SDAT}_$COURSE/_metadata.xml
 

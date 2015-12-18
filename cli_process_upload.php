@@ -29,7 +29,7 @@
 /*
  * This is a CLI script that launches the local processing of the recordings 
  * and sends a request to podman to download the recordings
- * Usage: cli_process_upload.php $serialized_meta
+ * Usage: cli_process_upload.php
  * 
  */
 

@@ -25,10 +25,6 @@
  */
 
 // used by cli_monitoring.php when a recording has timed out
-$classroom = 'Classroom name';
-$ezrecorder_url = "http://recorder.domain/ezrecorder";
-$remoteffmpeg_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit";
-$mailto_admins = 'ezrecorder@your.domain';
 $remoteffmpeg_basedir = dirname(__FILE__).'/';
 $remoteffmpeg_recorddir = '~/Movies/';
 $remoteffmpeg_moviesdir = $remoteffmpeg_recorddir.'ffmpeg_hls';
@@ -47,6 +43,5 @@ $remoteffmpeg_action = $remoteffmpeg_basedir . '/applescript/fmle_action.scpt';
 
 $remoteffmpeg_capture_file = $remoteffmpeg_basedir . 'var/pic_new.jpg';
 $ffmpegpath = "/usr/local/bin/ffmpeg";
-$php_path = "/usr/bin/php";
 $remoteffmpeg_mono = true; // determines whether the input audio source is mono or stereo
 ?>

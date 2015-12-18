@@ -25,7 +25,7 @@
  */
 
 $module_title = "axis_cam";
-$module_description = "This module is designed to record videos using Axis camera.";
+$module_description = "Record videos using Axis camera.";
 $module_name = "axiscam";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

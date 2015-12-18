@@ -380,7 +380,7 @@ function capture_localqt_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $localqt_basedir . '/var/' . $asset;
-    if (!dir($tmp_dir))
+    if (!file_exists($tmp_dir) && !dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;

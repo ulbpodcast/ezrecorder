@@ -25,64 +25,64 @@
  */
 
 /*
- * This file is part of the installation process
+ * This file is part of the installation process. The first part is the install.sh file.
  */
 
-if ($argc < 2) {
-    echo "usage: " . $argv[0] . " <php_path> " .
+if ($argc < 3) {
+    echo "usage: " . $argv[0] . " <php_path> <ffmpeg_path>" .
     "\n <php_path> the path to the php binary";
+    "\n <ffmpeg_path> the path to the ffmpeg binary";
     die;
 }
 
 if (file_exists("global_config.inc")) {
     require_once 'global_config.inc';
-    echo PHP_EOL . "Would you like to change EZrecorder's configuration file ?" . PHP_EOL;
-    $choice = read_line("change configuration [Y/n]: ");
+    echo PHP_EOL . "Would you like to setup EZrecorder's configuration now? (global_config.inc)" . PHP_EOL;
+    $choice = read_line("[Y/n]: ");
 } else {
     require_once 'global_config_sample.inc';
     $php_cli_cmd = $argv[1];
-    $basedir = dirname(__FILE__);
+    $ffmpeg_cli_cmd = $argv[2];
     $choice = 'Y';
 }
+$basedir = __DIR__;
 
 /*
  * First, we add user's configuration in global-config.inc
  */
 if (strtoupper($choice) != 'N' && strtoupper($choice) != 'NO') {
     echo "Please enter now the requested values: " . PHP_EOL;
-    $value = read_line("Classroom where the recorder is installed [default: '$classroom']: ");
+    $value = read_line("Name of the classroom where the recorder is installed ['$classroom']: ");
     if ($value != "")
-        $classroom = $value; unset($value);
-    $value = read_line("Static IP address of the recorder (used by EZcast remote server) [default '$ezrecorder_ip']: ");
+        $classroom = $value; 
+    
+    $value = read_line("Static IP address of this recorder ['$ezrecorder_ip']: ");
     if ($value != "")
-        $ezrecorder_ip = $value; unset($value);
-    $value = read_line("Recorder username (used to launch bash scripts) [default: '$ezrecorder_username']: ");
+        $ezrecorder_ip = $value; 
+    
+    $value = read_line("Recorder username (used to launch bash scripts) ['$ezrecorder_username']: ");
     if ($value != "")
-        $ezrecorder_username = $value; unset($value);
-    $value = read_line("Path to the local video storage [default: '$ezrecorder_recorddir']: ");
+        $ezrecorder_username = $value; 
+    
+    $value = read_line("Path to the local video storage ['$ezrecorder_recorddir']: ");
     if ($value != "")
-        $ezrecorder_recorddir = $value; unset($value);
-    $value = read_line("Path to EZrecorder's basedir [default: '$basedir']: ");
+        $ezrecorder_recorddir = $value; 
+    
+    $value = read_line("Path to the webspace (where the static web files will be placed) ['$web_basedir']: ");
     if ($value != "")
-        $basedir = $value; unset($value);
-    $value = read_line("Path to the webspace [default: '$web_basedir']: ");
+        $web_basedir = $value; 
+    
+    $value = read_line("URL to EZmanager server submit service ['$ezcast_submit_url']: ");
     if ($value != "")
-        $web_basedir = $value; unset($value);
-    $value = read_line("URL to EZmanager server: [default: '$ezcast_submit_url']: ");
+        $ezcast_submit_url = $value; 
+    
+    $value = read_line("EZrecorder's alerts destination mail address ['$mailto_admins']: ");
     if ($value != "")
-        $ezcast_submit_url = $value; unset($value);
-    $value = read_line("URL to this recorder [default: '$ezrecorder_url']: ");
+        $mailto_admins = $value; 
+    
+    $value = read_line("Apache's username [" .$ezrecorder_web_user. "]: ");
     if ($value != "")
-        $ezrecorder_url = $value; unset($value);
-    $value = read_line("Email address aimed to receive EZrecorder's alerts [default: '$mailto_admins']: ");
-    if ($value != "")
-        $mailto_admins = $value; unset($value);
-    $value = read_line("PHP binary [default: '$php_cli_cmd']: ");
-    if ($value != "")
-        $php_cli_cmd = $value; unset($value);
-    $value = read_line("Apache's username [typically _www or www-data]: ");
-    if ($value != "")
-        $ezrecorder_web_user = $value; unset($value);
+        $ezrecorder_web_user = $value;
 
     $config = file_get_contents($basedir . "/global_config_sample.inc");
 
@@ -94,13 +94,13 @@ if (strtoupper($choice) != 'N' && strtoupper($choice) != 'NO') {
     $config = preg_replace('/\$web_basedir = (.+);/', '\$web_basedir = "' . $web_basedir . '";', $config);
     $config = preg_replace('/\$ezrecorder_web_user = (.+);/', '\$ezrecorder_web_user = "' . $ezrecorder_web_user . '";', $config);
     $config = preg_replace('/\$ezcast_submit_url = (.+);/', '\$ezcast_submit_url = "' . $ezcast_submit_url . '";', $config);
-    $config = preg_replace('/\$ezrecorder_url = (.+);/', '\$ezrecorder_url = "' . $ezrecorder_url . '";', $config);
     $config = preg_replace('/\$mailto_admins = (.+);/', '\$mailto_admins = "' . $mailto_admins . '";', $config);
     $config = preg_replace('/\$php_cli_cmd = (.+);/', '\$php_cli_cmd = "' . $php_cli_cmd . '";', $config);
+    $config = preg_replace('/\$ffmpeg_cli_cmd = (.+);/', '\$ffmpeg_cli_cmd = "' . $ffmpeg_cli_cmd . '";', $config);
     file_put_contents($basedir . "/global_config.inc", $config);
 }
 
-echo PHP_EOL . "global-config.inc created with custom values." . PHP_EOL;
+echo PHP_EOL . $basedir . "/global_config.inc" . " was created with given values." . PHP_EOL;
 /*
  * Then, we adapt some paths in configuration files
  */
@@ -139,8 +139,8 @@ echo "Creation of web content in $web_basedir" . PHP_EOL;
 
 system("mkdir -p $web_basedir");
 system("cp -rp $basedir/htdocs/* $web_basedir/.");
-system("chown -R $ezrecorder_username:$apache_user $web_basedir");
-system("chown -R $ezrecorder_username:$apache_user $basedir");
+system("chown -R $ezrecorder_username:$ezrecorder_web_user $web_basedir");
+system("chown -R $ezrecorder_username:$ezrecorder_web_user $basedir");
 system("chmod 755 $basedir/setperms.sh");
 
 echo "Modification of global values in $web_basedir/index.php" . PHP_EOL;
@@ -149,19 +149,20 @@ $web_file = file_get_contents($web_basedir . "/index.php");
 $web_file = str_replace("!PATH", $basedir, $web_file);
 file_put_contents($web_basedir . "/index.php", $web_file);
 
-echo PHP_EOL."*******************************************************************".PHP_EOL;
+echo PHP_EOL.
+     "*******************************************************************".PHP_EOL;
 echo "*         I N S T A L L A T I O N    O F    M O D U L E S         *".PHP_EOL;
 echo "*******************************************************************".PHP_EOL;
 echo PHP_EOL."You will be requested to mention the modules you want to enable at the end of this installation script." . PHP_EOL;
 $modules = glob('modules/*/info.php');
 foreach ($modules as $module) {
     require $module;
-    echo "------------------------------------------------------------" . PHP_EOL;
+    echo "-----------------------------------------------------------------------" . PHP_EOL;
     echo "Name: $module_title" . PHP_EOL;
     echo "Description: $module_description" . PHP_EOL;
-    echo "------------------------------------------------------------" . PHP_EOL;
+    echo "-----------------------------------------------------------------------" . PHP_EOL;
 
-    $value = read_line("Would you like to install this module ? [Y/n] : ");
+    $value = read_line("Would you like to configure this module ? [Y/n] : ");
     if (strtoupper($value) != 'N' && strtoupper($value) != 'NO') {
         system("$php_cli_cmd $module_path/cli_install.php");
     }

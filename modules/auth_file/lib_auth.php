@@ -29,6 +29,11 @@
  */
 require "config.inc";
 
+//phpinfo();
+//die;
+error_reporting(E_ALL);
+ini_set('display_errors', 'On');
+
 /**
  * @implements
  * Checks that a user has the right to log in. This function uses a SHA1-encrypted htpasswd
