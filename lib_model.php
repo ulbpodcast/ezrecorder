@@ -565,7 +565,8 @@ function view_record_form() {
         $slide_features = $fct_capture_features_get();
     }
 
-    if (in_array('streaming', $cam_features) || in_array('streaming', $slide_features)) {
+    if (   $cam_enabled   && in_array('streaming', $cam_features) 
+        || $slide_enabled && in_array('streaming', $slide_features)) {
         $streaming_available = true;
     }
 

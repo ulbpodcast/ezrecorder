@@ -85,6 +85,4 @@ $session_lib = "$basedir/modules/recording_session/lib_recording_session.php";
 $auth_module = "file";
 $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 
-
-
 ?>

@@ -259,14 +259,14 @@ then
 else
     #no tests, just install
     cmd_path_find php /usr/bin/php
-    default_php_path=$RES
+    default_path=$RES
     echo "Enter the path to PHP5 (with trailing 'php'):"
-    read -p "[default: $default_php_path]" php_path
+    read -p "[default: $default_path]" php_path
     if [ "$php_path" == "" ]; then 
-        php_path=$default_php_path
+        php_path=$default_path
     fi
 
-    cmd_path_find php /usr/local/bin/ffmpeg
+    cmd_path_find ffmpeg /usr/local/bin/ffmpeg
     default_path=$RES
     echo "Enter the path to FFMPEG:"
     read -p "[default: $default_path]" ffmpeg_path
@@ -285,7 +285,7 @@ if [[ "$value" == networksetup* ]]; then
     echo "*******************************************************************"
     echo ""
     read -p "Would you like to change your computer IP configuration (IP / DNS / domain) now? [y/N]: " choice
-    if [ "$choice" == "n" ]; 
+    if [ "$choice" == "y" ]; 
     then 
         echo "Enter now the requested values:"
         read -p "Computer's name: " COMPUTER_NAME
@@ -315,7 +315,8 @@ echo ""
 echo -n "Creating the config file..."
 $php_path cli_install.php "$php_path" "$ffmpeg_path"
 
-$php_path cli_modules_selection.php
+$php_path cli_install_modules_selection.php
+$php_path cli_install_modules_config.php
 
 echo " "
 echo "*******************************************************************"
@@ -328,4 +329,4 @@ $php_path cli_template_generate.php tmpl_sources/ en tmpl
 
 $(dirname $0)/setperms.sh
 
-echo -e "${G} Done${N}"
+echo -e "${G}Done${N}"
