@@ -24,16 +24,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+ include_once('external_products/Psr/Log/LogLevel.php');
+ use Psr\Log\LogLevel;
+
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
 $recorder_version = "2.0";
 
-$ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server 
+$ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
 $ezrecorder_recorddir = "/Users/".$ezrecorder_username."/Movies/"; // basedir for the local video storage
 
+//list of supported timezones: http://php.net/manual/en/timezones.europe.php
+$recorder_timezone = "Europe/Brussels";
+
  // Project URI
-$basedir = "/Library/ezrecorder/"; // Path to EZrecorder basedir 
+$basedir = "/Library/ezrecorder/"; // Path to EZrecorder basedir
 $web_basedir = "/Library/WebServer/Documents/ezrecorder/"; // Web server URI
 $ezrecorder_web_user = "_www"; // Apache's username
 $modules_basedir = "$basedir/modules/";
@@ -41,7 +47,7 @@ $modules_basedir = "$basedir/modules/";
 // cli script for recording processing and uploading to server
 $process_upload = "$basedir/cli_process_upload.php";
 // cli script for monitoring the timeout on a recording
-$cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php"; 
+$cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php";
 
 $ezcast_submit_url = "http://your.ezcast.server/ezmanager/recorder/index.php"; // URL to EZmanager server
 $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZrecorder alerts
@@ -85,4 +91,8 @@ $session_lib = "$basedir/modules/recording_session/lib_recording_session.php";
 $auth_module = "file";
 $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 
-?>
+// debugging
+$debugMode = false;
+
+// logging
+$databaseFile = "$basedir/var/logs.sqlite";
