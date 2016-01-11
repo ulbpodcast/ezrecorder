@@ -22,6 +22,7 @@ Open your terminal and call Git in command line to download the source code of E
 2. Move the 'ezrecorder' directory
 
 Now you have to decide where you want to install EZrecorder. We recommend you to install it under '/Library/ezrecorder' directory.
+Note that the recorder(s) installation path must be configured in ezadmin as well, so all your recorders must use the same filepath.
 
 ```
 cd
@@ -36,17 +37,6 @@ mv ezrecorder /Library
 
 Go in the 'ezrecorder' folder. Make sure the file 'install.sh' can be executed. 
 Launch the 'install.sh' script as root and follow the instructions on the screen.
-
-```
-#change user to be root (may be ‘sudo’ depending on the distribution)
-su
-#move to the ezrecorder directory (change the path if you have installed ezrecorder somewhere else)
-cd /Library/ezrecorder
-#change permissions for install.sh
-chmod 755 install.sh
-#execute install.sh
-./install.sh
-```
 
 4. Configure the SSH link 
 
@@ -172,11 +162,3 @@ _www 	ALL=(podclient) NOPASSWD: EZCAST
 Now that your recorder is ready to work, just add it to EZadmin via the web interface and save the modification for it to be recognized by EZmanager. You may have to enable the classroom management for EZadmin in the web interface of EZadmin (left menu > configure > enable management for classroom). 
 
 You can now use your recorder to record in classrooms. 
-
-## About this document
-
-This document is written using [Markdown][] syntax, making it possible to
-provide usable information in both plain text and HTML format. Whenever
-modifying this document please use [Markdown][] syntax.
-
-[markdown]: http://www.daringfireball.net/projects/markdown

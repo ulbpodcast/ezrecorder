@@ -206,7 +206,7 @@ then
     echo "*************************************************"
     check=1
     timer=45
-    echo "echo test > at.tmp " | at now
+    echo test > at.tmp | at now
     sleep 1
     while [ $timer -gt 0 ]; do
     	# Verify that a version of AT is installed
@@ -217,6 +217,7 @@ then
 	    if [ $timer == 0 ]; then
 		check=0
             	echo -e "${R}AT does not seem to be installed or its path is not set in PATH var${N}"
+                echo -e "You may need to enable it by executing: 'sudo launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist'"
                 exit
     	    fi
 	else
@@ -231,13 +232,13 @@ then
         echo "Otherwise, please enter 'exit' to quit this script and install AT"
         read at_path
         if [ "$at_path" == "exit" ]; then exit; fi
-        echo "echo test > at.tmp | $at_path now"
+        echo test > at.tmp | $at_path now
     	sleep 1
 	timer=45
    	while [ $timer -gt 0 ]; do
     	    # Verify that a version of AT is installed
     	    if [ ! -f ./at.tmp ]; then
-	        timer=$timer - 1
+	        timer=`expr $timer - 1`
 	        echo -n "."
 	        sleep 1
 	        if [ $timer == 0 ]; then

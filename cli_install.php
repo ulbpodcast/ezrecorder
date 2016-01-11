@@ -54,32 +54,35 @@ if (strtoupper($choice) != 'N') {
     echo "Please enter now the requested values: " . PHP_EOL;
     $value = read_line("Name of the classroom where the recorder is installed ['$classroom']: ");
     if ($value != "")
-        $classroom = $value; 
-    
+        $classroom = $value;
+
     $value = read_line("Static IP address of this recorder ['$ezrecorder_ip']: ");
     if ($value != "")
-        $ezrecorder_ip = $value; 
-    
+        $ezrecorder_ip = $value;
+
+    if(!ping($ezrecorder_ip, 2000))
+      echo "This IP does not seems to be valid. You should double-check it and fix it in the final config file if needed." . PHP_EOL;
+
     $value = read_line("Recorder username (used to launch bash scripts) ['$ezrecorder_username']: ");
     if ($value != "")
-        $ezrecorder_username = $value; 
-    
+        $ezrecorder_username = $value;
+
     $value = read_line("Path to the local video storage ['$ezrecorder_recorddir']: ");
     if ($value != "")
-        $ezrecorder_recorddir = $value; 
-    
+        $ezrecorder_recorddir = $value;
+
     $value = read_line("Path to the webspace (where the static web files will be placed) ['$web_basedir']: ");
     if ($value != "")
-        $web_basedir = $value; 
-    
+        $web_basedir = $value;
+
     $value = read_line("URL to EZmanager server submit service ['$ezcast_submit_url']: ");
     if ($value != "")
-        $ezcast_submit_url = $value; 
-    
+        $ezcast_submit_url = $value;
+
     $value = read_line("EZrecorder's alerts destination mail address ['$mailto_admins']: ");
     if ($value != "")
-        $mailto_admins = $value; 
-    
+        $mailto_admins = $value;
+
     $value = read_line("Apache's username [" .$ezrecorder_web_user. "]: ");
     if ($value != "")
         $ezrecorder_web_user = $value;
@@ -108,7 +111,7 @@ echo PHP_EOL . $basedir . "/global_config.inc" . " was created with given values
 echo "Modification of global values in ./sbin/localdefs" . PHP_EOL;
 
 $sbin_file = file_get_contents($basedir . "/sbin/localdefs_sample");
-$sbin_file = str_replace("!PATH", $basedir, $sbin_file); 
+$sbin_file = str_replace("!PATH", $basedir, $sbin_file);
 $sbin_file = str_replace("!CLASSROOM", $classroom, $sbin_file);
 $sbin_file = str_replace("!MAIL_TO", $mailto_admins, $sbin_file);
 file_put_contents($basedir . "/sbin/localdefs", $sbin_file);
@@ -152,6 +155,14 @@ file_put_contents($web_basedir . "/index.php", $web_file);
 function read_line($prompt = '') {
     echo $prompt;
     return rtrim(fgets(STDIN), "\n");
+}
+
+//Try to connect on port 80. return 0 on failure, 1 on success
+function ping($host, $timeout) {
+  if(fSockOpen($host, 80, $errno, $errstr, $timeout))
+    return 1;
+
+  return 0;
 }
 
 ?>
