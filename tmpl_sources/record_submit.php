@@ -15,8 +15,9 @@
         <link rel="stylesheet" type="text/css" href="css/Style_recorder.css"/>
         <script type="text/javascript" src="js/hover.js"></script>
         <script type="text/javascript" src="js/httpRequest.js"></script>
-        <script type="text/javascript" src="js/jQuery/jquery-1.3.2.min.js"></script>
-        <script src="js/jquery.colorbox.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
+        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             $(document).ready(function () {
                 $.colorbox.remove();

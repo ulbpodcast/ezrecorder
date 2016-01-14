@@ -11,13 +11,14 @@
         <script type="text/javascript" src="js/AppearDissapear.js"></script>
         <script type="text/javascript" src="js/Selectbox-checkbox.js"></script>
         <script type="text/javascript" src="js/hover.js"></script>
-        <script type="text/javascript" src="js/jQuery/jquery-1.3.2.min.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.serialScroll-min.js"></script>
         <script type="text/javascript" src="js/jQuery/function.js"></script>
         <script type="text/javascript" src="js/httpRequest.js"></script>
-        <script src="js/jquery.colorbox.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
+        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             function offline_alert() {
                 window.alert("®offline_from_podc®");

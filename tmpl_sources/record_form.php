@@ -13,10 +13,12 @@
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
         <link rel="stylesheet" type="text/css" href="css/style_recorder.css"/>
         <link rel="stylesheet" type="text/css" href="css/colorbox.css"/>
+        <link rel="stylesheet" href="css/font-awesome.min.css"/>
         <script type="text/javascript" src="js/Selectbox-checkbox.js"></script>
         <script type="text/javascript" src="js/hover.js"></script>
-        <script type="text/javascript" src="js/jQuery/jquery-1.3.2.min.js"></script>
-        <script src="js/jquery.colorbox.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
+        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             var record_type = '';
 
