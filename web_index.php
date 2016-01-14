@@ -31,10 +31,12 @@
 // Inits
 //
 include_once 'global_config.inc';
+include_once 'common.inc';
 
 session_start();
 
-error_reporting(E_PARSE | E_ERROR);
+$report = error_reporting();
+error_reporting($report | E_PARSE | E_ERROR);
 
 require_once $auth_lib;
 require_once 'lib_error.php';
@@ -64,23 +66,17 @@ if (!user_logged_in()) {
     // If an "action" was given, it means we've already submitted the login form
     // So all we want to do is check whether there is still a "forgotten" recording
     // and if not, log the user in
-    if (isset($input['action']) && $input['action'] == 'login') {
-        if (!isset($input['login']) || !isset($input['passwd'])) {
-            //echo 'Login error: no login/password provided';
-            echo template_get_message('Empty_username_password', get_lang());
-            die;
-        }
-
+    if (isset($input['action']) && $input['action'] == 'login' && isset($input['login']) && isset($input['passwd'])) {
         //login and password were given, try to login
         user_login($input['login'], $input['passwd']);
     } else {
         // No login infos were submitted, display login form
-        view_login_form();
+        controller_view_login_form();
     }
     die;
 }
 
-// Check if the asset is known
+// Check if the asset is known, restore it if needed
 // The asset is not known if the session has been force quit,
 // if the session has expired or if there is a remote
 // control of the session    
@@ -99,64 +95,63 @@ if(isset($input['action']))
     $action = $input['action'];
 
 switch ($action) {
-
     // Someone submitted record information.
     // We save these metadata and display the record_screen
     case 'submit_record_infos':
-        recording_submit_infos();
+        controller_recording_submit_infos();
         break;
 
     // Displays the screenshot iframe for visual feedback
     case 'view_screenshot_iframe':
-        view_screenshot_iframe();
+        controller_view_screenshot_iframe();
         break;
 
     case 'view_screenshot_image':
-        view_screenshot_image();
+        controller_view_screenshot_image();
         break;
 
     case 'view_login_form':
-        view_login_form();
+        controller_view_login_form();
         break;
 
     case 'view_record_form':
-        view_record_form();
+        controller_view_record_form();
         break;
 
     case 'view_record_submit':
-        view_record_submit();
+        controller_view_record_submit();
         break;
 
     // Starts recording
     case 'recording_start':
-        recording_start();
+        controller_recording_start();
         break;
 
     // Stops recording
     case 'recording_stop':
-        recording_stop();
+        controller_recording_stop();
         break;
 
     // Discards a record
     case 'recording_cancel':
-        recording_cancel();
+        controller_recording_cancel();
         break;
 
     case 'recording_pause':
-        recording_pause();
+        controller_recording_pause();
         break;
 
     case 'recording_resume':
-        recording_resume();
+        controller_recording_resume();
         break;
 
     // Case when someone asks to log in while someone else was recording
     case 'recording_force_quit':
-        recording_force_quit();
+        controller_recording_force_quit();
         break;
 
     case 'camera_move':
-        camera_move();
+        controller_camera_move();
         break;
 
     case 'logout':
@@ -165,6 +160,7 @@ switch ($action) {
     // At this point of the code, we know the user is logged in, but for some reason they didn't provide an action.
     // That means they manually reloaded the page. In this case, we bring them back from where they came.
     default:
+        $logger->debug('Index controller: User is logged in but did not provided an action, try to reconnect active session', array('controller'));
         reconnect_active_session();
 }
 

@@ -27,9 +27,9 @@ function reconnect_active_session() {
     } else if ($status == 'stopped') {
         //stopped means we have already clicked on stop
         $_SESSION['recorder_mode'] = 'view_record_submit';
-        view_record_submit();
+        controller_view_record_submit();
     } else
-        view_record_form(); //none of the above cases to this is a first form screen
+        controller_view_record_form(); //none of the above cases to this is a first form screen
 }
 
 /**
@@ -37,7 +37,7 @@ function reconnect_active_session() {
  * @global type $input
  * @global <type> $classroom
  */
-function recording_submit_infos() {
+function controller_recording_submit_infos() {
     global $input;
     global $classroom;
     global $auth_module;
@@ -106,7 +106,8 @@ function recording_submit_infos() {
 /**
  * Starts a new recording
  */
-function recording_start() {
+function controller_recording_start() {
+    global $logger;
     global $dir_date_format;
     global $cam_enabled;
     global $cam_module;
@@ -120,58 +121,74 @@ function recording_start() {
 
     if ($user != $_SESSION['user_login']) {
         error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
-        die;
+        $logger->error('(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'));
+        return false;;
     }
 
     //get current status and check if its compatible with current action
     $status = status_get();
-    if ($status == 'open') {
-
-        // saves the start time
-        $datetime = date($dir_date_format);
-        $startrec_info = "$datetime\n";
-        $startrec_info.=$_SESSION['recorder_course'] . "\n";
-        $fct_recstarttime_set = "session_" . $session_module . "_recstarttime_set";
-        $fct_recstarttime_set($startrec_info);
-
-        // determines if the slide module is enabled
-        if ($slide_enabled) {
-            $fct_capture_start = 'capture_' . $slide_module . '_start';
-            // ideally, capture_start should return the pid
-            //     $res_slide = $fct_capture_start($slide_pid);
-            $res_slide = $fct_capture_start($_SESSION['asset']);
-        }
-
-        // determines if the cam module is enabled (doesn't depend on the 
-        // recording format chose by user - cam, slide, camslide)
-        if ($cam_enabled) {
-            $fct_capture_start = 'capture_' . $cam_module . '_start';
-            // ideally, capture_start should return the pid
-            // $res_cam = $fct_capture_start($cam_pid);
-            $res_cam = $fct_capture_start($_SESSION['asset']);
-        }
-
-        //      while(is_process_running($cam_pid) || is_process_running($slide_pid))
-        //          sleep(0.5);
-        // something went wrong while starting the recording
-        if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
-            error_print_message(capture_last_error());
-            die;
-        }
-
-        log_append("recording_start", "started recording by user request");
-
-        // We start recording
-    } else {
+    if($status != 'open')
+    {
         error_print_message("capture_start: error status ($status): status not 'open'");
-        die;
+        $logger->info("(action recording_start) Could not start recording because of status '$status'", array('controller'));
+        return false;
     }
+    
+    // saves the start time
+    $datetime = date($dir_date_format);
+    $startrec_info = "$datetime\n";
+    $startrec_info.=$_SESSION['recorder_course'] . "\n";
+    $fct_recstarttime_set = "session_" . $session_module . "_recstarttime_set";
+    $fct_recstarttime_set($startrec_info);
+
+    // determines if the slide module is enabled
+    if ($slide_enabled) {
+        $fct_capture_start = 'capture_' . $slide_module . '_start';
+        // ideally, capture_start should return the pid
+        //     $res_slide = $fct_capture_start($slide_pid);
+        $res_slide = $fct_capture_start($_SESSION['asset']);
+    }
+
+    // determines if the cam module is enabled (doesn't depend on the 
+    // recording format chose by user - cam, slide, camslide)
+    if ($cam_enabled) {
+        $fct_capture_start = 'capture_' . $cam_module . '_start';
+        // ideally, capture_start should return the pid
+        // $res_cam = $fct_capture_start($cam_pid);
+        $res_cam = $fct_capture_start($_SESSION['asset']);
+    }
+
+    //      while(is_process_running($cam_pid) || is_process_running($slide_pid))
+    //          sleep(0.5);
+    // something went wrong while starting the recording
+    if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
+        error_print_message(capture_last_error());
+        $logger->info("Record start failed in capture module", array('controller'));
+        return false;
+    }
+
+    log_append("recording_start", "started recording by user request");
+    $logger->info("Started recording by user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'));
+
+    return true;
+}
+
+function close_session() {
+    global $session_module;
+    
+    // releases the recording session
+    $fct_session_unlock = "session_" . $session_module . "_unlock";
+    $fct_session_unlock();
+
+    // And finally, closing the user's session
+    session_destroy();
 }
 
 /**
  * Stops the recording and processes it
  */
-function recording_stop() {
+function controller_recording_stop() {
+    global $logger;
     global $input;
     global $php_cli_cmd;
     global $process_upload;
@@ -193,6 +210,7 @@ function recording_stop() {
     $starttime = $recstarttime[0];
     $album = $recstarttime[1];
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
+    $logger->info('Recording stopped at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'));
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
@@ -217,12 +235,7 @@ function recording_stop() {
     //  exec("echo '$php_cli_cmd $process_upload' | at now", $output, $errno); // delay is too long using cmd at
     exec("$php_cli_cmd $process_upload > /dev/null &", $output, $errno);
 
-    // releases the recording session
-    $fct_session_unlock = "session_" . $session_module . "_unlock";
-    $fct_session_unlock();
-
-    // And finally, closing the user's session
-    session_destroy();
+    close_session();
 
     // Displaying a confirmation message
     require_once template_getpath('div_record_submitted.php');
@@ -237,17 +250,16 @@ function recording_stop() {
  * @global type $slide_enabled
  * @global type $slide_module
  * @global type $visca_enabled
- * @global type $input
  * @return boolean
  */
-function recording_cancel() {
+function controller_recording_cancel() {
+    global $logger;
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
     global $cam_management_enabled;
     global $cam_management_module;
-    global $input;
     global $session_module;
     global $recorder_monitoring_pid;
 
@@ -268,6 +280,7 @@ function recording_cancel() {
         $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';
         $res_cam = $fct_capture_cancel($_SESSION['asset']);
     }
+    
     // if slide module is enabled 
     if ($slide_enabled) {
         $fct_capture_cancel = 'capture_' . $slide_module . '_cancel';
@@ -305,7 +318,7 @@ function recording_cancel() {
  * Interrupts current recording
  * (example: this is called when someone tries to log in, but someone else was already recording)
  */
-function recording_force_quit() {
+function controller_recording_force_quit() {
     global $notice;
     global $cam_enabled;
     global $slide_enabled;
@@ -400,14 +413,14 @@ function recording_force_quit() {
     log_append('login');
 
     // 4) And finally, we can display the record form
-    view_record_form();
+    controller_view_record_form();
 }
 
 /*
  * Pauses the current recording
  */
 
-function recording_pause() {
+function controller_recording_pause() {
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
@@ -440,7 +453,7 @@ function recording_pause() {
  * Resumes the current recording
  */
 
-function recording_resume() {
+function controller_recording_resume() {
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
@@ -474,7 +487,7 @@ function recording_resume() {
  * Moves the camera to the position given as a POST parameter (position name)
  * @global type $input 
  */
-function camera_move() {
+function controller_camera_move() {
     global $input;
     global $cam_management_module;
 
@@ -496,7 +509,7 @@ function camera_move() {
 /**
  * Displays the login form
  */
-function view_login_form() {
+function controller_view_login_form() {
     global $url;
     session_destroy();
     require_once template_getpath('login.php');
@@ -506,7 +519,7 @@ function view_login_form() {
 /**
  * Displays the form people get when they log in (i.e. asking for a title, description, ...)
  */
-function view_record_form() {
+function controller_view_record_form() {
     global $input;
     global $cam_enabled;
     global $cam_module;
@@ -595,9 +608,14 @@ function user_logged_in() {
 }
 
 /**
- * Logs a user in
+ * Logs a user in and send him a new form depending on the result
+ * On success, record form is showed.
+ * On failure, send login form again.
+ * 
+ * Return wheter the user successfully logged
  */
 function user_login($login, $passwd) {
+    global $logger;
     global $input;
     global $template_folder;
     global $notice;
@@ -610,8 +628,10 @@ function user_login($login, $passwd) {
     // 0) Sanity checks
     if (empty($login) || empty($passwd)) {
         $error = template_get_message('Empty_username_password', get_lang());
+        //show login form again
         require_once template_getpath('login.php');
-        die;
+        $logger->info('Login failed, no login/password provided', array('auth'));
+        return false;
     }
 
     // 1) We check the user's identity and retrieve their personal information
@@ -621,7 +641,8 @@ function user_login($login, $passwd) {
         $fct_auth_last_error = "auth_" . $auth_module . "_last_error";
         $error = $fct_auth_last_error();
         require_once template_getpath('login.php');
-        die;
+        $logger->info("Login failed, wrong credentials for login: $login", array('auth'));
+        return false;
     }
 
     // 2) Now we can set the session variables
@@ -687,7 +708,7 @@ function user_login($login, $passwd) {
     log_append('login');
 
     // 4) And finally, we can display the record form
-    view_record_form();
+    controller_view_record_form();
 }
 
 /**
@@ -791,8 +812,7 @@ function view_record_screen() {
  * After stopping the recording
  */
 
-function view_record_submit() {
-    global $url;
+function controller_view_record_submit() {
     global $cam_management_enabled;
     global $cam_management_module;
     global $cam_enabled;
@@ -826,7 +846,7 @@ function view_record_submit() {
     require_once template_getpath('record_submit.php');
 }
 
-function view_screenshot_iframe() {
+function controller_view_screenshot_iframe() {
     global $input;
 
     $source = "cam";
@@ -837,7 +857,7 @@ function view_screenshot_iframe() {
     //require_once 'screenshot.php';
 }
 
-function view_screenshot_image() {
+function controller_view_screenshot_image() {
     global $input;
     global $cam_enabled;
     global $cam_module;
@@ -872,13 +892,7 @@ function view_screenshot_image() {
  * Logs the user out, i.e. destroys all the data stored about them
  */
 function user_logout() {
-    global $template_folder;
-    global $session_module;
-    //unlock interface
-    $fct_session_unlock = "session_" . $session_module . "_unlock";
-    $fct_session_unlock();
-
-    log_append("user logged out");
+    close_session();
 
     //destroy session
     session_destroy();
@@ -981,6 +995,7 @@ function status_set($status) {
 function is_process_running($pid) {
     if (!isset($pid) || $pid == '' || $pid == 0)
         return false;
+    
     exec("ps $pid", $output, $result);
     return count($output) >= 2;
 }

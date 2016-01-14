@@ -28,6 +28,9 @@
 require 'config.inc';
 include_once $basedir . '/lib_various.php';
 include_once $basedir . '/lib_error.php';
+require_once $basedir . '/common.inc';
+
+$module_name = "capture_localqtb";
 
 /*
  * This file contains all functions related to the video capture from an analog camera.
@@ -47,10 +50,14 @@ include_once $basedir . '/lib_error.php';
  * @return boolean true if everything went well; false otherwise
  */
 function capture_localqtb_init(&$pid, $meta_assoc) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbnew;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
 
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
@@ -69,15 +76,18 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
         // error occured while launching QTB
         if (capture_localqtb_status_get() == 'launch_failure') {
             error_last_message("can't open because QTB failed to launch");
+            $logger->error(__FUNCTION__.": Can't open because QTB failed to launch", array("module",$module_name));
             return false;
         }
         // the recording is now 'open'
         capture_localqtb_status_set('open');
     } else {
         error_last_message("capture_init: can't open because current status: $status");
+        $logger->error(__FUNCTION__.": Can't open because current of status: $status", array("module",$module_name));
         return false;
     }
 
+    $logger->info(__FUNCTION__.": Successfully initialized module", array("module:capture_localqtb_init"));
     return true;
 }
 
@@ -86,11 +96,15 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
  * Launches the recording process 
  */
 function capture_localqtb_start($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbrec;
     global $localqtb_last_request_file;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     // qtbrec starts the recording in QTB
     // $pid is used in web_index.php
     system("sudo -u $localqtb_username $localqtb_script_qtbrec >> $localqtb_recorder_logs 2>&1 &");
@@ -102,6 +116,7 @@ function capture_localqtb_start($asset) {
     } else {
         capture_localqtb_status_set("error");
         error_last_message("capture_start: can't start recording because current status: $status");
+        $logger->warning(__FUNCTION__.": Can't start recording because of current status: $status", array("module",$module_name));
         return false;
     }
 
@@ -113,18 +128,24 @@ function capture_localqtb_start($asset) {
  * Pauses the current recording
  */
 function capture_localqtb_pause($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbpause;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'recording') {
         // qtbpause pauses the recording in QTB
         system("sudo -u $localqtb_username $localqtb_script_qtbpause >> $localqtb_recorder_logs 2>&1 &");
         capture_localqtb_status_set('paused');
+        $logger->info(__FUNCTION__.": Recording was paused", array("module",$module_name));
     } else {
         error_last_message("capture_pause: can't pause recording because current status: $status");
+        $logger->error(__FUNCTION__.": Can't pause recording because of current status: $status", array("module",$module_name));
         return false;
     }
 
@@ -136,10 +157,14 @@ function capture_localqtb_pause($asset) {
  * Resumes the current paused recording
  */
 function capture_localqtb_resume($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbresume;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'paused' || $status == 'stopped') {
@@ -147,8 +172,10 @@ function capture_localqtb_resume($asset) {
         system("sudo -u $localqtb_username $localqtb_script_qtbresume >> $localqtb_recorder_logs 2>&1 &");
         // sets the new status of the current recording
         capture_localqtb_status_set('recording');
+        $logger->info(__FUNCTION__.": Recording was resumed", array("module",$module_name));
     } else {
         error_last_message("capture_resume: can't resume recording because current status: $status");
+        $logger->warning(__FUNCTION__.": Can't resume recording because of current status: $status", array("module",$module_name));
         return false;
     }
 
@@ -160,14 +187,19 @@ function capture_localqtb_resume($asset) {
  * Stops the current recording
  */
 function capture_localqtb_stop(&$pid, $asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbpause;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // get status of the current recording
     $status = capture_localqtb_status_get();
+    $last_status = $status;
     if ($status == 'recording') {
         // pauses the current recording (while user chooses the way to publish the record)
         system("sudo -u $localqtb_username $localqtb_script_qtbpause >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
@@ -178,9 +210,11 @@ function capture_localqtb_stop(&$pid, $asset) {
         capture_localqtb_status_set('stopped');
     } else {
         error_last_message("capture_stop: can't pause recording because current status: $status");
+        $logger->warning(__FUNCTION__.": Can't stop recording because of current status: $status", array("module",$module_name));
         return false;
     }
 
+    $logger->info(__FUNCTION__.": Recording was stopped. Last status was: $last_status", array("module",$module_name));
     return true;
 }
 
@@ -189,11 +223,14 @@ function capture_localqtb_stop(&$pid, $asset) {
  * Ends the current recording and saves it as an archive
  */
 function capture_localqtb_cancel($asset) {
-
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbcancel;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
@@ -201,8 +238,10 @@ function capture_localqtb_cancel($asset) {
         $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbcancel . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1';
         log_append('recording', "launching command: $cmd");
         $fpart = exec($cmd, $outputarray, $errorcode);
+        $logger->info(__FUNCTION__.": Recording was cancelled", array("module",$module_name));
     } else {
         error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
+        $logger->warning(__FUNCTION__.": Can't cancel recording because of current status: $status", array("module",$module_name));
         return false;
     }
 
@@ -215,12 +254,16 @@ function capture_localqtb_cancel($asset) {
  * @param assoc_array $metadata_assoc metadata relative to current recording
  */
 function capture_localqtb_process($meta_assoc, &$pid) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbstop;
     global $localqtb_recorder_logs;
     global $localqtb_processing_tool;
     global $localqtb_processing_tools;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
@@ -243,7 +286,8 @@ function capture_localqtb_process($meta_assoc, &$pid) {
         //update (clear) status
         capture_localqtb_status_set('');
     } else {
-        error_last_message("capture_stop: can't stop recording because current status: $status");
+        error_last_message("capture_stop: can't process recording because current status: $status");
+        $logger->warning(__FUNCTION__.": Can't cancel process because of current status: $status", array("module",$module_name));
         return false;
     }
 
@@ -255,6 +299,8 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
+    $logger->info(__FUNCTION__.": Processing successfully started", array("module",$module_name));
+    
     return true;
 }
 
@@ -268,10 +314,14 @@ function capture_localqtb_process($meta_assoc, &$pid) {
  * @global type $dir_date_format
  */
 function capture_localqtb_finalize($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbfinalize;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->debug(__FUNCTION__.": called", array("module",$module_name));
+    
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // retrieves course_name and record_date
@@ -280,8 +330,10 @@ function capture_localqtb_finalize($asset) {
     // launches finalization bash script
     $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    $res = exec($cmd, $output, $errorcode);
+    exec($cmd);
+    $logger->info(__FUNCTION__.": Finished finalization", array("module",$module_name));
 }
+
 
 /**
  * @implements
@@ -292,6 +344,8 @@ function capture_localqtb_finalize($asset) {
  * @return type
  */
 function capture_localqtb_info_get($action, $asset = '') {
+    global $logger;
+    global $module_name;
     global $localqtb_ip;
     global $localqtb_download_protocol;
     global $localqtb_username;
@@ -319,6 +373,8 @@ function capture_localqtb_info_get($action, $asset = '') {
  * @return string the contents of the image to display
  */
 function capture_localqtb_thumbnail() {
+    global $logger;
+    global $module_name;
     global $localqtb_basedir;
     global $localqtb_script_qtbthumbnail;
     global $localqtb_capture_file;
@@ -360,11 +416,15 @@ function capture_localqtb_status_get() {
  * Defines the status of the current recording
  */
 function capture_localqtb_status_set($status) {
+    global $logger;
+    global $module_name;
     global $localqtb_status_file;
     global $localqtb_last_request_file;
 
     file_put_contents($localqtb_status_file, $status);
     file_put_contents($localqtb_last_request_file, time());
+    
+    $logger->debug(__FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array("module",$module_name));
 }
 
 /**

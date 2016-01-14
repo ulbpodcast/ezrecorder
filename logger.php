@@ -2,8 +2,6 @@
 
 include_once('external_products/Psr/Log/AbstractLogger.php');
 
-error_reporting(E_ALL);
-
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 
@@ -209,7 +207,7 @@ class Logger extends AbstractLogger
      *
      * @param mixed $level
      * @param string $message
-     * @param array $context
+     * @param array $context Context can have several levels, such as array('module', 'capture_ffmpeg'). Cannot contain pipes (will be replaced with slashes if any).
      * @return null
      */
     public function log($level, $message, array $context = array())
@@ -227,10 +225,15 @@ class Logger extends AbstractLogger
           $logLevelInteger = $this->logLevels[LogLevel::ERROR];
         }
 
+        //remove pipes
+        $contextStr = str_replace($context, '/', '|');
+        //concat contexts for db insert
+        $contextStr = implode('|', $context);
+        
         $insertQuery = 'INSERT INTO '.$this->logTableName.' (`classroom`, `datetime`, `context`, `loglevel`, `message`) VALUES ('.
           '"'.$this->classroomName.'",'.
           '(SELECT datetime()),'.
-          '"'.implode($context).'",'. //just concat everything in context
+          '"'.$contextStr.'",'. //just concat everything in context with slashes between
           $logLevelInteger.','.
           '"'.$message.'"'.
           ')';

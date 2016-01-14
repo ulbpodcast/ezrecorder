@@ -161,7 +161,7 @@ while (true) {
 
 function send_timeout() {
     //sends a request to the 'main core' to let it know that a recording has timed out
-    recording_force_quit();
+    controller_recording_force_quit();
 
     //All went well send http response in stderr to be logged
     return false;

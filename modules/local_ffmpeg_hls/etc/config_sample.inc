@@ -88,4 +88,3 @@ $bash_env['FFMPEG_RTSP_MEDIA_HIGH_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/xx";
 $bash_env['FFMPEG_RTSP_MEDIA_LOW_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/yy";
 $bash_env['TMP_PID']=$ffmpeg_basedir."/var/tmp_pid";
         
-?>

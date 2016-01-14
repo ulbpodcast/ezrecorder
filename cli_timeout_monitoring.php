@@ -87,7 +87,7 @@ while (true) {
              . ($now - $lastmod_time) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s",$lastmod_time)
              . ' Start time: ' . date("y-m-d_H:s",$init_time) . '');
 
-        recording_force_quit();
+        controller_recording_force_quit();
     }
 
     sleep($sleep_time);
