@@ -28,7 +28,7 @@
                     type: 'GET',
                     url: "index.php?action=recording_start",
                     cache: false,
-                    timeout: 4000, // 4 seconds
+                    timeout: 10000, // 10 seconds
                     error: offline_alert,
                     success: function (html) {
                         if (html) {
@@ -51,7 +51,7 @@
                     type: 'GET',
                     url: "index.php?action=recording_pause",
                     cache: false,
-                    timeout: 4000, // 4 seconds
+                    timeout: 10000, // 10 seconds
                     error: offline_alert,
                     success: function (html) {
                         if (html) {
@@ -72,7 +72,7 @@
                     type: 'GET',
                     url: "index.php?action=recording_resume",
                     cache: false,
-                    timeout: 4000, // 4 seconds
+                    timeout: 10000, // 10 seconds
                     error: offline_alert,
                     success: function (html) {
                         if (html) {
@@ -96,7 +96,7 @@
                     type: 'GET',
                     url: "index.php?action=view_record_submit",
                     cache: false,
-                    timeout: 4000, // 4 seconds
+                    timeout: 10000, // 10 seconds
                     error: offline_alert,
                     success: function (html) {
                         if (html) {
