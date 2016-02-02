@@ -28,9 +28,9 @@
 
 /**
  *  This CLI script performs various monitoring tasks. It is started when the user starts a recording, and stopped when they stop recording.
- * This script is called by qtbstart and qtbstop.
+ * This script is called by ffmpeg_start and ffmpeg_stop.
  * Current checks performed:
- * - recovery check (checks whether QTB has crashed, and restart it if it hs)
+ * - recovery check (checks whether ffmpeg has crashed, and restart it if it hs)
  */
 
 require_once 'config.inc';
@@ -81,7 +81,7 @@ while (true) {
         system("$remoteffmpeg_basedir/bash/ffmpeg_relaunch $remoteffmpeg_input_source; wait");    
 
 
-        mail($mailto_admins, 'FMLE crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
+        mail($mailto_admins, 'FFMPEG crash', 'Remote FFMPEG crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
 
         $movie_count = trim(system("ls -la $remoteffmpeg_moviesdir/ | grep $remoteffmpeg_movie_name | wc -l"));
         $files = glob("$remoteffmpeg_moviesdir/${remoteffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$remoteffmpeg_movie_name*.ts");

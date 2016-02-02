@@ -34,6 +34,7 @@ $ptzposdir = __DIR__ . "/ptzposdir";
  */
 function create_ponvif_helper()
 { 
+    global $logger;
     global $onvifcam_username;
     global $onvifcam_password;
     global $onvifcam_ip;
@@ -70,6 +71,8 @@ function get_ponvif_profile_token($ponvif)
  */
 function cam_onvif_ptz_posnames_get() {
     global $ptzposdir;
+    global $logger;
+    
     $ptznames = array();
     if (is_dir($ptzposdir)) {
         if ($dh = opendir($ptzposdir)) {
@@ -95,6 +98,8 @@ function cam_onvif_ptz_posnames_get() {
  * @return int
  */
 function cam_onvif_ptz_pos_save($name) {
+    global $logger;
+    
     error_log("NYI");
     die();
 }
@@ -106,6 +111,8 @@ function cam_onvif_ptz_pos_save($name) {
  * @param type $name
  */
 function cam_onvif_ptz_pos_delete($name) {
+    global $logger;
+    
     error_log("NYI");
     die();
 }
@@ -117,10 +124,17 @@ function cam_onvif_ptz_pos_delete($name) {
  * @param type $name the preset position
  */
 function cam_onvif_ptz_move($PresetName) {
-    $ponvif = create_ponvif_helper();
-    $profileToken = get_ponvif_profile_token($ponvif);
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->error("cam_onvif_ptz_move: error while trying to get ponvif object: " . $e->getMessage(), array("module","onvif_cam_management"));
+        return false;
+    }
     
     $ponvif->ptz_GotoPreset($profileToken,$PresetName,0.1,0.1,0.2);
+    return true;
 }
 
 function str_toalnum($string) {

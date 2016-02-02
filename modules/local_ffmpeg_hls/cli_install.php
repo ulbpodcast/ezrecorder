@@ -58,5 +58,8 @@ function read_line($prompt = '') {
     echo $prompt . PHP_EOL;
     return rtrim(fgets(STDIN), "\n");
 }
+
+//todo check ffmpeg compilation flags
+// --with-fdk-aac 
 ?>
 

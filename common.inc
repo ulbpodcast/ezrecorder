@@ -42,5 +42,7 @@ if($debugMode) {
 date_default_timezone_set($recorder_timezone);
 $logger = new Logger($databaseFile, $classroom, $logLevelThreshold);
 
-if($debugMode)
-  error_reporting(E_ALL);
+if($debugMode) {
+  ini_set("display_errors", 1);
+  error_reporting(E_ALL); 
+}

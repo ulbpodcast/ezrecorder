@@ -29,7 +29,7 @@
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
-$recorder_version = "2.0";
+$recorder_version = "2.1";
 
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts

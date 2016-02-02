@@ -63,7 +63,7 @@ while (true) {
         if (($now - $last_modif) > $recovery_threshold) {
             system("osascript $remotefmle_open");
             system("osascript $remotefmle_action");
-            mail($mailto_admins, 'Flash Media Live Encoder crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
+            mail($mailto_admins, 'Flash Media Live Encoder crash', 'Remote Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
         }
     }
 

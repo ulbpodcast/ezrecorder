@@ -84,6 +84,8 @@ $bash_env['FFMPEG_PID']=$ffmpeg_pid_file;
 $bash_env['FFMPEG_PID2']=$ffmpeg_pid2_file;
 
 $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
+
+//rstp uris. Used when source is set to rtsp.
 $bash_env['FFMPEG_RTSP_MEDIA_HIGH_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/xx";
 $bash_env['FFMPEG_RTSP_MEDIA_LOW_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/yy";
 $bash_env['TMP_PID']=$ffmpeg_basedir."/var/tmp_pid";
