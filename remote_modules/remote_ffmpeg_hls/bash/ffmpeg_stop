@@ -46,7 +46,7 @@ METADATAPATH=$EZCASTDIR/var/${SDAT}_$COURSE/_metadata.xml
 echo "EZrecorder : saving camera movie to $STORDIR<br>"
 mkdir $STORDIR
 mv $MOVIESDIR/${COMMON_MOVIE_NAME}* $STORDIR 
-mv $RECORDDIR/ffmpeg.log $STORDIR
+mv $EZCASTDIR/var/ffmpeg.log $STORDIR
 #copy metadata
 cp $METADATAPATH  $STORDIR/metadata.xml
 
