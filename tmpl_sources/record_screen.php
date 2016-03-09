@@ -211,7 +211,7 @@
                                     <?php
                                     foreach ($positions as $position) {
                                         ?>
-                                        <li><a href="javascript:move_camera('<?php echo $position; ?>');"><img src="<?php echo $cam_management_views_dir . $position . '.jpg'; ?>" name="<?php echo $position; ?>" width="235" height="157" border="0" title="<?php echo preg_replace('!_!', ' ', $position); ?>" id="<?php echo $position; ?>" /><br/><?php echo preg_replace('!_!', ' ', $position); ?></a></li>
+                                        <li><a href="javascript:move_camera('<?php echo $position; ?>');"><img src="<?php echo $cam_management_views_dir . $position . '.jpg?dummy=' . time(); ?>" name="<?php echo $position; ?>" width="235" height="157" border="0" title="<?php echo preg_replace('!_!', ' ', $position); ?>" id="<?php echo $position; ?>" /><br/><?php echo preg_replace('!_!', ' ', $position); ?></a></li>
                                         <?php
                                     }
                                     ?>
