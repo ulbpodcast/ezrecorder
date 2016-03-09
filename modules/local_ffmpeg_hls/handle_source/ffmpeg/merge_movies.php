@@ -30,16 +30,19 @@ $path = dirname($argv[0]); //get the program directory to fix a relative path in
 
 if (trim($path) != "")
     $path.='/';
+
 include "$path" . "lib_ffmpeg.php";
 
 print "cam merge_ffmpeg_movies\n";
 //handles an offlineqtb recording: multifile recording on podcv and podcs
 if ($argc != 5) {
-    echo "usage: " . $argv[0] . " <directory> <commonpartname> <output_movie_filename> <cutlist_file>\n";
-    echo "        where <directory> is the directory containing the movies\n";
+    echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file>\n";
+    echo "        where <root_movies_directory> is the directory containing the movies\n";
     echo "        <commonpartname> part name that is common to all movies\n";
     echo "        <merge_filename> filename to write output to\n";
     echo "        <cutlist_file> the file containing the segments to extract from the recording\n";
+    echo "";
+    echo "Example: php merge_movies.php /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam. /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list ";
     die;
 }
 
@@ -58,8 +61,10 @@ if ($output >= 1) {
     $res = movie_join_parts($movies_path, $commonpart, $outputfilename); //movie span on multiple files
     if ($res)
         myerror("Join movies error:$res");
-}else {
-    myerror("No .m3u8 file found");
+} else if ($output == 0) {
+    myerror("No video file found ");
+} else {
+    myerror("Command: 'ls $movies_path/$moviename* | wc -l' failed");
 }
 
 //We will now extract the parts user wants to keep according to the cutlist

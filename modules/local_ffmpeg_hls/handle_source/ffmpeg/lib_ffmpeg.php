@@ -49,7 +49,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     print "ls -la $movies_path | grep $commonpart | wc -l --> output: $movie_count" . PHP_EOL;
 
     if ($movie_count < 1)
-        return 'no .m3u8 file found';
+        return 'No file(s) found';
 
     mkdir("./$tmpdir");
 
@@ -59,6 +59,8 @@ function movie_join_parts($movies_path, $commonpart, $output) {
             $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
         } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
             $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+        } else {
+            return "no .m3u8 file found at i = $i";
         }
         exec($cmd);
     }
@@ -86,7 +88,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
             return join("\n", $cmdoutput);
         }
     }
-    return false;
+    return 0;
 }
 
 function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '') {
@@ -193,7 +195,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     if ($returncode) {
         return join("\n", $cmdoutput);
     }
-    return false;
+    return 0;
 }
 
 ?>
