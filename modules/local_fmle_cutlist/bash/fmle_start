@@ -35,7 +35,7 @@ if [ "$REC_STATUS" == "launch_failure" ]; then
     osascript $EZCASTDIR/applescript/fmle_action.scpt&
 
     SDAT=`date +"%s"` 	#start date
-    WAITING_DELAY=4 	#if the file doesn't exist after 4s, we consider FMLE has planted
+    WAITING_DELAY=4 	#if the file doesn't exist after 4s, we consider FMLE has crashed
     EXISTS_CAM=0 	# 1 if ${COMMON_MOVIE_NAME}.f4v exists on EZrecorder
 
     # loop while delay hasn't expired and cam file doesn't exist

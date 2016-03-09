@@ -121,7 +121,7 @@ function session_modulename_recstarttime_get() {}
  * @global type $time the time in seconds
  * @param type $startrec_info
  */
-function session_xml_last_request_set($time = '') {}
+function session_modulename_last_request_set($time = '') {}
 
 /**
  * @implements
@@ -129,7 +129,7 @@ function session_xml_last_request_set($time = '') {}
  * @global type $recstarttime_file
  * @return type
  */
-function session_xml_last_request_get() {}
+function session_modulename_last_request_get() {}
 //
 // Exclusive lock and concurrency management
 //

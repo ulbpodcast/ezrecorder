@@ -1,3 +1,5 @@
+.DS_store
+debug.killme
 global_config.inc
 *.log
 *_log

@@ -5,32 +5,32 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=8" />
         <meta name="viewport" content="width=device-width" />
-        <!--
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+        <?php /*
+         * EZCAST EZrecorder
+         *
+         * Copyright (C) 2014 Université libre de Bruxelles
+         *
+         * Written by Michel Jansens <mjansens@ulb.ac.be>
+         * 	      Arnaud Wijns <awijns@ulb.ac.be>
+         *            Antoine Dewilde
+         * UI Design by Julien Di Pietrantonio
+         *
+         * This software is free software; you can redistribute it and/or
+         * modify it under the terms of the GNU Lesser General Public
+         * License as published by the Free Software Foundation; either
+         * version 3 of the License, or (at your option) any later version.
+         *
+         * This software is distributed in the hope that it will be useful,
+         * but WITHOUT ANY WARRANTY; without even the implied warranty of
+         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+         * Lesser General Public License for more details.
+         *
+         * You should have received a copy of the GNU Lesser General Public
+         * License along with this software; if not, write to the Free Software
+         * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-This it the template of the new record form. This template is displayed when a new user logs in.
-        -->
+          This is the template of the new record form. This template is displayed when a new user logs in.
+         */ ?>
         <title>®Page_title®</title>
         <link rel="shortcut icon" type="image/ico" href="images/Generale/favicon.ico" />
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
@@ -54,9 +54,11 @@ This it the template of the new record form. This template is displayed when a n
                     window.alert('®No_title_provided®');
                     return false;
                 }
-                else if (title.length > <?php include_once 'global_config.inc';
-global $title_max_length;
-echo $title_max_length; ?>) {
+                else if (title.length > <?php
+        include_once 'global_config.inc';
+        global $title_max_length;
+        echo $title_max_length;
+        ?>) {
                     window.alert('®Title_too_long®');
                     return false;
                 }
@@ -81,7 +83,7 @@ echo $title_max_length; ?>) {
 
     <body>
         <div class="container">
-                <?php include 'div_main_header.php'; ?>
+            <?php include 'div_main_header.php'; ?>
             <div id="global">
                 <?php
                 global $notice;
@@ -89,10 +91,10 @@ echo $title_max_length; ?>) {
                     require 'div_error_message.php';
                 }
                 ?>
-            <?php include_once 'div_record_form.php'; ?>
+                <?php include_once 'div_record_form.php'; ?>
             </div>
 
-<?php include 'div_main_footer.php'; ?>
+            <?php include 'div_main_footer.php'; ?>
 
         </div>
 
