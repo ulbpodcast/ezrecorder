@@ -519,7 +519,7 @@ function capture_remoteffmpeg_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $remoteffmpeg_local_basedir . '/var/' . $asset;
-    if (!file_exists($tmp_dir) && !dir($tmp_dir))
+    if (!file_exists($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;

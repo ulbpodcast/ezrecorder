@@ -84,16 +84,15 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
     // saves recording metadata as xml file
     assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
 
-    // status of the current recording
+    // status of the current recording, should be empty
     $status = capture_ffmpeg_status_get();
-
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because current status: $status");
         $logger->error(__FUNCTION__.": Can't init because current status: $status", array("module",$module_name));
         return false;
     }
 
-    // no status yet
+    //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
     $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
     if ($streaming_info !== false) {
         // defines that the streaming is enabled
@@ -104,7 +103,8 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
     // in background to save time (pid is returned to be handled by web_index.php)
     system("sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source 1 >> $ffmpeg_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
     $pid = file_get_contents("$tmp_dir/pid");
-    // error occured while launching FMLE
+    
+    // error occured while launching FFMPEG
     if (capture_ffmpeg_status_get() == 'launch_failure') {
         error_last_message("can't open because FFMPEG failed to launch");
         $logger->error(__FUNCTION__.": Can't init because FFMPEG failed to launch", array("module",$module_name));

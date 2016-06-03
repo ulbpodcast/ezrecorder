@@ -165,7 +165,7 @@
                         <!-- RECORD BUTTON PLAY / PAUSE / STOP [END] -->
 
                         <!-- CAMERA BUTTON + PLAN -->
-                        <?php if ($cam_management_enabled && $_SESSION['recorder_type'] != 'slide') {
+                        <?php if ($cam_management_enabled && (!isset($_SESSION['recorder_type']) || $_SESSION['recorder_type'] != 'slide')) {
                             ?>
                             <div id='btnScenes' class="PlanCamera">
                                 <a href="javascript:visibilite('divid5');" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image5', '', 'images/page2/BCamPlan.png', 0)"><img src="images/page2/ACamPlan.png" name="Image5" width="128" border="0" title="®Scenes®" id="Image5" />®Scenes®</a>

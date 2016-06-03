@@ -124,6 +124,8 @@ function cam_onvif_ptz_pos_delete($name) {
  * @param type $name the preset position
  */
 function cam_onvif_ptz_move($PresetName) {
+    global $logger;
+    
     try {
         $ponvif = create_ponvif_helper();
         $profileToken = get_ponvif_profile_token($ponvif);

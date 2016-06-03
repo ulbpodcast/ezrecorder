@@ -105,7 +105,6 @@ case "$INPUT" in
             mkdir -p $MOVIEDIR_HIGH
             mkdir -p $MOVIEDIR_LOW
             # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
-            # low probsize allow for faster stream start
             if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
             then
                 $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
