@@ -892,6 +892,8 @@ function controller_view_screenshot_image() {
  * Logs the user out, i.e. destroys all the data stored about them
  */
 function user_logout() {
+    global $session_module;
+    
     close_session();
 
     //destroy session
