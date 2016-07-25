@@ -35,13 +35,11 @@ include_once 'common.inc';
 
 session_start();
 
-$report = error_reporting();
-error_reporting($report | E_PARSE | E_ERROR);
-
 require_once $auth_lib;
 require_once 'lib_error.php';
 require_once 'lib_template.php';
 require_once 'lib_model.php';
+
 if ($cam_enabled)
     require_once $cam_lib; // defined in global_config
 if ($slide_enabled)

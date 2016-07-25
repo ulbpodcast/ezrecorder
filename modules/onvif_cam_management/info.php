@@ -24,9 +24,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-$module_title = "axis_cam_management";
-$module_description = "This module is designed to control Axis PTZ camera. It should be used only if the axis_cam module is enabled.";
-$module_name = "axis_ptz";
+$module_title = "onvif_cam_management";
+$module_description = "This module is designed to control an IP camera.";
+$module_name = "onvif_ptz";
 $module_path = dirname(__FILE__);
 $module_type = "cam_management";
 $module_lib = "$module_path/lib_cam.php";

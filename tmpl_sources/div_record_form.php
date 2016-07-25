@@ -83,6 +83,5 @@ make sure $courselist is set and is an array of all courses available for the us
         <label class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>><input type="checkbox" name="streaming" value="enabled"> Streaming LIVE</label>
         <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
         <a class="continuer" id="submit_button" href="#">®Continue®</a></div>
-    <!--a class="continuer" id="submit_button" onclick="if(check_form()) loading_popup(); else return false;" href="javascript:document.forms['form1'].submit();">®Continue®</a></div-->
 </form>
 <!-- CANCEL BUTTON / CONTINUE [END] -->

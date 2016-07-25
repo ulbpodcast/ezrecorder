@@ -156,8 +156,10 @@ function auth_file_courselist_get() {
 function auth_file_user_courselist_get($user) {
     global $courselist_file;
     include $courselist_file;
-    return $course[$user];
-    
+    if(isset($course))
+        return $course[$user];
+    else
+        return array();    
 }
 
 /**
