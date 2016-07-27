@@ -1,9 +1,6 @@
 <?php
 
-$config_version = "20160411";
-
- include_once('external_products/Psr/Log/LogLevel.php');
- use Psr\Log\LogLevel;
+$config_version = "20160726";
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -15,6 +12,7 @@ $ezrecorder_recorddir = "/Users/".$ezrecorder_username."/Movies/"; // basedir fo
 
 //list of supported timezones: http://php.net/manual/en/timezones.europe.php
 $recorder_timezone = "Europe/Brussels";
+date_default_timezone_set($recorder_timezone);
 
  // Project URI
 $basedir = "/Library/ezrecorder/"; // Path to EZrecorder basedir
@@ -70,7 +68,7 @@ $auth_module = "file";
 $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 
 // debugging
-$debugMode = false;
+$debug_mode = false;
 
 // logging
-$databaseFile = "$basedir/var/logs.sqlite";
+$log_database_file = "$basedir/var/logs.sqlite";

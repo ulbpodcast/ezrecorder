@@ -1,40 +1,62 @@
 <?php
 
-include_once('external_products/Psr/Log/AbstractLogger.php');
-
-use Psr\Log\AbstractLogger;
-use Psr\Log\LogLevel;
+// This file is shared between server and recorder and should be kept identical in both projects.
+// Specialized loggers for each are implemented with this one as base.
+         
+require_once("logger_event_type.php");
 
 /**
- * This is the ezcast recorder logger,
- * This logger uses the PSR-3 Logger Interface as described here: http://www.php-fig.org/psr/psr-3/
- * Before using this object you must the default timezone by usig date_default_timezone_set() or the date.timezone option.
- * Usage:
- * $log = Logger(Psr\Log\LogLevel::INFO);
- * $log->info('Returned a million search results'); //Insert error in database
- * $log->error('Oh dear.', array("SUCHCONTEXT")); //Insert error in database
- * $log->debug('x = 5'); //Prints nothing due to current severity threshhold
- *
+ * 
+ * Describes log levels. Frm PSR-3 Logger Interface. (http://www.php-fig.org/psr/psr-3/)
  */
-class Logger extends AbstractLogger
+class LogLevel
 {
     /**
-     * Current minimum logging threshold
-     * @var integer
+     * System is unusable.
      */
-    protected $logLevelThreshold;
-
+    const EMERGENCY = 'emergency';
     /**
-    * Classroom name to use in log messages
-    * @var string
-    */
-    protected $classroomName;
-
-    /**
-     * Log Levels
-     * @var array
+     * Action must be taken immediately.
+     *
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
      */
-    protected $logLevels = array(
+    const ALERT     = 'alert';
+    /**
+     * Critical conditions.
+     *
+     * Example: Application component unavailable, unexpected exception.
+     */
+    const CRITICAL  = 'critical';
+    /**
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     */
+    const ERROR     = 'error';
+    /**
+     * Exceptional occurrences that are not errors.
+     *
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     */
+    const WARNING   = 'warning';
+    /**
+     * Normal but significant events.
+     */
+    const NOTICE    = 'notice';
+    /**
+     * Interesting events.
+     *
+     * Example: User logs in, SQL logs.
+     */
+    const INFO      = 'info';
+    /**
+     * Detailed debug information.
+     */
+    const DEBUG     = 'debug';
+    
+    // index by LogLevel
+    public static $log_levels = array(
         LogLevel::EMERGENCY => 0,
         LogLevel::ALERT     => 1,
         LogLevel::CRITICAL  => 2,
@@ -44,200 +66,170 @@ class Logger extends AbstractLogger
         LogLevel::INFO      => 6,
         LogLevel::DEBUG     => 7
     );
+}
 
-    /**
-    * Database infos
-    */
-    //PDO object
-    protected $db;
-    //Database file path
-    protected $databaseFile;
-    //Increment this every time you change the structure. If version change, a new database file will be created and the old one moved to *.old
-    protected $dbVersion = "0.1";
-    //Structure used to create database. If changing this structure, don't forget to update log(...) function
-    protected $logTableName = "logs";
-    protected $dbStructure = [
-      'classroom' => 'VARCHAR(30)',
-      'datetime'  => 'DATETIME',
-      'context'   => 'VARCHAR(30)',
-      'loglevel'  => 'TINYINT(1)',
-      'message'   => 'TEXT',
-    ];
+//Structure used as argument to log calls
+class AssetLogInfo
+{
+    public function __construct($author = "", $cam_slide = "", $course = "", $classroom = "") {
+        $this->author = $author;
+        $this->cam_slide = $cam_slide;
+        $this->course = $course;
+        $this->classroom = $classroom;
+    }
+    
+    public $author;
+    public $cam_slide;
+    public $course;
+    public $classroom;
+}
 
-    /**
-     * Class constructor
-     *
-     * @param string $databaseFile      File path to the sqlite database
-     * @param string $logLevelThreshold The LogLevel Threshold
+/* This structure is used to pass temporary results from the `log` parent function to its child. 
+ * Feel free to change it if you find another more elegant solution.
+ */
+class LogData {
+    public $log_level_integer = null;
+    public $context = null;
+    public $type_id = null;
+    public $message = null;
+    
+    public $asset_info = null; //type AssetLogInfo
+}
+    
+class Logger {
+    
+    /* Reverted EventType array -> key: id, value: EventType
+     * Filled at Logger construct.
      */
-    public function __construct($databaseFile = "db.sqlite", $classroomName = "classroom_name", $logLevelThreshold = LogLevel::INFO)
-    {
-        $this->databaseFile = $databaseFile;
-        $this->$classroomName = $classroomName;
-        $this->logLevelThreshold = $logLevelThreshold;
-
-        $this->db = new PDO('sqlite:'.$this->databaseFile);
-        if(!$this->databaseIsValid()) {
-            $this->backupDatabase();
-            $this->db = null; //close it
-            $this->db = new PDO('sqlite:'.$this->databaseFile);
-            $this->createDatabase();
-        }
-    }
-
-    /**
-     * Class destructor
+    public static $event_type_by_id = false;
+    
+    //set this to true to echo all logs
+    public static $print_logs = false;
+    
+    /* 
+     * Reverted LogLevel array -> key: id, value: LogLevel name (string)
+     * Filled at Logger construct
      */
-    public function __destruct()
-    {
-       $this->db = null;
+    public static $log_level_name_by_id = false;
+        
+    public function __construct() {
+        $this->fill_event_type_by_id();
+        $this->fill_level_name_by_id();
     }
-
-    /**
-    * Rename database file to *.backup.<date>
-    * Return true if success (or file does not exists)
-    */
-    private function backupDatabase()
+    
+    public function get_type_name($index)
     {
-        if(file_exists($this->databaseFile))
-          return rename($this->databaseFile, $this->databaseFile . '.backup.' . date("Y-m-d.H-i-s"));
-
-        return true;
-    }
-
-    /**
-    * Return true if database seems to be usable
-    */
-    private function databaseIsValid()
-    {
-        try {
-            $result = $this->db->query('SELECT version FROM db_version');
-            if(!$result)
-              return false;
-
-            //check if our current version matches
-            $versionArray = $result->fetch();
-            if(sizeof($versionArray) < 1)
-              return false;
-
-            if($versionArray[0] != $this->dbVersion)
-              return false;
-
-            // dummy query to test the log table
-            $testQuery = "SELECT ";
-            $first = true;
-            foreach($this->dbStructure as $key => $type)
-            {
-              //do not add a comma before the first column
-              if(!$first)
-                $testQuery .= ',';
-              else
-                $first = false;
-
-              $testQuery .= '`'.$key.'`';
-            }
-            $testQuery .= " FROM $this->logTableName LIMIT 1";
-            $result = $this->db->query($testQuery);
-            if(!$result)
-              return false;
-        } catch (Exception $e) {
-            //something went wrong
-            return false;
-        }
-
-        //all ok
-        return true;
-    }
-
-    /**
-    *  Create database if need be
-    *  Return true if database was created
-    */
-    private function createDatabase()
-    {
-      $this->db->exec('DROP TABLE IF EXISTS '.$this->logTableName);
-      $createTableStr = "CREATE TABLE $this->logTableName(";
-      $first = true;
-      foreach($this->dbStructure as $key => $type)
-      {
-        //do not add a comma before the first column
-        if(!$first)
-          $createTableStr .= ',';
+        //var_dump(Logger::$event_type_by_id);
+        if(isset(Logger::$event_type_by_id[$index]))
+            return Logger::$event_type_by_id[$index];
         else
-          $first = false;
-
-        $createTableStr .= '`'.$key.'` ' . $type;
-      }
-      $createTableStr .= ')';
-      $this->db->exec($createTableStr);
-
-      $this->db->exec('DROP TABLE IF EXISTS db_version');
-      $this->db->exec('CREATE TABLE db_version(`version` VARCHAR(30))');
-      $this->db->exec('INSERT INTO db_version VALUES ("'.$this->dbVersion.'")');
-
-      $this->info("Created database " . $this->databaseFile);
+            return false;
     }
-
-    /**
-     * Sets the Log Level Threshold
-     *
-     * @param string $logLevelThreshold The log level threshold
-     */
-    public function setLogLevelThreshold($logLevelThreshold)
+    
+    public function get_log_level_name($index)
     {
-        $this->logLevelThreshold = $logLevelThreshold;
+        if(isset(Logger::$log_level_name_by_id[$index]))
+            return Logger::$log_level_name_by_id[$index];
+        else
+            return false;
     }
-
+    
     /**
     * Return log level given in the form of LogLevel::* into an integer
+    * Throws RuntimeException if invalid level given
     */
-    public function getLogLevelInteger($level)
+    public function get_log_level_integer($level)
     {
-        foreach($this->logLevels as $key => $value)
+        if(isset(LogLevel::$log_levels[$level]))
+            return LogLevel::$log_levels[$level];
+        
+        foreach(LogLevel::$log_levels as $key => $value)
         {
           if($key == $level)
             return $value;
         }
 
-         throw new RuntimeException('getLogLevelInteger: Invalid level given');
+        throw new RuntimeException('get_log_level_integer: Invalid level given');
     }
 
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed $level
+     * @param mixed $type type in the form of EventType::*
+     * @param mixed $level in the form of LogLevel::*
      * @param string $message
+     * @param string $asset asset identifier
+     * @param AssetLogInfo $asset asset identifier
      * @param array $context Context can have several levels, such as array('module', 'capture_ffmpeg'). Cannot contain pipes (will be replaced with slashes if any).
-     * @return null
+     * @return LogData temporary data, used by children functions
      */
-    public function log($level, $message, array $context = array())
+    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $assetInfo = null)
     {
-        //do not log if log above log level
-        if ($this->logLevels[$this->logLevelThreshold] < $this->logLevels[$level]) {
-            return;
-        }
-
+        $tempLogData = new LogData();
+        $tempLogData->message = $message;
+                
+        // convert given loglevel to integer for db storage
         try {
-          $logLevelInteger = $this->getLogLevelInteger($level);
+          $tempLogData->log_level_integer = $this->get_log_level_integer($level);
         } catch (Exception $e) {
           //invalid level given, default to "error" and prepend this problem to the message
-          $message = "(Invalid log level) " . $message;
-          $logLevelInteger = $this->logLevels[LogLevel::ERROR];
+          $tempLogData->message = "(Invalid log level) " . $message;
+          $tempLogData->log_level_integer = LogLevel::$log_levels[LogLevel::ERROR];
         }
 
-        //remove pipes
+        //convert given type_id to integer for db storage
+       $tempLogData->type_id = isset(EventType::$event_type_id[$type]) ? EventType::$event_type_id[$type] : 0;
+       
+        // asset infos. May be null, we only give it at record start
+        if($assetInfo)
+            $tempLogData->assetInfo = $assetInfo;
+        else
+            $tempLogData->asset_info = new AssetLogInfo(); //if no asset info, init with default values
+        
+        // pipes will be used as seperator between contexts
+        // remove pipes
         $contextStr = str_replace($context, '/', '|');
-        //concat contexts for db insert
+        // concat contexts for db insert
         $contextStr = implode('|', $context);
         
-        $insertQuery = 'INSERT INTO '.$this->logTableName.' (`classroom`, `datetime`, `context`, `loglevel`, `message`) VALUES ('.
-          '"'.$this->classroomName.'",'.
-          '(SELECT datetime()),'.
-          '"'.$contextStr.'",'. //just concat everything in context with slashes between
-          $logLevelInteger.','.
-          '"'.$message.'"'.
-          ')';
+        $tempLogData->context = $contextStr;
+            
+        // okay, all data ready
 
-        $this->db->exec($insertQuery);
+        if(Logger::$print_logs)
+            echo "log: [$level] / type: $contextStr / $type / $tempLogData->message" .PHP_EOL;
+        
+        //idea: if level is critical or below, push back trace to message
+        
+        return $tempLogData;
+    }
+    
+    // -- PROTECTED
+    // ----------
+    
+    //fill $event_type_by_id from $event_type_id
+    protected function fill_event_type_by_id()
+    {
+        if(Logger::$event_type_by_id == false) {
+            Logger::$event_type_by_id = array();
+            foreach(EventType::$event_type_id as $key => $value) {
+                Logger::$event_type_by_id[$value] = $key;
+            }
+        }
+            
+        return Logger::$event_type_by_id;
+    }
+    
+    //fill $log_level_name_by_id from $log_levels
+    protected function fill_level_name_by_id()
+    {
+        if(Logger::$log_level_name_by_id == false) {
+            Logger::$log_level_name_by_id = array();
+            foreach(LogLevel::$log_levels as $key => $value) {
+                Logger::$log_level_name_by_id[$value] = $key;
+            }
+        }
+            
+        return Logger::$log_level_name_by_id;
     }
 }

@@ -158,7 +158,7 @@ switch ($action) {
     // At this point of the code, we know the user is logged in, but for some reason they didn't provide an action.
     // That means they manually reloaded the page. In this case, we bring them back from where they came.
     default:
-        $logger->debug('Index controller: User is logged in but did not provided an action, try to reconnect active session', array('controller'));
+        $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session', array('controller'));
         reconnect_active_session();
 }
 

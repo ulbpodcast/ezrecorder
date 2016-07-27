@@ -121,7 +121,7 @@ function controller_recording_start() {
 
     if ($user != $_SESSION['user_login']) {
         error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
-        $logger->error('(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'));
+        $logger->log(EventType::TEST, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'));
         return false;;
     }
 
@@ -130,7 +130,7 @@ function controller_recording_start() {
     if($status != 'open')
     {
         error_print_message("capture_start: error status ($status): status not 'open'");
-        $logger->info("(action recording_start) Could not start recording because of status '$status'", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array('controller'));
         return false;
     }
     
@@ -163,12 +163,12 @@ function controller_recording_start() {
     // something went wrong while starting the recording
     if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
         error_print_message(capture_last_error());
-        $logger->info("Record start failed in capture module", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::INFO, "Record start failed in capture module", array('controller'));
         return false;
     }
 
     log_append("recording_start", "started recording by user request");
-    $logger->info("Started recording by user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'));
+    $logger->log(EventType::TEST, LogLevel::INFO, "Started recording by user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'));
 
     return true;
 }
@@ -196,6 +196,8 @@ function controller_recording_stop() {
     global $basedir;
     global $recorder_monitoring_pid;
 
+    $logger->log(EventType::TEST, LogLevel::INFO, 'MER IL ET FOO', array('controller'), $_SESSION['asset']);
+
     // stops the timeout monitoring
     if(file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
@@ -209,8 +211,9 @@ function controller_recording_stop() {
     $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
     $starttime = $recstarttime[0];
     $album = $recstarttime[1];
+    
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->info('Recording stopped at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'));
+    $logger->log(EventType::TEST, LogLevel::INFO, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
@@ -232,7 +235,6 @@ function controller_recording_stop() {
     file_put_contents("$tmp_dir/metadata.xml", $meta_xml_string);
 
     // launches the video processing in background
-    //  exec("echo '$php_cli_cmd $process_upload' | at now", $output, $errno); // delay is too long using cmd at
     exec("$php_cli_cmd $process_upload > /dev/null &", $output, $errno);
 
     close_session();
@@ -630,7 +632,7 @@ function user_login($login, $passwd) {
         $error = template_get_message('Empty_username_password', get_lang());
         //show login form again
         require_once template_getpath('login.php');
-        $logger->info('Login failed, no login/password provided', array('auth'));
+        $logger->log(EventType::TEST, LogLevel::INFO, 'Login failed, no login/password provided', array('auth'));
         return false;
     }
 
@@ -641,7 +643,7 @@ function user_login($login, $passwd) {
         $fct_auth_last_error = "auth_" . $auth_module . "_last_error";
         $error = $fct_auth_last_error();
         require_once template_getpath('login.php');
-        $logger->info("Login failed, wrong credentials for login: $login", array('auth'));
+        $logger->log(EventType::TEST, LogLevel::INFO, "Login failed, wrong credentials for login: $login", array('auth'));
         return false;
     }
 
@@ -819,26 +821,38 @@ function controller_view_record_submit() {
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
+    global $logger;
+    
+    $logger->log(EventType::PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller'));
+
     // Stopping (pausing) the recording
-    // if slide module is enabled
-    if ($slide_enabled) {
-        $fct_capture_stop = 'capture_' . $slide_module . '_stop';
-        $fct_capture_stop($slide_pid, $_SESSION['asset']);
-    }
+    $cam_pid = 0;
+    $slide_pid = 0;
+    
     // if cam module is enabled
     if ($cam_enabled) {
         $fct_capture_stop = 'capture_' . $cam_module . '_stop';
-        $fct_capture_stop($cam_pid, $_SESSION['asset']);
+        $success = $fct_capture_stop($cam_pid, $_SESSION['asset']);
+        if(!$success)
+            $logger->log(EventType::PUSH_STOP, LogLevel::ERROR, 'Slide module stopping failed. Trying to continue anyway.', array('controller'));
+    }
+    
+    // if slide module is enabled
+    if ($slide_enabled) {
+        $fct_capture_stop = 'capture_' . $slide_module . '_stop';
+        $success = $fct_capture_stop($slide_pid, $_SESSION['asset']);
+        if(!$success)
+            $logger->log(EventType::PUSH_STOP, LogLevel::ERROR, 'Slide module stopping failed. Trying to continue anyway.', array('controller'));
     }
 
     // waits until both processes are finished to continue.
-    while (is_process_running($cam_pid) || is_process_running($slide_pid))
+    while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_running($slide_pid))
         sleep(0.5);
 
     $_SESSION['recorder_mode'] = 'view_record_submit';
 
     if ($cam_management_enabled) {
-        //cam management enabled so try to put camera back in place
+        //cam management enabled so try to put camera back in initial pos
         $fct_cam_move = "cam_" . $cam_management_module . "_move";
         $fct_cam_move($GLOBALS['cam_default_scene']); //set ptz to the initial position
     }
@@ -992,14 +1006,3 @@ function status_set($status) {
         $fct_status_set($status);
     }
 }
-
-// determines if a process is running or not
-function is_process_running($pid) {
-    if (!isset($pid) || $pid == '' || $pid == 0)
-        return false;
-    
-    exec("ps $pid", $output, $result);
-    return count($output) >= 2;
-}
-
-?>

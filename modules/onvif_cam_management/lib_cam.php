@@ -131,7 +131,7 @@ function cam_onvif_ptz_move($PresetName) {
         $profileToken = get_ponvif_profile_token($ponvif);
     } catch (Exception $e)
     {
-        $logger->error("cam_onvif_ptz_move: error while trying to get ponvif object: " . $e->getMessage(), array("module","onvif_cam_management"));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "cam_onvif_ptz_move: error while trying to get ponvif object: " . $e->getMessage(), array("module","onvif_cam_management"));
         return false;
     }
     

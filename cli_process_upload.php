@@ -1,32 +1,6 @@
 <?php
 
 /*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-
-/*
  * This is a CLI script that launches the local processing of the recordings 
  * and sends a request to podman to download the recordings
  * Usage: cli_process_upload.php
@@ -41,9 +15,14 @@ require_once $session_lib;
 require_once 'lib_error.php';
 require_once 'lib_various.php';
 
+//get session metadata to find last course
 $fct = "session_" . $session_module . "_metadata_get";
 $meta_assoc = $fct();
 
+if($meta_assoc == false) {
+    $logger->log(EventType::UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array("cli_process_upload"));
+    return 1;
+}
 
 $record_date = $meta_assoc['record_date'];
 $course_name = $meta_assoc['course_name'];
@@ -52,55 +31,66 @@ $record_type = $meta_assoc['record_type'];
 $asset = $record_date . '_' . $course_name;
 $tmp_dir = "$basedir/var/$asset/";
 if (!file_exists($tmp_dir . "/metadata.xml")) {
+    $logger->log(EventType::UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get temporary asset metadata file, cannot continue", array("cli_process_upload"), $asset);
     echo "Error: metadata file $basedir/var/$asset/metadata.xml does not exist" . PHP_EOL;
     //  die;
 }
 
 $fct = "session_" . $session_module . "_metadata_delete";
-$fct();
+//debug UNCOMMENT THIS //$fct();
 
 // Stopping and releasing the recorder
+
+$logger->log(EventType::CAPTURE_POST_PROCESSING, LogLevel::INFO, "Started videos post processing", array("cli_process_upload"), $asset);
 // if cam module is enabled
+$cam_pid = 0;
 if ($cam_enabled) {
     $fct = 'capture_' . $cam_module . '_process';
     $fct($meta_assoc, $cam_pid);
 }
 // if slide module is enabled
+$slide_pid = 0;
 if ($slide_enabled) {
     $fct = 'capture_' . $slide_module . '_process';
     $fct($meta_assoc, $slide_pid);
 }
 
 // wait for local processing to finish
-while (is_process_running($cam_pid) || is_process_running($slide_pid)) {
+while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_running($slide_pid)) {
     sleep(0.5);
 }
 
-system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
+$logger->log(EventType::CAPTURE_POST_PROCESSING, LogLevel::INFO, "Finished videos post processing", array("cli_process_upload"), $asset);
 
+system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
 
 
 ////call EZcast server and tell it a recording is ready to download
 
 $nb_retry = 500;
 
-
+$cam_download_info = null;
 if ($cam_enabled) {
     // get downloading information required by EZcast server
     $fct = 'capture_' . $cam_module . '_info_get';
     $cam_download_info = $fct('download', $asset);
 }
 
+$slide_download_info = null;
 if ($slide_enabled) {
     // get downloading information required by EZcast server
     $fct = 'capture_' . $slide_module . '_info_get';
     $slide_download_info = $fct('download', $asset);
 }
+
+$logger->log(EventType::UPLOAD_TO_EZCAST, LogLevel::INFO, "Starting upload to ezcast", array("cli_process_upload"), $asset);
+
 //try repeatedly to call EZcast server and send the right post parameters
 $err = true;
 while ($err && $nb_retry > 0) {
     $err = server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
     if ($err) {
+        $logger->log(EventType::UPLOAD_TO_EZCAST, LogLevel::ERROR, "Upload (curl) failed, will retry later.", array("cli_process_upload"), $asset);
         log_append('EZcast_curl_call', "Will retry later: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
         sleep(120);
     }//endif error
@@ -108,6 +98,7 @@ while ($err && $nb_retry > 0) {
 }//end while
 
 if ($err) {
+    $logger->log(EventType::UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Upload failed $nb_retry times, giving up", array("cli_process_upload"), $asset);
     log_append('EZcast_curl_call', "Giving up: Error connecting to EZcast server ($ezcast_submit_url). curl error: $err \n");
     sleep(120);
 }
@@ -122,7 +113,11 @@ if ($err) {
  * @return false|error_code
  */
 function server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info) {
-//tells the server that a recording is ready to be downloaded
+    global $logger;
+    
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "server_start_download", array("cli_process_upload|server_start_download"));
+    
+    //tells the server that a recording is ready to be downloaded
     global $ezcast_submit_url;
     global $tmp_dir;
     global $recorder_version;
@@ -149,13 +144,3 @@ function server_start_download($record_type, $record_date, $course_name, $cam_do
     }
     return strpos(server_request_send($ezcast_submit_url, $post_array), 'Curl error') !== false;
 }
-
-// determines if a process is running or not
-function is_process_running($pid) {
-    if (!isset($pid) || $pid == '' || $pid == 0)
-        return false;
-    exec("ps $pid", $output, $result);
-    return count($output) >= 2;
-}
-
-?>

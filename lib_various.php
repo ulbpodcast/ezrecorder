@@ -138,6 +138,10 @@ function xml_file2assoc_array($meta_path) {
 
 // sends an associative array to a server via CURL
 function server_request_send($server_url, $post_array) {
+    global $logger;
+    
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "server_request_send", array("cli_process_upload|server_request_send"));
+    
     global $basedir;
 
     $ch = curl_init($server_url);
@@ -160,6 +164,14 @@ function server_request_send($server_url, $post_array) {
     //fputs(STDERR, "curl result: $res", 2000);
 
     return $res;
+}
+
+// determines if a process is running or not
+function is_process_running($pid) {
+    if (!isset($pid) || $pid == '' || $pid == 0)
+        return false;
+    exec("ps $pid", $output, $result);
+    return count($output) >= 2;
 }
 
 ?>
