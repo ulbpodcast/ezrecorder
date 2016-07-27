@@ -240,7 +240,7 @@ do {
 // Recording stop
     display_logs("Stops the recording");
     $response = curl_read_url("http://$classroom/$recorder/index.php?" .
-            "action=view_record_submit");
+            "action=view_press_stop");
 
 // Publish in private album
     display_logs("Publishes recording in album [moderation : $moderation]");

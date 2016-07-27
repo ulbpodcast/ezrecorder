@@ -34,7 +34,7 @@
 
                 var res = window.confirm(message);
                 if (res)
-                    makeRequest('index.php', '?action=recording_stop&moderation=' + moderation, 'global');
+                    makeRequest('index.php', '?action=publish&moderation=' + moderation, 'global');
             }
 
             function cancel() {

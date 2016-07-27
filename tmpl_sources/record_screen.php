@@ -94,7 +94,7 @@
                     return false;
                 $.ajax({
                     type: 'GET',
-                    url: "index.php?action=view_record_submit",
+                    url: "index.php?action=view_press_stop",
                     cache: false,
                     timeout: 10000, // 10 seconds
                     error: offline_alert,
