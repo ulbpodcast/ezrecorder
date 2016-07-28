@@ -114,6 +114,7 @@ function controller_recording_start() {
     global $slide_enabled;
     global $slide_module;
     global $session_module;
+    global $classroom;
 
     // another user is connected
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
@@ -133,6 +134,7 @@ function controller_recording_start() {
         $logger->log(EventType::TEST, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array('controller'));
         return false;
     }
+    $asset = $_SESSION['asset'];
     
     // saves the start time
     $datetime = date($dir_date_format);
@@ -146,7 +148,7 @@ function controller_recording_start() {
         $fct_capture_start = 'capture_' . $slide_module . '_start';
         // ideally, capture_start should return the pid
         //     $res_slide = $fct_capture_start($slide_pid);
-        $res_slide = $fct_capture_start($_SESSION['asset']);
+        $res_slide = $fct_capture_start($asset);
     }
 
     // determines if the cam module is enabled (doesn't depend on the 
@@ -155,7 +157,7 @@ function controller_recording_start() {
         $fct_capture_start = 'capture_' . $cam_module . '_start';
         // ideally, capture_start should return the pid
         // $res_cam = $fct_capture_start($cam_pid);
-        $res_cam = $fct_capture_start($_SESSION['asset']);
+        $res_cam = $fct_capture_start($asset);
     }
 
     //      while(is_process_running($cam_pid) || is_process_running($slide_pid))
@@ -168,7 +170,12 @@ function controller_recording_start() {
     }
 
     log_append("recording_start", "started recording by user request");
-    $logger->log(EventType::TEST, LogLevel::INFO, "Started recording by user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'));
+    $asset_info = new AssetLogInfo();
+    $asset_info->author = "todo";
+    $asset_info->cam_slide = "todo";
+    $asset_info->course = $_SESSION['recorder_course'];
+    $asset_info->classroom = $classroom;
+    $logger->log(EventType::ASSET_CREATED, LogLevel::NOTICE, "Started recording at user $user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'), $asset, $asset_info);
 
     return true;
 }
@@ -211,7 +218,7 @@ function controller_recording_stop() {
     $album = $recstarttime[1];
     
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::TEST, LogLevel::INFO, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
+    $logger->log(EventType::TEST, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";

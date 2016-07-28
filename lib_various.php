@@ -149,6 +149,7 @@ function server_request_send($server_url, $post_array) {
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,30); 
     curl_setopt($ch, CURLOPT_TIMEOUT, 6000); //timeout in seconds
     $res = curl_exec($ch);
+
     $curlinfo = curl_getinfo($ch);
     curl_close($ch);
     file_put_contents("$basedir/var/curl.log", var_export($curlinfo, true) . PHP_EOL . $res, FILE_APPEND);

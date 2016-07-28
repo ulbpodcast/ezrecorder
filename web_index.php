@@ -116,15 +116,15 @@ switch ($action) {
         controller_view_record_form();
         break;
 
+    // Starts recording
+    case 'recording_start':
+        controller_recording_start();
+        break;
+
     // view submit menu, called when the user press the stop button
     case 'view_press_stop':
     case 'view_record_submit': //old name for compatibility until all recorders are updated
         controller_view_record_submit();
-        break;
-
-    // Starts recording
-    case 'recording_start':
-        controller_recording_start();
         break;
 
     // Stops recording

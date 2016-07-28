@@ -32,8 +32,10 @@ if (trim($path) != "")
     $path.='/';
 
 include "$path" . "lib_ffmpeg.php";
+include __DIR__."/../../../../common.inc"; //for logger
 
-print "cam merge_ffmpeg_movies\n";
+Logger::$print_logs = true;
+
 //handles an offlineqtb recording: multifile recording on podcv and podcs
 if ($argc != 5) {
     echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file>\n";
@@ -43,6 +45,7 @@ if ($argc != 5) {
     echo "        <cutlist_file> the file containing the segments to extract from the recording\n";
     echo "";
     echo "Example: php merge_movies.php /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam. /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list ";
+    $logger->log(EventType::MERGE_MOVIES, LogLevel::ERROR, "ffmpeg merge_movies called with wrong arguments", array("merge_movies"));
     die;
 }
 
@@ -55,24 +58,32 @@ $cutlist_file = $argv[4]; // file containing the video segments to extract from 
 //join all cam parts (if neccessary)
 $moviename = $commonpart;
 
-$output = system("ls -la $movies_path/$moviename* | wc -l");
+$search_command = "ls -la $movies_path/$moviename* | wc -l";
+$output = system($search_command);
 if ($output >= 1) {
     print "Join movies with ffmpeg\n";
     $res = movie_join_parts($movies_path, $commonpart, $outputfilename); //movie span on multiple files
-    if ($res)
-        myerror("Join movies error:$res");
+    if ($res) {
+        $logger->log(EventType::MERGE_MOVIES, LogLevel::ERROR, "Movies joined failed with result: $res", array("merge_movies"));
+        exit(1);
+    }
 } else if ($output == 0) {
-    myerror("No video file found ");
+    $logger->log(EventType::MERGE_MOVIES, LogLevel::ERROR, "No video files found (command: $search_command)", array("merge_movies"));
+    exit(1);
 } else {
-    myerror("Command: 'ls $movies_path/$moviename* | wc -l' failed");
+    $logger->log(EventType::MERGE_MOVIES, LogLevel::ERROR, "Couldn't get video files because run search command failed: $search_command", array("merge_movies"));
+    exit(1);
 }
 
 //We will now extract the parts user wants to keep according to the cutlist
-movie_extract_cutlist($movies_path, $outputfilename, $cutlist_file);
-
-function myerror($msg) {
-    fprintf(STDERR, "%s", $msg);
-    exit(1); //return error code
+$err = movie_extract_cutlist($movies_path, $outputfilename, $cutlist_file);
+if($err) {
+    $logger->log(EventType::MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err ", array("merge_movies"));
+    exit(1);
 }
+
+$logger->log(EventType::MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"));
+
+exit(0);
 
 ?>

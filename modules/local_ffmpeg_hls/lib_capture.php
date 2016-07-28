@@ -100,6 +100,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
         // It must be done before calling $ffmpeg_script_init (for preparing low and high HLS streams)
         file_put_contents($ffmpeg_streaming_info, var_export($streaming_info, true));
     }
+    
     // script_init initializes FFMPEG and launches the recording
     // in background to save time (pid is returned to be handled by web_index.php)
     system("sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source 1 >> $ffmpeg_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
@@ -355,7 +356,7 @@ function capture_ffmpeg_process($meta_assoc, &$pid) {
             $post_array['action'] = 'streaming_close';
             $res = server_request_send($ezcast_submit_url, $post_array);
             if (strpos($res, 'error') !== false) {
-                $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": An error occured while starting streaming on the server", array("module",$module_name));
+                $logger->log(EventType::FFMPEG_STOP, LogLevel::ERROR, __FUNCTION__.": An error occured while starting streaming on the server", array("module",$module_name));
             }
         }
 
@@ -364,7 +365,8 @@ function capture_ffmpeg_process($meta_assoc, &$pid) {
         capture_ffmpeg_recstatus_set('');
     } else {
         error_last_message("capture_stop: can't start recording process because of current status: $status");
-        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't start recording process because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::FFMPEG_STOP, LogLevel::ERROR, __FUNCTION__.": Can't start recording process because of current status: $status", array("module",$module_name));
+        $pid = 0;
         return false;
     }
 
@@ -376,7 +378,7 @@ function capture_ffmpeg_process($meta_assoc, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": Processing successfully started", array("module",$module_name));
+    $logger->log(EventType::FFMPEG_STOP, LogLevel::DEBUG, __FUNCTION__.": Processing successfully started", array("module",$module_name));
     return true;
 }
 
@@ -417,7 +419,7 @@ function capture_ffmpeg_finalize($asset) {
  * @global type $ezrecorder_ip
  * @global type $ffmpeg_download_protocol
  * @global type $ezrecorder_username
- * @return type
+ * @return info array or false if failure
  */
 function capture_ffmpeg_info_get($action, $asset = '') {
     global $logger;
@@ -436,11 +438,15 @@ function capture_ffmpeg_info_get($action, $asset = '') {
             $tmp_dir = capture_ffmpeg_tmpdir_get($asset);
             $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
 
+            $filename = $ffmpeg_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov";
+            if(!file_exists($filename))
+                return false; //invalid file
+            
             // rsync requires ssh protocol is set (key sharing) on the remote server
             $download_info_array = array("ip" => $ezrecorder_ip,
                 "protocol" => $ffmpeg_download_protocol,
                 "username" => $ezrecorder_username,
-                "filename" => $ffmpeg_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov");
+                "filename" => $filename);
             return $download_info_array;
         case 'streaming':
             include_once 'info.php';
@@ -575,10 +581,10 @@ function capture_ffmpeg_recstatus_set($status) {
 }
 
 function capture_ffmpeg_tmpdir_get($asset) {
-    global $ffmpeg_basedir;
+    global $basedir;
     static $tmp_dir;
 
-    $tmp_dir = $ffmpeg_basedir . '/var/' . $asset;
+    $tmp_dir = $basedir . '/var/local_ffmpeg_hls/'. $asset;
     if (!file_exists($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
