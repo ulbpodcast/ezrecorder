@@ -196,8 +196,6 @@ function controller_recording_stop() {
     global $basedir;
     global $recorder_monitoring_pid;
 
-    $logger->log(EventType::TEST, LogLevel::INFO, 'MER IL ET FOO', array('controller'), $_SESSION['asset']);
-
     // stops the timeout monitoring
     if(file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);

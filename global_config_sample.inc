@@ -72,3 +72,6 @@ $debug_mode = false;
 
 // logging
 $log_database_file = "$basedir/var/logs.sqlite";
+
+//load static variables
+require_once(__DIR__ . '/common.inc');

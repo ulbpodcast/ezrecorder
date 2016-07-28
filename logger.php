@@ -69,8 +69,7 @@ class LogLevel
 }
 
 //Structure used as argument to log calls
-class AssetLogInfo
-{
+class AssetLogInfo {
     public function __construct($author = "", $cam_slide = "", $course = "", $classroom = "") {
         $this->author = $author;
         $this->cam_slide = $cam_slide;
@@ -95,7 +94,22 @@ class LogData {
     
     public $asset_info = null; //type AssetLogInfo
 }
-    
+
+//log serverside as an object for db insertion. Update when db structure changes
+class ServersideLogEntry  {
+    public $asset = "";
+    public $origin = "";
+    public $asset_classroom_id = null;
+    public $asset_course = null;
+    public $asset_author = null;
+    public $asset_cam_slide = null;
+    public $event_time;
+    public $type_id = 0;
+    public $context = "";
+    public $loglevel = 7;
+    public $message = "";
+}
+
 class Logger {
     
     /* Reverted EventType array -> key: id, value: EventType

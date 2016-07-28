@@ -115,8 +115,6 @@ if ($err) {
 function server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info) {
     global $logger;
     
-    $logger->log(EventType::TEST, LogLevel::DEBUG, "server_start_download", array("cli_process_upload|server_start_download"));
-    
     //tells the server that a recording is ready to be downloaded
     global $ezcast_submit_url;
     global $tmp_dir;
@@ -142,5 +140,7 @@ function server_start_download($record_type, $record_date, $course_name, $cam_do
     if (isset($recorder_version) && !empty($recorder_version)) {
         $post_array['recorder_version'] = $recorder_version;
     }
-    return strpos(server_request_send($ezcast_submit_url, $post_array), 'Curl error') !== false;
+    
+    $success = strpos(server_request_send($ezcast_submit_url, $post_array), 'Curl error') !== false;
+    return $success;
 }

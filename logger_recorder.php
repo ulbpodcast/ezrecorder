@@ -21,12 +21,13 @@ class RecorderLogger extends Logger {
     //Database file path
     protected $database_file;
     //Increment this every time you change the structure. If version change, a new database file will be created and the old one moved to *.old
-    protected $db_version = "0.3";
+    protected $db_version = "0.4";
     //Structure used to create database. If changing this structure, don't forget to update log(...) function
     const LOG_TABLE_NAME = "logs";
     
     private $db_structure = [
       'event_time'  => 'DATETIME',
+      'asset'   => 'VARCHAR(50)',
       'course'  => 'VARCHAR(50)',
       'author'  => 'VARCHAR(50)',
       'cam_slide'  => 'VARCHAR(50)',
@@ -148,6 +149,50 @@ class RecorderLogger extends Logger {
 
       $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database " . $this->database_file);
     }
+    
+    // @param $recorder_event an entry as given by pdo when fetched from recorder db
+    // return ServersideLogEntry object
+    public function convert_event_to_server_event($recorder_event) {
+        global $classroom;
+        
+        $server_event = new ServersideLogEntry();
+        $server_event->asset = $recorder_event["asset"];
+        $server_event->origin = "recorder";
+        $server_event->asset_classroom_id = $classroom;
+        $server_event->asset_course = $recorder_event["course"];
+        $server_event->asset_author = $recorder_event["author"];
+        $server_event->asset_cam_slide = $recorder_event["cam_slide"];
+        $server_event->event_time = $recorder_event["event_time"];
+        $server_event->type_id = $recorder_event["type_id"];
+        $server_event->context = $recorder_event["context"];
+        $server_event->loglevel = $recorder_event["loglevel"];
+        $server_event->message = $recorder_event["message"];
+        
+        return $server_event;
+    }
+            
+    // returns events array (with column names as keys)
+    public function get_all_events_newer_than($datetime, $limit) {
+        $to_send = array();
+        
+        $statement = $this->db->prepare('SELECT `event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message` FROM '.
+                RecorderLogger::LOG_TABLE_NAME.' WHERE event_time > "'.$datetime.'" ORDER BY event_time LIMIT 0,'.$limit);
+        
+        $success = $statement->execute();
+        if(!$success) {
+            $this->log(EventType::LOGGER, LogLevel::CRITICAL, "get_all_events_newer_than failed");
+            return $to_send;
+        }
+        
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach($results as $key => $value) {
+            $server_log = $this->convert_event_to_server_event($value);
+            array_push($to_send, $server_log);
+            
+        }
+        return $to_send;
+    }
 
     /**
      * Logs with an arbitrary level.
@@ -162,8 +207,8 @@ class RecorderLogger extends Logger {
         
         // db insert
         $statement = $this->db->prepare(
-          'INSERT INTO '. RecorderLogger::LOG_TABLE_NAME.' (`event_time`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message`) VALUES ('.
-          '(SELECT datetime()), :course, :author, :camslide, :context, :type_id, :loglevel, :message)');
+          'INSERT INTO '.RecorderLogger::LOG_TABLE_NAME.' (`event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message`) VALUES ('.
+          '(SELECT datetime()), :asset, :course, :author, :camslide, :context, :type_id, :loglevel, :message)');
     
         if($statement == false) {
             echo __CLASS__ .": Prepared statement failed";
@@ -171,6 +216,7 @@ class RecorderLogger extends Logger {
             return;
         }   
         
+        $statement->bindParam(':asset', $asset);
         $statement->bindParam(':course', $tempLogData->asset_info->course);
         $statement->bindParam(':author', $tempLogData->asset_info->author);
         $statement->bindParam(':camslide', $tempLogData->asset_info->cam_slide);
