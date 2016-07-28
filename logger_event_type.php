@@ -7,6 +7,7 @@ class EventType {
     // Commons
     const TEST = "test";
     const LOGGER = "logger";
+    const ASSET_CREATED = "asset_created";
     
     // Recorder
     const RECORDER_DB               = "recorder_db";
@@ -15,6 +16,10 @@ class EventType {
     const UPLOAD_TO_EZCAST          = "upload_to_ezcast";
     const PUSH_STOP                 = "push_stop";
     const REQUEST_TO_MANAGER        = "request_to_manager";
+    const FFMPEG_INIT               = "ffmpeg_init";
+    const FFMPEG_STOP               = "ffmpeg_stop";
+    const MERGE_MOVIES              = "merge_movies";
+    const LOG_SYNC                  = "log_sync";
     
     // EZAdmin
     
@@ -30,13 +35,19 @@ class EventType {
        // Commons: 0->999
        EventType::TEST                                       => 0,
        EventType::LOGGER                                     => 1,
+       EventType::ASSET_CREATED                              => 2,
         
        // Recorder: 1000->1999
        EventType::RECORDER_DB                                => 1000,
        EventType::UPLOAD_WRONG_METADATA                      => 1001,
        EventType::CAPTURE_POST_PROCESSING                    => 1002,
        EventType::UPLOAD_TO_EZCAST                           => 1003,
-       EventType::REQUEST_TO_MANAGER                         => 1004,
+       EventType::PUSH_STOP                                  => 1004,
+       EventType::REQUEST_TO_MANAGER                         => 1005,
+       EventType::FFMPEG_INIT                                => 1006,
+       EventType::FFMPEG_STOP                                => 1007,
+       EventType::MERGE_MOVIES                               => 1008,
+       EventType::LOG_SYNC                                   => 1009,
        
        // EZAdmin: 2000->2999
        

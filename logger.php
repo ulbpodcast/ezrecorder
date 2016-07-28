@@ -95,8 +95,9 @@ class LogData {
     public $asset_info = null; //type AssetLogInfo
 }
 
-//log serverside as an object for db insertion. Update when db structure changes
+//Log serverside structure for db insertion using the ezmanager services
 class ServersideLogEntry  {
+    public $id = 0;
     public $asset = "";
     public $origin = "";
     public $asset_classroom_id = null;
@@ -173,11 +174,12 @@ class Logger {
      * @param mixed $level in the form of LogLevel::*
      * @param string $message
      * @param string $asset asset identifier
-     * @param AssetLogInfo $asset asset identifier
      * @param array $context Context can have several levels, such as array('module', 'capture_ffmpeg'). Cannot contain pipes (will be replaced with slashes if any).
+     * @param string $asset asset name
+     * @param AssetLogInfo $asset_info Additional information about asset if any, in the form of a AssetLogInfo structure
      * @return LogData temporary data, used by children functions
      */
-    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $assetInfo = null)
+    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $asset_info = null)
     {
         $tempLogData = new LogData();
         $tempLogData->message = $message;
@@ -195,8 +197,8 @@ class Logger {
        $tempLogData->type_id = isset(EventType::$event_type_id[$type]) ? EventType::$event_type_id[$type] : 0;
        
         // asset infos. May be null, we only give it at record start
-        if($assetInfo)
-            $tempLogData->assetInfo = $assetInfo;
+        if($asset_info)
+            $tempLogData->asset_info = $asset_info;
         else
             $tempLogData->asset_info = new AssetLogInfo(); //if no asset info, init with default values
         

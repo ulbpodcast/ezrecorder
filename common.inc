@@ -13,4 +13,4 @@ if($debug_mode) {
     
 $logger = new RecorderLogger($log_database_file);
 //Uncomment this to print all log message to screen (may be useful to debug services or such)
-Logger::$print_logs = true;
+//Logger::$print_logs = true;

@@ -21,20 +21,21 @@ class RecorderLogger extends Logger {
     //Database file path
     protected $database_file;
     //Increment this every time you change the structure. If version change, a new database file will be created and the old one moved to *.old
-    protected $db_version = "0.4";
+    protected $db_version = "0.6";
     //Structure used to create database. If changing this structure, don't forget to update log(...) function
     const LOG_TABLE_NAME = "logs";
     
     private $db_structure = [
+      'id'          => 'INTEGER PRIMARY KEY AUTOINCREMENT',
       'event_time'  => 'DATETIME',
-      'asset'   => 'VARCHAR(50)',
-      'course'  => 'VARCHAR(50)',
-      'author'  => 'VARCHAR(50)',
-      'cam_slide'  => 'VARCHAR(50)',
-      'context'   => 'VARCHAR(30)',
-      'type_id'      => 'INT(10)',
-      'loglevel'  => 'TINYINT(1)',
-      'message'   => 'TEXT',
+      'asset'       => 'VARCHAR(50)',
+      'course'      => 'VARCHAR(50)',
+      'author'      => 'VARCHAR(50)',
+      'cam_slide'   => 'VARCHAR(50)',
+      'context'     => 'VARCHAR(30)',
+      'type_id'     => 'INTEGER',
+      'loglevel'    => 'TINYINT(1)',
+      'message'     => 'TEXT',
     ];
 
     /**
@@ -127,7 +128,7 @@ class RecorderLogger extends Logger {
     *  Return true if database was created
     */
     private function create_database() {
-      $this->db->exec('DROP TABLE IF EXISTS '. RecorderLogger::LOG_TABLE_NAME);
+      $this->db->query('DROP TABLE IF EXISTS '. RecorderLogger::LOG_TABLE_NAME);
       $createTableStr = "CREATE TABLE ".RecorderLogger::LOG_TABLE_NAME."(";
       $first = true;
       foreach($this->db_structure as $key => $type)
@@ -141,11 +142,14 @@ class RecorderLogger extends Logger {
         $createTableStr .= '`'.$key.'` ' . $type;
       }
       $createTableStr .= ')';
-      $this->db->exec($createTableStr);
+      $result = $this->db->query($createTableStr);
+      if($result == false) {
+          trigger_error("CRITICAL: Failed to create database for logger. PDO error: " . json_encode($this->db->errorInfo()) , E_USER_ERROR);
+      }
 
-      $this->db->exec('DROP TABLE IF EXISTS db_version');
-      $this->db->exec('CREATE TABLE db_version(`version` VARCHAR(30))');
-      $this->db->exec('INSERT INTO db_version VALUES ("'.$this->db_version.'")');
+      $this->db->query('DROP TABLE IF EXISTS db_version');
+      $this->db->query('CREATE TABLE db_version(`version` VARCHAR(30))');
+      $this->db->query('INSERT INTO db_version VALUES ("'.$this->db_version.'")');
 
       $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database " . $this->database_file);
     }
@@ -156,6 +160,7 @@ class RecorderLogger extends Logger {
         global $classroom;
         
         $server_event = new ServersideLogEntry();
+        $server_event->id = $recorder_event["id"];
         $server_event->asset = $recorder_event["asset"];
         $server_event->origin = "recorder";
         $server_event->asset_classroom_id = $classroom;
@@ -172,11 +177,11 @@ class RecorderLogger extends Logger {
     }
             
     // returns events array (with column names as keys)
-    public function get_all_events_newer_than($datetime, $limit) {
+    public function get_all_events_newer_than($id, $limit) {
         $to_send = array();
         
-        $statement = $this->db->prepare('SELECT `event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message` FROM '.
-                RecorderLogger::LOG_TABLE_NAME.' WHERE event_time > "'.$datetime.'" ORDER BY event_time LIMIT 0,'.$limit);
+        $statement = $this->db->prepare('SELECT `id`, `event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message` FROM '.
+                RecorderLogger::LOG_TABLE_NAME.' WHERE id > "'.$id.'" ORDER BY id LIMIT 0,'.$limit);
         
         $success = $statement->execute();
         if(!$success) {
@@ -197,13 +202,17 @@ class RecorderLogger extends Logger {
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed $level
+     * @param mixed $type type in the form of EventType::*
+     * @param mixed $level in the form of LogLevel::*
      * @param string $message
+     * @param string $asset asset identifier
      * @param array $context Context can have several levels, such as array('module', 'capture_ffmpeg'). Cannot contain pipes (will be replaced with slashes if any).
-     * @return null
+     * @param string $asset asset name
+     * @param AssetLogInfo $asset_info Additional information about asset if any, in the form of a AssetLogInfo structure
+     * @return LogData temporary data, used by children functions
      */
-    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $assetInfo = null) {
-        $tempLogData = parent::log($type, $level, $message, $context, $asset, $assetInfo);
+    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $asset_info = null) {
+        $tempLogData = parent::log($type, $level, $message, $context, $asset, $asset_info);
         
         // db insert
         $statement = $this->db->prepare(
