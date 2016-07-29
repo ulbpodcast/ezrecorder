@@ -164,7 +164,7 @@ class RecorderLogger extends Logger {
         $server_event = new ServersideLogEntry();
         $server_event->id = $recorder_event["id"];
         $server_event->asset = $recorder_event["asset"];
-        $server_event->origin = "recorder";
+        $server_event->origin = "ezrecorder";
         $server_event->asset_classroom_id = $classroom;
         $server_event->asset_course = $recorder_event["course"];
         $server_event->asset_author = $recorder_event["author"];
@@ -181,10 +181,17 @@ class RecorderLogger extends Logger {
     // returns events array (with column names as keys)
     // this ignores debug entries, unless debug_mode (global config) is enabled
     public function get_all_events_newer_than($id, $limit) {
+        global $send_debug_logs_to_server;
+
         $to_send = array();
         
+
+        $where = "WHERE id > $id";
+        if($send_debug_logs_to_server == false)
+            $where .= " AND loglevel < " . LogLevel::$log_levels[LogLevel::DEBUG];
+        
         $statement = $this->db->prepare('SELECT `id`, `event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message` FROM '.
-                RecorderLogger::LOG_TABLE_NAME.' WHERE id > "'.$id.'" ORDER BY id LIMIT 0,'.$limit);
+                RecorderLogger::LOG_TABLE_NAME." $where ORDER BY id LIMIT 0,$limit");
         
         $success = $statement->execute();
         if(!$success) {
@@ -216,11 +223,6 @@ class RecorderLogger extends Logger {
      */
     public function log($type, $level, $message, array $context = array(), $asset = "dummy", $asset_info = null) {
         $tempLogData = parent::log($type, $level, $message, $context, $asset, $asset_info);
-        
-        //ignore DEBUG logs if $send_debug_logs_to_server is not set
-        global $send_debug_logs_to_server;
-        if($send_debug_logs_to_server == false && $level == LogLevel::DEBUG)
-            return;
         
         LoggerSyncDaemon::ensure_is_running();
         
