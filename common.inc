@@ -11,6 +11,10 @@ if($debug_mode) {
   error_reporting(E_ALL); 
 }
     
-$logger = new RecorderLogger($log_database_file);
 //Uncomment this to print all log message to screen (may be useful to debug services or such)
 //Logger::$print_logs = true;
+
+$last_log_sent_get_url = "$ezcast_logs_url?action=last_log_sent&source=$classroom";
+$log_push_url = "$ezcast_logs_url?action=push_logs"; //followed by json array
+
+$logger = new RecorderLogger($log_database_file, $last_log_sent_get_url);

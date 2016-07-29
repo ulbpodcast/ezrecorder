@@ -681,9 +681,9 @@ function user_login($login, $passwd) {
             if ($status == 'recording' || $status == 'paused' || $status == 'open')
                 view_record_screen(); //go directly to record screen
             else if ($status == 'stopped')
-                view_record_submit();
+                controller_view_record_submit();
             else
-                view_record_form(); //ask metadata again
+                controller_view_record_form(); //ask metadata again
             die;
         }
         // Case where someone else is trying to connect while someone is already using the recorder

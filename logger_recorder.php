@@ -40,16 +40,20 @@ class RecorderLogger extends Logger {
       'message'     => 'TEXT',
     ];
 
+    protected $last_log_sent_get_url;
     /**
      * Class constructor
      *
      * @param string $database_file      File path to the sqlite database
+     * @param string $last_log_sent_get_url Web address to the last log sent service on ezcast
      */
-    public function __construct($database_file = "db.sqlite") {
-        parent::__construct();
-        
+    public function __construct($database_file, $last_log_sent_get_url) {
         global $debug_mode;
         
+        parent::__construct();
+        ini_set("allow_url_fopen", 1); //needed to use file_get_contents on web, used by get_last_log_sent
+        
+        $this->last_log_sent_get_url = $last_log_sent_get_url;
         $this->database_file = $database_file;
 
         $this->db = new PDO('sqlite:'.$this->database_file);
@@ -130,8 +134,8 @@ class RecorderLogger extends Logger {
     *  Return true if database was created
     */
     private function create_database() {
-      $this->db->query('DROP TABLE IF EXISTS '. RecorderLogger::LOG_TABLE_NAME);
-      $createTableStr = "CREATE TABLE ".RecorderLogger::LOG_TABLE_NAME."(";
+      $this->db->query('DROP TABLE IF EXISTS '. self::LOG_TABLE_NAME);
+      $createTableStr = "CREATE TABLE ".self::LOG_TABLE_NAME."(";
       $first = true;
       foreach($this->db_structure as $key => $type)
       {
@@ -152,8 +156,20 @@ class RecorderLogger extends Logger {
       $this->db->query('DROP TABLE IF EXISTS db_version');
       $this->db->query('CREATE TABLE db_version(`version` VARCHAR(30))');
       $this->db->query('INSERT INTO db_version VALUES ("'.$this->db_version.'")');
+      
+      //set AUTO INCREMENT value at first given by the server
+      $starting_id = 0;
+      $ok = $this->get_last_log_sent($starting_id);
+      if(!$ok) {
+          $this->log(EventType::RECORDER_DB, LogLevel::ERROR, "Couldn't get last log sent to ezcast for db init. Using 0 as starting id");
+      }
+      
+      if($starting_id != 0 && $starting_id != -1) {
+          
+          $this->db->query("REPLACE INTO SQLITE_SEQUENCE (name, seq) VALUES ('".self::LOG_TABLE_NAME."',$starting_id)");
+      }
 
-      $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database " . $this->database_file);
+      $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database with starting id $starting_id" . $this->database_file);
     }
     
     // @param $recorder_event an entry as given by pdo when fetched from recorder db
@@ -178,6 +194,24 @@ class RecorderLogger extends Logger {
         return $server_event;
     }
             
+    //return success of query
+    public function get_last_log_sent(&$last_id_sent) {        
+        $last_id_sent = file_get_contents($this->last_log_sent_get_url);
+        if($last_id_sent == false) {
+            $this->log(EventType::LOGGER, LogLevel::ERROR, "Failed to get last log sent from $this->last_log_sent_get_url", array("RecorderLogger"));
+            return false;
+        } 
+        
+        $last_id_sent = trim($last_id_sent); //server service does send line returns for some reason
+
+        if(!is_numeric($last_id_sent)) {
+            $this->log(EventType::LOGGER, LogLevel::ERROR, "Failed to get last log sent from $this->last_log_sent_get_url, invalid response: $last_id_sent", array("RecorderLogger"));
+            return false;
+        }
+        
+        return true;
+    }
+    
     // returns events array (with column names as keys)
     // this ignores debug entries, unless debug_mode (global config) is enabled
     public function get_all_events_newer_than($id, $limit) {
@@ -195,7 +229,7 @@ class RecorderLogger extends Logger {
         
         $success = $statement->execute();
         if(!$success) {
-            $this->log(EventType::LOGGER, LogLevel::CRITICAL, "get_all_events_newer_than failed");
+            $this->log(EventType::LOGGER, LogLevel::CRITICAL, "get_all_events_newer_than failed", array("RecorderLogger"));
             return $to_send;
         }
         
@@ -229,7 +263,7 @@ class RecorderLogger extends Logger {
         // db insert
         $statement = $this->db->prepare(
           'INSERT INTO '.RecorderLogger::LOG_TABLE_NAME.' (`event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message`) VALUES ('.
-          '(SELECT datetime()), :asset, :course, :author, :camslide, :context, :type_id, :loglevel, :message)');
+          "(SELECT datetime('now','localtime')), :asset, :course, :author, :camslide, :context, :type_id, :loglevel, :message)");
     
         if($statement == false) {
             echo __CLASS__ .": Prepared statement failed";
