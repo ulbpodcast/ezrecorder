@@ -178,4 +178,13 @@ function is_process_running($pid) {
     return count($output) >= 2;
 }
 
-?>
+function get_pid_from_file($filePath) {
+    $handle = fopen($filePath, "r");
+    if($handle == false)
+        return 0;
+    
+    $pid = fgets($handle);
+    fclose($handle);
+    return $pid;
+}
+

@@ -1,6 +1,8 @@
 <?php
 
 require_once("logger.php");
+require_once("logger_sync_daemon.php");
+require_once("global_config.inc");
 
 /**
  * This is the ezcast recorder logger,
@@ -177,6 +179,7 @@ class RecorderLogger extends Logger {
     }
             
     // returns events array (with column names as keys)
+    // this ignores debug entries, unless debug_mode (global config) is enabled
     public function get_all_events_newer_than($id, $limit) {
         $to_send = array();
         
@@ -214,6 +217,13 @@ class RecorderLogger extends Logger {
     public function log($type, $level, $message, array $context = array(), $asset = "dummy", $asset_info = null) {
         $tempLogData = parent::log($type, $level, $message, $context, $asset, $asset_info);
         
+        //ignore DEBUG logs if $send_debug_logs_to_server is not set
+        global $send_debug_logs_to_server;
+        if($send_debug_logs_to_server == false && $level == LogLevel::DEBUG)
+            return;
+        
+        LoggerSyncDaemon::ensure_is_running();
+        
         // db insert
         $statement = $this->db->prepare(
           'INSERT INTO '.RecorderLogger::LOG_TABLE_NAME.' (`event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message`) VALUES ('.
@@ -223,7 +233,7 @@ class RecorderLogger extends Logger {
             echo __CLASS__ .": Prepared statement failed";
             print_r($this->db->errorInfo());
             return;
-        }   
+        }
         
         $statement->bindParam(':asset', $asset);
         $statement->bindParam(':course', $tempLogData->asset_info->course);

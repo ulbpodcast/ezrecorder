@@ -20,6 +20,7 @@ class EventType {
     const FFMPEG_STOP               = "ffmpeg_stop";
     const MERGE_MOVIES              = "merge_movies";
     const LOG_SYNC                  = "log_sync";
+    const RECORDER_PUBLISH          = "recorder_publish";
     
     // EZAdmin
     

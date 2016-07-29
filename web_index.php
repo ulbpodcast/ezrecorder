@@ -130,7 +130,7 @@ switch ($action) {
     // Stops recording
     case 'publish': //new name
     case 'recording_stop': //old name for compatibility until all recorders are updated
-        controller_recording_stop();
+        controller_publish();
         break;
 
     // Discards a record

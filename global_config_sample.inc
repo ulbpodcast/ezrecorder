@@ -69,7 +69,8 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 
 // debugging
 $debug_mode = false;
-
+$send_debug_logs_to_server = false;
+        
 // logging
 $log_database_file = "$basedir/var/logs.sqlite";
 

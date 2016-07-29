@@ -194,7 +194,7 @@ function close_session() {
 /**
  * Stops the recording and processes it
  */
-function controller_recording_stop() {
+function controller_publish() {
     global $logger;
     global $input;
     global $php_cli_cmd;
@@ -218,7 +218,7 @@ function controller_recording_stop() {
     $album = $recstarttime[1];
     
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::TEST, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
+    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
@@ -722,7 +722,7 @@ function user_login($login, $passwd) {
  * Displays the screen with "pause/resume", video feedback, etc.
  */
 function view_record_screen() {
-
+    global $logger;
     global $url;
     global $session_module;
     global $cam_enabled;
@@ -781,18 +781,11 @@ function view_record_screen() {
             sleep(0.5);
 
         // something wrong happened while init the recorders
-        //    if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
-        // if QTB launch failed, reset status and display an error box
+        // if capture module launch failed, reset status and display an error box
         $status = status_get();
         if ($status == 'error' || $status == 'launch_failure') {
             status_set('open');
             require_once template_getpath('div_error_launch_failure.php');
-            //    die;
-            /*        } else {
-              error_print_message(error_last_message());
-              die;
-              }
-             */
         }
     }
 
