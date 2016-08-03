@@ -14,15 +14,15 @@ require_once $slide_lib;
 require_once $session_lib;
 require_once 'lib_error.php';
 require_once 'lib_various.php';
+require_once 'lib_model.php';
 
 Logger::$print_logs = true;
 
 //get session metadata to find last course
 $fct = "session_" . $session_module . "_metadata_get";
 $meta_assoc = $fct();
-
 if($meta_assoc == false) {
-    $logger->log(EventType::UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array("cli_process_upload"));
+    $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array("cli_process_upload"));
     exit(1);
 }
 
@@ -86,7 +86,7 @@ if ($cam_enabled) {
     $fct = 'capture_' . $cam_module . '_info_get';
     $cam_download_info = $fct('download', $asset);
     if($cam_download_info == false) {
-        $logger->log(EventType::UPLOAD_TO_EZCAST, LogLevel::ERROR, "Couldn't get info from cam module. Camera will be ignored", array("cli_process_upload"), $asset);
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Couldn't get info from cam module. Camera will be ignored", array("cli_process_upload"), $asset);
         $cam_enabled = false;
     }
 }

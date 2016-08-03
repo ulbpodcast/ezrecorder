@@ -22,7 +22,7 @@ class LoggerSyncDaemon {
     }
     
     public static function is_running() {
-        return is_process_running(get_pid_from_file(self::PID_FILE));
+        return is_process_running(get_pid_from_file(__DIR__.'/'.self::PID_FILE));
     }
     
     public function sync_logs() {
@@ -32,23 +32,23 @@ class LoggerSyncDaemon {
         $last_id_sent = 0;
         $ok = $logger->get_last_log_sent($last_id_sent);
         if(!$ok) {
-             $logger->log(EventType::LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array("LoggerSyncDaemon"));
+             $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array("LoggerSyncDaemon"));
             return 1;
         }
         
-        $logger->log(EventType::LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url", array("LoggerSyncDaemon"));
+        $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url", array("LoggerSyncDaemon"));
 
         $events_to_send = $logger->get_all_events_newer_than($last_id_sent, self::SYNC_BATCH_SIZE);
 
         if(count($events_to_send) == 0) {
-            $logger->log(EventType::LOG_SYNC, LogLevel::DEBUG, "All okay, nothing to send", array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "All okay, nothing to send", array("LoggerSyncDaemon"));
             return 0;
         }
 
         $events_count = sizeof($events_to_send);
         $handle = curl_init($log_push_url);
         if(!$handle) {
-            $logger->log(EventType::LOG_SYNC, LogLevel::ERROR, "Failed to init curl for $log_push_url", array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to init curl for $log_push_url", array("LoggerSyncDaemon"));
             return 2;
         }
 
@@ -65,17 +65,17 @@ class LoggerSyncDaemon {
         $result = curl_exec($handle);
 
         if(!$result !== false) {
-            $logger->log(EventType::LOG_SYNC, LogLevel::ERROR, "Failed to exec curl for $log_push_url. Result $result", array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to exec curl for $log_push_url. Result $result", array("LoggerSyncDaemon"));
             return 3;
         }
 
-        //service returns SUCCESS or ERRORX
+        //service returns SUCCESS if ok
         if(strpos($result, "SUCCESS") === false) {
-            $logger->log(EventType::LOG_SYNC, LogLevel::ERROR, "Post service returned an error: $result. What we sent: ".json_encode($post_array), array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Post service returned an error: $result. What we sent: ".json_encode($post_array), array("LoggerSyncDaemon"));
             return 4;
         }
 
-        $logger->log(EventType::LOG_SYNC, LogLevel::DEBUG, "Log sync was succesful, $events_count entries were synced. Server response: $result", array("LoggerSyncDaemon"));
+        $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Log sync was succesful, $events_count entries were synced. Server response: $result", array("LoggerSyncDaemon"));
     }
     
     public function run() {
@@ -88,7 +88,7 @@ class LoggerSyncDaemon {
             
             $error = $this->sync_logs();
             if($error) {
-                $logger->log(EventType::LOG_SYNC, LogLevel::ERROR, "Command '".self::CLI_SYNC."' failed", array("LoggerSyncDaemon"));
+                $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Command '".self::CLI_SYNC."' failed", array("LoggerSyncDaemon"));
             }
             
             $end_time = time();

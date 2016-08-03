@@ -260,7 +260,6 @@ class RecorderLogger extends Logger {
         
         LoggerSyncDaemon::ensure_is_running();
         
-        // db insert
         $statement = $this->db->prepare(
           'INSERT INTO '.RecorderLogger::LOG_TABLE_NAME.' (`event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message`) VALUES ('.
           "(SELECT datetime('now','localtime')), :asset, :course, :author, :camslide, :context, :type_id, :loglevel, :message)");
@@ -272,13 +271,13 @@ class RecorderLogger extends Logger {
         }
         
         $statement->bindParam(':asset', $asset);
-        $statement->bindParam(':course', $tempLogData->asset_info->course);
-        $statement->bindParam(':author', $tempLogData->asset_info->author);
-        $statement->bindParam(':camslide', $tempLogData->asset_info->cam_slide);
+        $statement->bindParam(':course', $asset_info->course);
+        $statement->bindParam(':author', $asset_info->author);
+        $statement->bindParam(':camslide', $asset_info->cam_slide);
         $statement->bindParam(':context', $tempLogData->context);
         $statement->bindParam(':loglevel', $tempLogData->log_level_integer);
         $statement->bindParam(':type_id', $tempLogData->type_id);
-        $statement->bindParam(':message', $tempLogData->message);
+        $statement->bindParam(':message', $message);
 
         $statement->execute();
         
