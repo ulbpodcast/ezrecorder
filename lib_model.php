@@ -14,7 +14,9 @@ function reconnect_active_session() {
     global $status;
     global $already_recording;
     global $redraw;
-
+    global $logger;
+    
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, 'User '.$_SESSION['user_login'].' reconnected active session', array('auth'));
     log_append("Reconnect active session");
     $status = status_get();
     //lets check what the 'real' state we're in
@@ -593,6 +595,9 @@ function controller_view_record_form() {
     global $notice; // Possible errors that occurred at previous steps.
     global $streaming_available;
     global $recorder_monitoring_pid;
+    global $logger;
+
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "controller_view_record_form called. Backtrace:\n" . print_r(debug_backtrace(), true), array('controller_view_record_form'));
 
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
@@ -690,7 +695,7 @@ function user_login($login, $passwd) {
         $error = template_get_message('Empty_username_password', get_lang());
         //show login form again
         require_once template_getpath('login.php');
-        $logger->log(EventType::TEST, LogLevel::INFO, 'Login failed, no login/password provided', array('auth'));
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, 'Login failed, no login/password provided', array('auth'));
         return false;
     }
 
@@ -701,7 +706,7 @@ function user_login($login, $passwd) {
         $fct_auth_last_error = "auth_" . $auth_module . "_last_error";
         $error = $fct_auth_last_error();
         require_once template_getpath('login.php');
-        $logger->log(EventType::TEST, LogLevel::INFO, "Login failed, wrong credentials for login: $login", array('auth'));
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "Login failed, wrong credentials for login: $login", array('auth'));
         return false;
     }
 
@@ -765,6 +770,7 @@ function user_login($login, $passwd) {
         die;
     }
 
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "User $login logged in", array('auth'));
     log_append('login');
 
     // 4) And finally, we can display the record form
@@ -981,13 +987,9 @@ function user_logout() {
 
     close_session();
 
-    //destroy session
-    session_destroy();
     $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
     $fct_metadata_delete();
     // 3) Displaying the logout message
-    //include_once template_getpath('logout.php');
-    include_once "tmpl/fr/logout.php";
 
     include_once template_getpath('logout.php');
 }
@@ -1001,7 +1003,6 @@ function user_logout() {
  * @return string(fr|en) 
  */
 function get_lang() {
-    //if(isset($_SESSION['lang']) && in_array($_SESSION['lang'], $accepted_languages)) {
     if (isset($_SESSION['lang']) && !empty($_SESSION['lang'])) {
         return $_SESSION['lang'];
     } else
@@ -1028,8 +1029,8 @@ function status_get() {
     global $cam_module;
     global $slide_module;
 
-    $cam_status;
-    $slide_status;
+    $cam_status = null;
+    $slide_status = null;
 
     if ($cam_enabled) {
         $fct_status_get = 'capture_' . $cam_module . '_status_get';

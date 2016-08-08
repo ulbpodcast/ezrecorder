@@ -142,8 +142,16 @@ function auth_file_user_is_admin($login) {
  */
 function auth_file_courselist_get() {
     global $courselist_file;
+    global $logger;
+    
     include $courselist_file;
-    return $course;
+    
+    if(isset($course))
+        return $course;
+    else {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_courselist_get'));
+        return false;
+    }
 }
 
 /**
@@ -155,11 +163,19 @@ function auth_file_courselist_get() {
  */
 function auth_file_user_courselist_get($user) {
     global $courselist_file;
+    global $logger;
+    
     include $courselist_file;
-    if(isset($course))
+    
+    if(!isset($course)) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_user_courselist_get'));
+        return array();
+    }
+            
+    if(isset($course[$user]))
         return $course[$user];
-    else
-        return array();    
+    
+    return array();    
 }
 
 /**
@@ -171,9 +187,18 @@ function auth_file_user_courselist_get($user) {
  * @return type
  */
 function auth_file_user_has_course($user, $course_name) {
+    global $logger;
     global $courselist_file;
+    
     include $courselist_file;
-    return (array_key_exists($course_name, $course[$user]));
+    
+    if(!isset($course)) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_user_courselist_get'));
+        return array();
+    }
+    
+    if(isset($course[$user]))
+        return (array_key_exists($course_name, $course[$user]));
+    
+    return false;
 }
-
-?>

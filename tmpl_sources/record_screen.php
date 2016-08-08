@@ -89,27 +89,25 @@
             }
 
             function recording_stop() {
-                var res = window.confirm('®Stop_recording®');
-                if (!res)
-                    return false;
-                $.ajax({
-                    type: 'GET',
-                    url: "index.php?action=view_press_stop",
-                    cache: false,
-                    timeout: 10000, // 10 seconds
-                    error: offline_alert,
-                    success: function (html) {
-                        if (html) {
-                            // Everything went fine
-                            $('html').html(html);
-                        }
-                        else {
-                            offline_alert()
+                if(window.confirm('®Stop_recording®')) {
+                    $.ajax({
+                        type: 'GET',
+                        url: "index.php?action=view_press_stop",
+                        cache: false,
+                        timeout: 10000, // 10 seconds
+                        error: offline_alert,
+                        success: function (html) {
+                            if (html) {
+                                // Everything went fine
+                                $('html').html(html);
+                            }
+                            else {
+                                offline_alert()
+                            }
                         }
                     }
+                    );
                 }
-                );
-                //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
             }
 
             function move_camera(posname) {
