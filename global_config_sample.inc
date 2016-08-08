@@ -20,8 +20,10 @@ $web_basedir = "/Library/WebServer/Documents/ezrecorder/"; // Web server URI
 $ezrecorder_web_user = "_www"; // Apache's username
 $modules_basedir = "$basedir/modules/";
 
-// cli script for recording processing and uploading to server
-$process_upload = "$basedir/cli_process_upload.php";
+// cli script for  uploading to server
+$cli_upload = "$basedir/cli_upload_to_server.php";
+// cli script for recording processing. Auto start $cli_upload afterwards
+$cli_post_process = "$basedir/cli_post_process.php";
 // cli script for monitoring the timeout on a recording
 $cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php";
 
@@ -43,21 +45,21 @@ $title_max_length = 70; // Max. number of characters
 
 // cam management (PTZ)
 $cam_management_enabled = false;
-$cam_management_module = "axis_ptz";
-$cam_management_lib = "$basedir/modules/axis_cam_management/lib_cam.php";
+$cam_management_module = "onvif_ptz";
+$cam_management_lib = "$basedir/modules/onvif_cam_management/lib_cam.php";
 $cam_management_views_dir = "ptzposdir/";
-$cam_screen_scene = 'ecran';
-$cam_default_scene = 'chaire';
+$cam_screen_scene = 'screen';
+$cam_default_scene = 'default';
 
 // cam recording
 $cam_enabled = true;
-$cam_module = "localqtb";
-$cam_lib = "$basedir/modules/local_qtb/lib_capture.php";
+$cam_module = "ffmpeg";
+$cam_lib = "$basedir/modules/local_ffmpeg_hls/lib_capture.php";
 
 // slide recording
-$slide_enabled = true;
-$slide_module = "remoteqtb";
-$slide_lib = "$basedir/modules/remote_qtb/lib_capture.php";
+$slide_enabled = false;
+$slide_module = "remoteffmpeg";
+$slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
 
 // session data
 $session_module = "xml";

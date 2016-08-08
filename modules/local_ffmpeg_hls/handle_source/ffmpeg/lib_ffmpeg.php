@@ -1,31 +1,6 @@
 <?php
 
 /*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-/*
  * interfaces ffmpeg commandline tool
  * All path should be absolute
  */
@@ -34,15 +9,17 @@ require_once dirname(__FILE__) . '/../../etc/config.inc';
 
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)
- * @global string $ffmpegpath 
+ * @global string $ffmpeg_cli_cmd 
  * @param type $movies_path path to the video files
  * @param type $commonpart name contained in each video file (= 'qtbmovie')
  * @param type $output name for the output video
  * @return boolean
  */
 function movie_join_parts($movies_path, $commonpart, $output) {
-    global $ffmpegpath;
-    $tmpdir = 'tmpdir';
+    global $ffmpeg_cli_cmd;
+    global $logger;
+
+    $tmpdir = 'joinparts_tmpdir';
 
     chdir($movies_path);
     $movie_count = trim(system("ls -la $movies_path | grep $commonpart | wc -l"));
@@ -52,47 +29,72 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         return 'No file(s) found';
 
     mkdir("./$tmpdir");
+    $concat_file = "$tmpdir/concat.txt";
 
+    $cmd = "";
     for ($i = 0; $i < $movie_count; $i++) {
         // high resolution exists
         if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
-            $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
         } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
-            $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
         } else {
             return "no .m3u8 file found at i = $i";
         }
-        exec($cmd);
+        $return_val = 0;
+        $cmd_output = "";
+        exec($cmd, $cmd_output, $return_val);
+        if($return_val != 0) {
+            return "Join command failed, last command: $cmd. " .PHP_EOL."Result: $cmd_output";
+        }
     }
 
     if (count(glob("$tmpdir/*")) === 1) {
+        //only one part, just rename it
         rename("$tmpdir/part0.mov", "$movies_path/$output");
         exec("rm -rf ./$tmpdir", $cmdoutput, $errno);
         $tmpdir = '';
     } else {
+        //several parts, need to concat
         // creates a temporary text file containing all video files to join
-        $cmd = "for f in $movies_path/$tmpdir/part*.mov; do echo \"file '\$f'\" >> $movies_path/tmp.txt; done";
+        $cmd = "for f in $movies_path/$tmpdir/part*.mov; do echo \"file '\$f'\" >> $concat_file; done";
         exec($cmd, $cmdoutput, $returncode);
         // uses the temporary text file to concatenate the video files
         // -f concat : option for concatenation
         // -i file : input is the list of files
         // -c copy : copy the existing codecs (no reencoding)
-        $cmd = "$ffmpegpath -f concat -i $movies_path/tmp.txt $movies_path/$output";
+        $output_file = "$movies_path/$output";
+        $cmd = "$ffmpeg_cli_cmd -f -y concat -i $concat_file $output_file";
         print $cmd . PHP_EOL;
         exec($cmd, $cmdoutput, $returncode);
-        // deletes the temporary text file
-        unlink("$movies_path/tmp.txt");
-        exec("rm -rf ./$tmpdir", $cmdoutput, $errno);
         //check returncode
-        if ($returncode) {
+        if ($returncode != 0) {
             return join("\n", $cmdoutput);
         }
+        
+        // deletes the temporary text file
+        unlink($concat_file);
+        exec("rm -rf ./$tmpdir", $cmdoutput, $errno);
     }
     return 0;
 }
 
-function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '') {
-    global $ffmpegpath;
+function movie_cutlist_afterfixes(&$ffmpeg_params) {
+    global $logger;
+    
+    //check empty
+    if(empty($ffmpeg_params)) {
+        //then use whole file, no parts
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not get parts from custlist, using the whole video file instead", array("movie_extract_cutlist"));
+        $ffmpeg_params[] = array(0, 9999999999);
+    }
+    // what else could we check ?
+    // Check if there was one whole hour between pause and stop ?
+}
+
+function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '', $asset_name = '') {
+    global $ffmpeg_cli_cmd;
+    global $logger;
 
     if (!isset($movie_out) || $movie_out == '')
         $movie_out = $movie_in;
@@ -104,7 +106,8 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         }
         fclose($handle);
     } else {
-        return "Error while opening cutlist file";
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Can't open cutlist file: $cutlist_file", array("movie_extract_cutlist"), $asset_name);
+        return "1/ Error while opening cutlist file";
     }
 
     $ffmpeg_params = array();
@@ -114,42 +117,52 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     // prepares parameters for ffmpeg 
     foreach ($cutlist_array as $value) {
 
-        switch ($value[0]) {
+        $action = $value[0];
+        $action_time = $value[1];
+        
+        switch ($action) {
             case 'init' :
-                $init = $value[1];
+                $init = $action_time;
                 break;
             case 'play' :
             case 'resume':
-                if ($startime == 0 && $value[1] >= $init) {
-                    $startime = $value[1];
+                if ($startime == 0 && $action_time >= $init) {
+                    $startime = $action_time;
                 }
                 break;
             case 'pause' :
             case 'stop':
-                if ($startime != 0 && $value[1] > $startime) {
-                    $duration = $value[1] - $startime;
+                if ($startime != 0 && $action_time > $startime) {
+                    $duration = $action_time - $startime;
+                    //insert: array(part start (time file beginning), part duration)
                     $ffmpeg_params[] = array($startime - $init, $duration);
                     $startime = 0;
                 }
                 break;
         }
-        if ($value[0] == 'stop')
+        if ($action == 'stop') 
             break;
     }
 
+    //post extraction fixes
+    movie_cutlist_afterfixes($ffmpeg_params);
+    
     chdir($movie_path);
 
-    $tmp_dir = 'tmpdir';
+    $tmp_dir = 'cutlist_tmpdir';
     mkdir("./$tmp_dir");
 
     // creates each recording segments to be concatenated
     foreach ($ffmpeg_params as $index => $params) {
         $try = 0;
         $part_duration = 0;
+        $part_start_second = $params[0];
+        $desired_part_duration = $params[1];
         // sometimes, ffmpeg doesn't extract the recording segment properly
         // This results in a shortened segment which may cause problems in the final rendering 
         // We then loop on segment extraction to make sure it has the expected duration
-        while ($try < 3 && $part_duration < $params[1]) {
+        $try_count = 3;
+        while ($try < $try_count && $part_duration < $desired_part_duration-1) { //minus one second for margin
             // extracts the recording segment from the full recording
             // -ss : the segment starts at $param[0] seconds of the full video
             // -t  : the segment lasts $param[1] seconds long
@@ -157,44 +170,64 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             // -y  : the segment is replaced if already existing
             $more_params = ($try >= 1) ? ' -probesize 1000000 -analyzeduration 1000000 ' : ''; // increase analyze duration
             $more_params .= ($try >= 2) ? ' -pix_fmt yuv420p ' : ''; // defines pixel format, which is often lacking
-            $cmd = "$ffmpegpath -i $movie_path/$movie_in -ss " . $params[0] . " -t " . $params[1] . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
+            $cmd = "$ffmpeg_cli_cmd -i $movie_path/$movie_in -ss " . $part_start_second . " -t " . $desired_part_duration . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
             print "*************************************************************************" . PHP_EOL .
                     $cmd . PHP_EOL .
                     "*************************************************************************" . PHP_EOL;
-            exec($cmd, $cmdoutput, $returncode);
+            $return_code = 0;
+            $cmdoutput = system($cmd, $return_code);
+            if($return_code != 0) {
+                return '2/' . $cmdoutput;
+            }
+            
             // the segment has been extracted, we verify here its duration
-            $cmd = "$ffmpegpath -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
-            $part_duration = system($cmd); // duration in HH:MM:SS
-            sscanf($part_duration, "%d:%d:%d", $hours, $minutes, $seconds);
+            $cmd = "$ffmpeg_cli_cmd -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
+            $cmdoutput = system($cmd, $return_code); // duration in HH:MM:SS
+            if($return_code != 0) {
+                return '3/' . $cmdoutput;
+            }
+            
+            list($hours, $minutes, $seconds) = sscanf($cmdoutput, "%d:%d:%d");
             $part_duration = $hours * 3600 + $minutes * 60 + $seconds; // duration in seconds
             $try++;
-            print "--------------------------------------------------------------------------" . PHP_EOL .
-                    "Try [$try]: duration found : $part_duration - expected : " . $params[1] . PHP_EOL .
-                    "--------------------------------------------------------------------------" . PHP_EOL;
+            print   "--------------------------------------------------------------------------"     . PHP_EOL .
+                    "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration . PHP_EOL .
+                    "--------------------------------------------------------------------------"     . PHP_EOL;
+        }
+        if($try == $try_count) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
         }
     }
 
-    file_put_contents($cutlist_file, PHP_EOL . print_r($ffmpeg_params, true), FILE_APPEND);
+    file_put_contents($cutlist_file.'_debug', PHP_EOL . print_r($ffmpeg_params, true), FILE_APPEND);
 
+    $join_file = "$tmp_dir/concat.txt";
+    if(file_exists($join_file))
+        unlink($join_file); //cleanup before starting
     // creates a temporary text file containing all video files to join
-    $cmd = "for f in $movie_path/$tmp_dir/part*.mov; do echo \"file '\$f'\" >> $movie_path/tmp.txt; done";
-    exec($cmd, $cmdoutput, $returncode);
+    $cmd = "for f in $movie_path/$tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
+    $return_code = 0;
+    $cmdoutput = system($cmd, $return_code);
+    if($return_code != 0) {
+        return '5/' . $cmdoutput;
+    }
     // uses the temporary text file to concatenate the video files
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpegpath -f concat -i $movie_path/tmp.txt -c copy -y $movie_path/$movie_out";
+    $cmd = "$ffmpeg_cli_cmd -f concat -i $join_file -c copy -y $movie_path/$movie_out";
     print $cmd . PHP_EOL;
-    exec($cmd, $cmdoutput, $returncode);
+    $return_code = 0;
+    $cmdoutput = system($cmd, $return_code);
+    if($return_code != 0) {
+        return "6/ Command $cmd failed with output:" . $cmdoutput;
+    }
+    
     // deletes the temporary text file
-    unlink("$movie_path/tmp.txt");
+    unlink($join_file);
 
     if ($tmp_dir != '')
         exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
-    //check returncode
-    if ($returncode) {
-        return join("\n", $cmdoutput);
-    }
     return 0;
 }
 

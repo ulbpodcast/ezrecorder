@@ -1,28 +1,4 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 /*
  * To change this template, choose Tools | Templates
@@ -65,70 +41,22 @@ echo " - E-SAND              [16]" . PHP_EOL;
 
 $choice = readline("Choice [default: $default_classroom]: ");
 switch ($choice) {
-    case 2: 
-        $classroom = "164.15.50.212";
-        $recorder = 'ezrecorder';
-        break;
-    case 3: 
-        $classroom = "podcv-s-r42-5-503.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 4: 
-        $classroom = "podc-s-r42-5-110.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    case 5: 
-        $classroom = "podcv-s-ub2.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 6: 
-        $classroom = "podcv-s-ub5-230.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    case 7: 
-        $classroom = "podcv-s-ud2-120.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    case 8: 
-        $classroom = "podcv-s-ud2.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 9: 
-        $classroom = "podcv-s-k.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 10: 
-        $classroom = "podcv-s-h2215.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    case 11: 
-        $classroom = "podcv-s-ay2-112.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    case 12: 
-        $classroom = "podcv-p-forumb.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 13: 
-        $classroom = "podcv-e-j.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 14: 
-        $classroom = "podcv-e-bremer.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 15: 
-        $classroom = "podcv-e-f2.ulb.ac.be";
-        $recorder = 'ezcast';
-        break;
-    case 16: 
-        $classroom = "podcv-e-sand.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
-    default: 
-        $classroom = "podcv-s-v.ulb.ac.be";
-        $recorder = 'ezrecorder';
-        break;
+    case 2:  $classroom = "164.15.43.45";                 break;
+    case 3:  $classroom = "podcv-s-r42-5-503.ulb.ac.be";  break;
+    case 4:  $classroom = "podc-s-r42-5-110.ulb.ac.be";   break;
+    case 5:  $classroom = "podcv-s-ub2.ulb.ac.be";        break;
+    case 6:  $classroom = "podcv-s-ub5-230.ulb.ac.be";    break;
+    case 7:  $classroom = "podcv-s-ud2-120.ulb.ac.be";    break;
+    case 8:  $classroom = "podcv-s-ud2.ulb.ac.be";        break;
+    case 9:  $classroom = "podcv-s-k.ulb.ac.be";          break;
+    case 10: $classroom = "podcv-s-h2215.ulb.ac.be";      break;
+    case 11: $classroom = "podcv-s-ay2-112.ulb.ac.be";    break;
+    case 12: $classroom = "podcv-p-forumb.ulb.ac.be";     break;
+    case 13: $classroom = "podcv-e-j.ulb.ac.be";          break;
+    case 14: $classroom = "podcv-e-bremer.ulb.ac.be";     break;
+    case 15: $classroom = "podcv-e-f2.ulb.ac.be";         break;
+    case 16: $classroom = "podcv-e-sand.ulb.ac.be";       break;
+    default: $classroom = "podcv-s-v.ulb.ac.be";          break;
 }
 $username = readline("Enter username for recorder: ");
 $password = readline("Enter password for recorder: ");
@@ -138,7 +66,7 @@ $settings = false;
 do {
 // Login the user
     display_logs("Logins the user [$username]");
-    $response = curl_read_url("http://$classroom/$recorder/index.php?action=login&login=$username&passwd=$password");
+    $response = curl_read_url("http://$classroom/ezrecorder/index.php?action=login&login=$username&passwd=$password");
     $response = explode("\n", $response);
     display_logs($response[1]);
     if (strpos($response[1], 'login screen') !== false) {

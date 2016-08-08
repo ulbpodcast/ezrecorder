@@ -44,6 +44,7 @@ function controller_recording_submit_infos() {
     global $session_module;
     global $dir_date_format;
     global $recorder_session;
+    global $logger;
 
     // Sanity checks
     if (!isset($input['title']) || empty($input['title'])) {
@@ -62,7 +63,10 @@ function controller_recording_submit_infos() {
     $fct_user_has_course = "auth_" . $auth_module . "_user_has_course";
     if (!$fct_user_has_course($_SESSION['user_login'], $input['course'])) {
         error_print_message('You do not have permission to access course ' . $input['course'], false);
-        log_append('warning', 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission');
+        $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
+        log_append('warning', $msg);
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array('controller'));
+
         die;
     }
     $_SESSION['recorder_course'] = $input['course'];
@@ -120,28 +124,38 @@ function controller_recording_start() {
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
     $user = $fct_current_user_get();
 
+    $asset = $_SESSION['asset'];
+
     if ($user != $_SESSION['user_login']) {
         error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
-        $logger->log(EventType::TEST, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'));
-        return false;;
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'), $asset);
+        return false;
     }
 
     //get current status and check if its compatible with current action
     $status = status_get();
-    if($status != 'open')
-    {
+    if ($status != 'open') {
         error_print_message("capture_start: error status ($status): status not 'open'");
-        $logger->log(EventType::TEST, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array('controller'));
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array('controller'), $asset);
         return false;
     }
-    $asset = $_SESSION['asset'];
-    
+
     // saves the start time
     $datetime = date($dir_date_format);
     $startrec_info = "$datetime\n";
     $startrec_info.=$_SESSION['recorder_course'] . "\n";
     $fct_recstarttime_set = "session_" . $session_module . "_recstarttime_set";
     $fct_recstarttime_set($startrec_info);
+
+    $asset_dir = get_asset_dir($asset, "local_processing");
+    if (!file_exists($asset_dir)) {
+        $res = mkdir($asset_dir);
+        if ($res == false) {
+            $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Could not start recording because asset dir couln't be created: $asset_dir. Error: $res", array('controller'), $asset);
+            return false;
+        }
+    }
+    chmod($asset_dir, 0777);
 
     // determines if the slide module is enabled
     if ($slide_enabled) {
@@ -165,24 +179,21 @@ function controller_recording_start() {
     // something went wrong while starting the recording
     if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
         error_print_message(capture_last_error());
-        $logger->log(EventType::TEST, LogLevel::INFO, "Record start failed in capture module", array('controller'));
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Record start failed in capture module", array('controller'), $asset);
         return false;
     }
 
     log_append("recording_start", "started recording by user request");
-    $asset_info = new AssetLogInfo();
-    $asset_info->author = "todo";
-    $asset_info->cam_slide = "todo";
-    $asset_info->course = $_SESSION['recorder_course'];
-    $asset_info->classroom = $classroom;
-    $logger->log(EventType::ASSET_CREATED, LogLevel::NOTICE, "Started recording at user $user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'), $asset, $asset_info);
+    $logger->log(EventType::ASSET_CREATED, LogLevel::NOTICE, 
+            "Started recording at user $user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'), $asset, 
+            $user, "todo", $_SESSION['recorder_course'], $classroom);
 
     return true;
 }
 
 function close_session() {
     global $session_module;
-    
+
     // releases the recording session
     $fct_session_unlock = "session_" . $session_module . "_unlock";
     $fct_session_unlock();
@@ -198,13 +209,15 @@ function controller_publish() {
     global $logger;
     global $input;
     global $php_cli_cmd;
-    global $process_upload;
+    global $cli_post_process;
     global $session_module;
     global $basedir;
     global $recorder_monitoring_pid;
 
+    $asset = $_SESSION['asset'];
+
     // stops the timeout monitoring
-    if(file_exists($recorder_monitoring_pid))
+    if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
     $moderation = 'false';
@@ -216,17 +229,26 @@ function controller_publish() {
     $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
     $starttime = $recstarttime[0];
     $album = $recstarttime[1];
-    
+
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $_SESSION['asset']);
+    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $asset);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $meta_assoc = $fct_metadata_get();
+    if($meta_assoc == false) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get metadata from session for publishing, stopping now", array('controller'), $asset);
+        close_session();
+        return false;
+    }
 
-    $tmp_dir = $basedir . "/var/" . $_SESSION['asset'];
-    mkdir($tmp_dir);
-
+    $asset_dir = get_local_processing_dir($asset);
+    if(!file_exists($asset_dir)) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array('controller'), $asset);
+        close_session();
+        return false;
+    }
+    
     //update metadata with moderation
     if ($moderation == 'true' || $moderation == 'false') {
         $meta_assoc['moderation'] = $moderation;
@@ -236,12 +258,22 @@ function controller_publish() {
 
     $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
     $meta_xml_string = $fct_metadata_xml_get();
-    // saves the recording metadata in a tmp xml file (used later in cli_process_upload.php)
-    file_put_contents("$tmp_dir/metadata.xml", $meta_xml_string);
+    if($meta_xml_string == false) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get XML metadata from session for publishing, stopping now", array('controller'), $asset);
+        close_session();
+        return false;
+    }
+    
+    // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
+    file_put_contents("$asset_dir/metadata.xml", $meta_xml_string);
 
     // launches the video processing in background
-    exec("$php_cli_cmd $process_upload > /dev/null &", $output, $errno);
-
+    $return_val = 0;
+    system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array('controller'), $asset);
+    }
+    
     close_session();
 
     // Displaying a confirmation message
@@ -270,8 +302,18 @@ function controller_recording_cancel() {
     global $session_module;
     global $recorder_monitoring_pid;
 
+    
+    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
+    $metadata = $fct_metadata_get();
+    if($metadata) {
+        $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record cancelled at user request", array('controller'), $asset);
+    } else {
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "A record was cancelled at user request, but we could not get asset name. Not a problem in the processing but shouldn't happen.", array('controller'));
+    }
+        
     // stops the timeout monitoring
-    if(file_exists($recorder_monitoring_pid))
+    if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
     // Logging the operation
@@ -287,7 +329,7 @@ function controller_recording_cancel() {
         $fct_capture_cancel = 'capture_' . $cam_module . '_cancel';
         $res_cam = $fct_capture_cancel($_SESSION['asset']);
     }
-    
+
     // if slide module is enabled 
     if ($slide_enabled) {
         $fct_capture_cancel = 'capture_' . $slide_module . '_cancel';
@@ -333,17 +375,21 @@ function controller_recording_force_quit() {
     global $slide_module;
     global $session_module;
     global $php_cli_cmd;
-    global $process_upload;
+    global $cli_post_process;
     global $recorder_session;
     global $basedir;
+    global $logger;
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    if(file_exists($recorder_monitoring_pid))
+    if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
     $session = explode(';', file_get_contents($recorder_session));
     $asset = $session[0];
+
+    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller'), $asset);
+    $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller'), $asset);
 
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
     log_append('warning', $_SESSION['user_login'] . ' trying to log in but recorder is already in use by ' . $fct_current_user_get() . '. Stopping current record.');
@@ -370,13 +416,12 @@ function controller_recording_force_quit() {
         $album = $recstarttime[1];
         log_append('recording_force_quit', 'Force quit recording by another user [' . $_SESSION['user_login'] . '] (course ' . $album . ', started on ' . $starttime . ')');
 
-        $tmp_dir = $basedir . "/var/" . $asset;
-        mkdir($tmp_dir);
+        $asset_dir = get_local_processing_dir($asset);
 
         $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
         $meta_xml_string = $fct_metadata_xml_get();
-        // saves the recording metadata in a tmp xml file (used later in cli_process_upload.php)
-        file_put_contents($tmp_dir . "/metadata.xml", $meta_xml_string);
+        // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
+        file_put_contents($asset_dir . "/metadata.xml", $meta_xml_string);
 
         // Stopping (pausing) the recording
         // if slide module is enabled
@@ -395,8 +440,11 @@ function controller_recording_force_quit() {
             sleep(0.5);
 
         // launches the video processing in background
-        // exec("$php_cli_cmd $process_upload' | at now", $output, $errno);
-        exec("$php_cli_cmd $process_upload > /dev/null &", $output, $errno);
+        $return_val = 0;
+        system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
+        if($return_val != 0) {
+            $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array('controller'), $asset);
+        }
     }
 
     // reinits the recording status
@@ -414,13 +462,14 @@ function controller_recording_force_quit() {
 
     if (!$res) {
         error_print_message('lib_model: recording_force_quit: Could not lock recorder: ' . error_last_message());
-        return;
+        return false;
     }
 
     log_append('login');
 
     // 4) And finally, we can display the record form
     controller_view_record_form();
+    return true;
 }
 
 /*
@@ -432,7 +481,10 @@ function controller_recording_pause() {
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
-    global $session_module;
+    global $logger;
+
+    $res_cam = true;
+    $res_slide = true;
 
     // if cam module is enabled
     if ($cam_enabled) {
@@ -467,6 +519,8 @@ function controller_recording_resume() {
     global $slide_module;
     global $session_module;
 
+    $res_cam = true;
+    $res_slide = true;
 
     // if cam module is enabled 
     if ($cam_enabled) {
@@ -541,9 +595,9 @@ function controller_view_record_form() {
     global $recorder_monitoring_pid;
 
     // stops the timeout monitoring
-    if(file_exists($recorder_monitoring_pid))
+    if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
-    
+
     // Retrieving the course list (to display in the web interface)
     $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
     $courselist = $fct_user_courselist_get($_SESSION['user_login']);
@@ -585,8 +639,7 @@ function controller_view_record_form() {
         $slide_features = $fct_capture_features_get();
     }
 
-    if (   $cam_enabled   && in_array('streaming', $cam_features) 
-        || $slide_enabled && in_array('streaming', $slide_features)) {
+    if ($cam_enabled && in_array('streaming', $cam_features) || $slide_enabled && in_array('streaming', $slide_features)) {
         $streaming_available = true;
     }
 
@@ -758,34 +811,42 @@ function view_record_screen() {
 
         $cam_pid = 0;
         $slide_pid = 0;
-        
+
+        $cam_ok = false;
+        $slide_ok = false;
+
         // if cam module is enabled
         if ($cam_enabled) {
             $fct_capture_init = 'capture_' . $cam_module . '_init';
-            $res_cam = $fct_capture_init($cam_pid, $metadata);
-            if($res_cam == false)
+            $cam_ok = $fct_capture_init($cam_pid, $metadata);
+            if ($cam_ok == false) {
+                $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("view_record_screen"));
                 log_append('error', "view_record_screen: Cam capture init failed.");
+            }
         }
         // if slide module is enabled
         if ($slide_enabled) {
             $fct_capture_init = 'capture_' . $slide_module . '_init';
-            $res_slide = $fct_capture_init($slide_pid, $metadata);
-            if($res_slide == false)
+            $slide_ok = $fct_capture_init($slide_pid, $metadata);
+            if ($slide_ok == false) {
+                $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("view_record_screen"));
                 log_append('error', "view_record_screen: Slides capture init failed.");
+            }
         }
 
         // capture_init is launched in background in order to save time.
         // waits until both processes are finished to continue.
-        while (   ($cam_enabled   && is_process_running($cam_pid)  ) 
-               || ($slide_enabled && is_process_running($slide_pid)) )
+        while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
             sleep(0.5);
 
         // something wrong happened while init the recorders
         // if capture module launch failed, reset status and display an error box
         $status = status_get();
-        if ($status == 'error' || $status == 'launch_failure') {
-            status_set('open');
+        if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: $status. (check module log for more info, until we get rid of the bash scripts)", array("view_record_screen"));
+            status_set('launch_failure');
             require_once template_getpath('div_error_launch_failure.php');
+            return;
         }
     }
 
@@ -820,32 +881,44 @@ function controller_view_record_submit() {
     global $slide_enabled;
     global $slide_module;
     global $logger;
+
+    $asset = $_SESSION['asset'];
+    if (!$asset) {
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_view_record_submit called without asset', array('controller'));
+        die();
+    }
     
-    $logger->log(EventType::PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller'));
+    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array('controller'), $asset);
+
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller'), $asset);
 
     // Stopping (pausing) the recording
     $cam_pid = 0;
     $slide_pid = 0;
-    
+
     // if cam module is enabled
     if ($cam_enabled) {
         $fct_capture_stop = 'capture_' . $cam_module . '_stop';
         $success = $fct_capture_stop($cam_pid, $_SESSION['asset']);
-        if(!$success)
-            $logger->log(EventType::PUSH_STOP, LogLevel::ERROR, 'Slide module stopping failed. Trying to continue anyway.', array('controller'));
+        if (!$success) {
+            $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Cam module stopping (start) failed. Trying to continue anyway.', array('controller'), $asset);
+        }
     }
-    
+
     // if slide module is enabled
     if ($slide_enabled) {
         $fct_capture_stop = 'capture_' . $slide_module . '_stop';
         $success = $fct_capture_stop($slide_pid, $_SESSION['asset']);
-        if(!$success)
-            $logger->log(EventType::PUSH_STOP, LogLevel::ERROR, 'Slide module stopping failed. Trying to continue anyway.', array('controller'));
+        if (!$success) {
+            $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Slides module stopping (start) failed. Trying to continue anyway.', array('controller'), $asset);
+        }
     }
 
     // waits until both processes are finished to continue.
     while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_running($slide_pid))
         sleep(0.5);
+
+    //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
 
     $_SESSION['recorder_mode'] = 'view_record_submit';
 
@@ -905,7 +978,7 @@ function controller_view_screenshot_image() {
  */
 function user_logout() {
     global $session_module;
-    
+
     close_session();
 
     //destroy session
@@ -915,8 +988,6 @@ function user_logout() {
     // 3) Displaying the logout message
     //include_once template_getpath('logout.php');
     include_once "tmpl/fr/logout.php";
-
-    $url = $application_url;
 
     include_once template_getpath('logout.php');
 }
@@ -998,9 +1069,60 @@ function status_set($status) {
         $fct_status_set($status);
     }
 
-
     if ($slide_enabled) {
         $fct_status_set = 'capture_' . $slide_module . '_status_set';
         $fct_status_set($status);
     }
+}
+
+function get_asset_name($course_name, $record_date) {
+    return $record_date . '_' . $course_name;
+}
+
+/* step == "upload" or "local_processing" or "" 
+    Empty step will return first found
+ *  */
+function get_asset_dir($asset, $step = '') {
+    if ($step != 'upload' && $step != 'local_processing' && $step != '')
+        return false;
+
+    switch ($step) {
+        case "upload":
+            return get_upload_to_server_dir($asset);
+        case "local_processing":
+            return get_local_processing_dir($asset);
+        default:
+            $dir = get_upload_to_server_dir($asset);
+            if(!file_exists($dir))
+                $dir = get_local_processing_dir($asset);
+            
+            if(!file_exists($dir))
+                return false;
+            
+            return $dir;
+    }
+}
+
+function get_local_processing_dir($asset) {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/local_processing/' . $asset . '/';
+}
+
+function get_upload_to_server_dir($asset) {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/upload_to_server/' . $asset . '/';
+}
+
+// @returns <slide|cam|camslide>
+function get_record_type($cam, $slide) {
+    if ($cam && $slide)
+        return "camslide";
+    elseif ($cam)
+        return "cam";
+    elseif ($slide)
+        return "slide";
+    else
+        return false;
 }

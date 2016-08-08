@@ -2,13 +2,14 @@
 
 #include localdefs
 source $(dirname $0)/../etc/localdefs
-ASSET=$1
-ACTION=$2
+
+ACTION=$1
+CUTLIST_FILE=$2
 DATE=`date +%s`
 if [ "$ACTION" == "resume" ] 
 then 
 DATE=$[ $DATE + 5 ]
 fi
 
-echo $ACTION:$DATE:`date +"%Y_%m_%d_%Hh%M"` >> $EZCASTDIR/var/$ASSET/_cut_list
+echo $ACTION:$DATE:`date +"%Y_%m_%d_%Hh%M"` >> $CUTLIST_FILE
 

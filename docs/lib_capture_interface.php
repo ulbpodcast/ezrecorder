@@ -94,6 +94,13 @@ function capture_modulename_stop(&$pid, $asset) {};
  */
 function capture_modulename_cancel($asset) {};
 
+/** 
+ * @implements
+ * @param type $asset
+ * @return true on process success, false on failure or result not found
+ */
+function capture_ffmpeg_process_result($asset) {}
+
 /**
  * @implements
  * Processes the record before sending it to the server
@@ -110,7 +117,7 @@ function capture_modulename_cancel($asset) {};
          $meta['record_date'] : YYYY_MM_DD_HH\hmm (i.e 2014_01_01_00h00)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_modulename_process($meta_assoc, &$pid) {};
+function capture_modulename_process($asset, &$pid) {};
 
 /**
  * @implements

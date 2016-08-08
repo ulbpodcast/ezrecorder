@@ -3,9 +3,18 @@
 #include localdefs
 source $(dirname $0)/../etc/localdefs
 
-INPUT=$1
+WORKING_DIR=$1
+INPUT=$2
 MOVIESNB=`ls -la $MOVIESDIR | grep $COMMON_MOVIE_NAME | wc -l  | sed -e 's/^[ \t]*//'`
 CURRENT_INDEX=`ls -la $MOVIESDIR/${COMMON_MOVIE_NAME}_$(($MOVIESNB - 1 ))/high/${COMMON_MOVIE_NAME}*.ts | wc -l | sed -e 's/^[ \t]*//'`
+
+TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_$MOVIESNB/
+HIGH_DIR=${TARGET_DIR}/high
+LOW_DIR=${TARGET_DIR}/low
+
+mkdir -p -m777 $TARGET_DIR
+mkdir -p -m777 $HIGH_DIR
+mkdir -p -m777 $LOW_DIR
 
 if [ -e $STREAMING_INFO ]
 then 
@@ -16,65 +25,53 @@ case "$INPUT" in
     "UltraStudioMiniRecorder" )
         if [ -e $STREAMING_INFO ]
         then 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low
             # streaming is enabled. We prepare low and high resolution
-            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         else 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
             # streaming is disabled. We prepare high resolution only
-            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@16' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi ;; 
     "IntensityShuttle" )
         if [ -e $STREAMING_INFO ]
         then 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low
             # streaming is enabled. We prepare low and high resolution
-            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         else 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
             # streaming is disabled. We prepare high resolution only
-            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi ;;
     "avfoundation" )
         if [ -e $STREAMING_INFO ]
         then 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low
             # streaming is enabled. We prepare low and high resolution
-            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         else 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
             # streaming is disabled. We prepare high resolution only
-            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi ;;            
     "rstp" )
         if [ -z $FFMPEG_RTSP_MEDIA_HIGH_URI ]
         then
-            echo "ffmpeg_init: FFMPEG_RTSP_MEDIA_HIGH_URI is not defined, cannot continue" >> $EZCASTDIR/var/_log
+            echo "ffmpeg_init: FFMPEG_RTSP_MEDIA_HIGH_URI is not defined, cannot continue" >> $TARGET_DIR/_log
             exit 1
         fi
 
         if [ -e $STREAMING_INFO ]
         then 
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low 
             # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
             # low probsize allow for faster stream start
             if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
             then
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/low/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             else
                 # High
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high/$COMMON_MOVIE_NAME.m3u8 </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
                 # Low, thumbnails are created from this one
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/low/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID2
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID2
             fi
         else 
             # streaming is disabled. We prepare high resolution only
-            mkdir -p $MOVIESDIR/${COMMON_MOVIE_NAME}_$MOVIESNB/high
-            $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $MOVIESDIR/${COMMON_MOVIE_NAME}_0/high/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $EZCASTDIR/var/ffmpeg.log & echo $! > $FFMPEG_PID
+            $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi 
         ;;
         # -f decklink = force BMD source

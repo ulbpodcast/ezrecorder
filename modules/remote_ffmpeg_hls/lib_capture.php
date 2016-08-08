@@ -231,7 +231,7 @@ function capture_remoteffmpeg_cancel($asset) {
  * @implements
  * Processes the record before sending it to the server
  */
-function capture_remoteffmpeg_process($meta_assoc, &$pid) {
+function capture_remoteffmpeg_process($asset, &$pid) {
     global $remoteffmpeg_script_stop;
     global $remoteffmpeg_ip;
     global $remote_script_call;
@@ -242,7 +242,6 @@ function capture_remoteffmpeg_process($meta_assoc, &$pid) {
     global $remoteffmpeg_username;
     global $remoteffmpeg_basedir;
 
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
     $status = capture_remoteffmpeg_status_get();
 
@@ -257,9 +256,7 @@ function capture_remoteffmpeg_process($meta_assoc, &$pid) {
         // put the xml string in a metadata file on the local mac mini
         file_put_contents($tmp_dir . "/_metadata.xml", $xml);
 
-        $course_name = $meta_assoc['course_name'];
-        $record_date = $meta_assoc['record_date'];
-        $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $course_name $record_date $remoteffmpeg_processing_tool > /dev/null 2>&1 & echo $! > $tmp_dir/pid";
+        $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $asset $remoteffmpeg_processing_tool > /dev/null 2>&1 & echo $! > $tmp_dir/pid";
         log_append('recording', "launching command: $cmd");
         system($cmd);
         $pid = file_get_contents("$tmp_dir/pid");

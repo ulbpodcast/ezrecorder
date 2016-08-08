@@ -2,7 +2,7 @@
 
 if($argc != 4) {
     echo "Usage: ponvif_example.php <ip:port> <user> <password>\n";
-    echo "Example: ponvif_example.php 164.15.43.50:1018 admin password\n";
+    echo "Example: ponvif_example.php 10.0.2.253:1018 admin password\n";
     return;
 }
 

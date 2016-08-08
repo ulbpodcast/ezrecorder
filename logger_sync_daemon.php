@@ -12,8 +12,9 @@ class LoggerSyncDaemon {
     const SYNC_BATCH_SIZE = 1000;
       
     public static function ensure_is_running() {
+        $current_dir = __DIR__;
         if(!self::is_running()) {
-            system("php -f ". self::CLI_SYNC_DAEMON . " 2<&1 &");
+            system("php -f ". self::CLI_SYNC_DAEMON . " > $current_dir/var/log_sync_daemon 2>&1 &");
         }
     }
     
@@ -36,7 +37,7 @@ class LoggerSyncDaemon {
             return 1;
         }
         
-        $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url", array("LoggerSyncDaemon"));
+        $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url.", array("LoggerSyncDaemon"));
 
         $events_to_send = $logger->get_all_events_newer_than($last_id_sent, self::SYNC_BATCH_SIZE);
 

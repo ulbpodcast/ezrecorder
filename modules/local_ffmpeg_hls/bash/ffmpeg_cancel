@@ -20,18 +20,3 @@ then
     while ps -p $PID2 > /dev/null; do sleep 1; done
     unlink $FFMPEG_PID2
 fi
-
-#Finally clean up eventual movie remains
-SDAT=`date +"%Y_%m_%d_%Hh%M"`
-ASSET=$1
-
-
-mkdir  $RECORDDIR/trash/$SDAT 
-wait
-mv $MOVIESDIR/${COMMON_MOVIE_NAME}*  $RECORDDIR/trash/$SDAT/
-mv $RECORDDIR/ffmpeg.log  $RECORDDIR/trash/$SDAT/
-if [ "$ASSET" != "" ]
-then
-mv $EZCASTDIR/var/$ASSET/_cut_list $RECORDDIR/trash/$SDAT/
-rm -rf $EZCASTDIR/var/$ASSET
-fi

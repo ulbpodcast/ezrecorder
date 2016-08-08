@@ -20,10 +20,7 @@ $ffmpeg_capture_file = $ffmpeg_basedir.'var/screencapture.jpg'; // Camera screen
 
 $ffmpeg_processing_tool = "ffmpeg"; 
 $ffmpeg_processing_tools = array("ffmpeg");
-$ffmpegpath = "/usr/local/bin/ffmpeg";
 $ffmpeg_mono = true; // determines whether the input audio channel is mono or stereo
-
-$ffmpeg_upload_dir = $ezrecorder_recorddir . 'upload_to_server/';
 
 $ffmpeg_cli_streaming = $ffmpeg_basedir.'cli_streaming_content_send.php';
 
@@ -33,6 +30,8 @@ $ffmpeg_script_start = $ffmpeg_basedir.'bash/ffmpeg_start';
 $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
+
+$ffmpeg_script_merge_movies = "$ffmpeg_basedir/handle_source/ffmpeg/merge_movies.php";
 
 $ffmpeg_download_protocol = "rsync"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'

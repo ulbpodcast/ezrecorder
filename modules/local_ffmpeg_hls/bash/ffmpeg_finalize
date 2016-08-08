@@ -3,16 +3,14 @@
 #include localdefs
 source $(dirname $0)/../etc/localdefs
 
-COURSE=$1
-SDAT=$2
-UPLOADDIR=$RECORDDIR/upload_to_server/${SDAT}_$COURSE
-STORDIR=$RECORDDIR/upload_ok/${SDAT}_$COURSE
+ASSET=$1
+
+UPLOADDIR=$RECORDDIR/upload_to_server/$ASSET
+STORDIR=$RECORDDIR/upload_ok/$ASSET
 
 # transfers files from upload_to_server to upload_ok
 echo "podcv: transfers files to upload_ok directory"
 mv $UPLOADDIR $STORDIR
 
 # removes all temp files used for the recording
-mv $EZCASTDIR/var/${SDAT}_$COURSE/_cut_list $STORDIR
-rm -rf $EZCASTDIR/var/${SDAT}_$COURSE
 rm -rf $STORDIR/*/low

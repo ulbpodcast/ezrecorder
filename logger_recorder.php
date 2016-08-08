@@ -255,8 +255,9 @@ class RecorderLogger extends Logger {
      * @param AssetLogInfo $asset_info Additional information about asset if any, in the form of a AssetLogInfo structure
      * @return LogData temporary data, used by children functions
      */
-    public function log($type, $level, $message, array $context = array(), $asset = "dummy", $asset_info = null) {
-        $tempLogData = parent::log($type, $level, $message, $context, $asset, $asset_info);
+    public function log($type, $level, $message, array $context = array(), $asset = "dummy", 
+            $author = null, $cam_slide = null, $course = null, $classroom = null) {
+        $tempLogData = parent::log($type, $level, $message, $context, $asset, $author, $cam_slide, $course, $classroom);
         
         LoggerSyncDaemon::ensure_is_running();
         
@@ -271,9 +272,9 @@ class RecorderLogger extends Logger {
         }
         
         $statement->bindParam(':asset', $asset);
-        $statement->bindParam(':course', $asset_info->course);
-        $statement->bindParam(':author', $asset_info->author);
-        $statement->bindParam(':camslide', $asset_info->cam_slide);
+        $statement->bindParam(':course', $course);
+        $statement->bindParam(':author', $author);
+        $statement->bindParam(':camslide', $cam_slide);
         $statement->bindParam(':context', $tempLogData->context);
         $statement->bindParam(':loglevel', $tempLogData->log_level_integer);
         $statement->bindParam(':type_id', $tempLogData->type_id);

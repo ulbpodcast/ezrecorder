@@ -115,20 +115,32 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
  * @desc takes an assoc array and transform it in a xml metadata file
  */
 function assoc_array2xml_file($assoc_array, $metadata_file) {
+    global $logger;
+    
     $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
     $xml = new SimpleXMLElement($xmlstr);
     foreach ($assoc_array as $key => $value) {
         $xml->addChild($key, $value);
     }
     $xml_txt = $xml->asXML();
-    file_put_contents($metadata_file, $xml_txt);
+    $result = file_put_contents($metadata_file, $xml_txt);
+    if($result == false) {
+        print_r(debug_backtrace());
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array("assoc_array2xml_file"));
+        return false;
+    }
+
     chmod($metadata_file, 0644);
+    return true;
 }
 
 function xml_file2assoc_array($meta_path) {
     $xml = simplexml_load_file($meta_path);
     if ($xml === false)
+    {
+        print_r(debug_backtrace());
         return false;
+    }
     $assoc_array = array();
     foreach ($xml as $key => $value) {
         $assoc_array[$key] = (string) $value;
@@ -154,7 +166,7 @@ function server_request_send($server_url, $post_array) {
     curl_close($ch);
     file_put_contents("$basedir/var/curl.log", var_export($curlinfo, true) . PHP_EOL . $res, FILE_APPEND);
     if (!$res) {//error
-        $logger->log(EventType::REQUEST_TO_MANAGER, LogLevel::ERROR, "Curl failed to POST data to $server_url", array("cli_process_upload", "server_request_send"));
+        $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::ERROR, "Curl failed to POST data to $server_url", array("cli_upload_to_server", "server_request_send"));
 
         if (isset($curlinfo['http_code'])) {
             return "Curl error : " . $curlinfo['http_code'];
@@ -162,7 +174,7 @@ function server_request_send($server_url, $post_array) {
             return "Curl error";
     }
     
-    $logger->log(EventType::REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array("cli_process_upload", "server_request_send"));
+    $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array("cli_upload_to_server", "server_request_send"));
 
     //All went well send http response in stderr to be logged
     //fputs(STDERR, "curl result: $res", 2000);
