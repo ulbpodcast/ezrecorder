@@ -433,7 +433,7 @@ function capture_ffmpeg_cancel($asset) {
  * @return true on process success, false on failure or result not found
  */
 function capture_ffmpeg_process_result($asset) {
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_dir($asset);
     $result_file = "$working_dir/process_result";
     if(!file_exists($result_file))
         return false;
