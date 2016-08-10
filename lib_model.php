@@ -853,18 +853,19 @@ function view_record_screen() {
         // waits until both processes are finished to continue.
         while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
             sleep(0.5);
-
-        // something wrong happened while init the recorders
-        // if capture module launch failed, reset status and display an error box
-        $status = status_get();
-        if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
-            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: $status. (check module log for more info, until we get rid of the bash scripts)", array("view_record_screen"));
-            status_set('launch_failure');
-            require_once template_getpath('div_error_launch_failure.php');
-            return;
-        }
     }
 
+    // something wrong happened while init the recorders
+    // if capture module launch failed, reset status and display an error box
+    $status = status_get();
+    if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check module log for more info, until we get rid of the bash scripts)", array("view_record_screen"));
+        status_set('launch_failure');
+        header( "refresh:1;url=index.php" );
+        require_once template_getpath('div_error_launch_failure.php');
+        return;
+    }
+        
     // Then we set up some variables
     if ($cam_management_enabled) {
         $fct_cam_posnames_get = "cam_" . $cam_management_module . "_posnames_get";
