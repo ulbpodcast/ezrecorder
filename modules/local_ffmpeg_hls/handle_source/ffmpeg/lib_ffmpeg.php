@@ -92,25 +92,23 @@ function movie_cutlist_afterfixes(&$ffmpeg_params) {
     // Check if there was one whole hour between pause and stop ?
 }
 
-function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '', $asset_name = '') {
-    global $ffmpeg_cli_cmd;
-    global $logger;
-
-    if (!isset($movie_out) || $movie_out == '')
-        $movie_out = $movie_in;
-
-    // saves cutlist in an indexed array
-    if (($handle = fopen($cutlist_file, "r")) !== FALSE) {
-        while (($data = fgetcsv($handle, 1000, ":")) !== FALSE) {
-            $cutlist_array[] = $data;
-        }
-        fclose($handle);
-    } else {
-        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Can't open cutlist file: $cutlist_file", array("movie_extract_cutlist"), $asset_name);
-        return "1/ Error while opening cutlist file";
-    }
-
-    $ffmpeg_params = array();
+/*
+ * Fill $ffmpeg_params with movie segments (start time + duration), from given $cutlist_array
+ * Example of resulting array:
+ * [
+ *   //segment 1
+ *   [
+ *       436,  //start time
+ *       2404, //duration
+ *   ],
+ *   //segment 2
+ *   [
+ *       3739, //start time
+ *       2428, //duration
+ *   ],
+ * ]
+ */
+function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
     $init = 0;
     $startime = 0;
     $duration = 0;
@@ -143,7 +141,30 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         if ($action == 'stop') 
             break;
     }
+}
 
+function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '', $asset_name = '') {
+    global $ffmpeg_cli_cmd;
+    global $logger;
+
+    if (!isset($movie_out) || $movie_out == '')
+        $movie_out = $movie_in;
+
+    // saves cutlist in an indexed array
+    if (($handle = fopen($cutlist_file, "r")) !== FALSE) {
+        while (($data = fgetcsv($handle, 1000, ":")) !== FALSE) {
+            $cutlist_array[] = $data;
+        }
+        fclose($handle);
+    } else {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Can't open cutlist file: $cutlist_file", array("movie_extract_cutlist"), $asset_name);
+        return "1/ Error while opening cutlist file";
+    }
+
+    $ffmpeg_params = array();
+    
+    movie_prepare_cutlist_segments($ffmpeg_params, $cutlist_array);
+    
     //post extraction fixes
     movie_cutlist_afterfixes($ffmpeg_params);
     
