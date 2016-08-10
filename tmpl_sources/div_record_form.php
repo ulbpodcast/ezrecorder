@@ -11,6 +11,7 @@ make sure $courselist is set and is an array of all courses available for the us
             e.preventDefault();
             if (check_form()) {
                 loading_popup();
+                //submit immediately. The next page won't be loaded before recording is initialized so the popup will stay for the duration.
                 setTimeout(function() {
                     document.forms['form1'].submit();
                 }, 1);

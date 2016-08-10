@@ -42,13 +42,7 @@ require_once 'lib_error.php';
 require_once 'lib_template.php';
 require_once 'lib_model.php';
 
-if ($cam_enabled)
-    require_once $cam_lib; // defined in global_config
-if ($slide_enabled)
-    require_once $slide_lib; // defined in global_config
 require_once $session_lib;
-if ($cam_management_enabled)
-    require_once $cam_management_lib;
 
 $input = array_merge($_GET, $_POST);
 $template_folder = 'tmpl/';

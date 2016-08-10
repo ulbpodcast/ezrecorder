@@ -1,9 +1,17 @@
 <?php
 
-include_once 'global_config.inc';
-include_once 'lib_various.php';
-include_once 'lib_template.php';
-include_once 'lib_error.php';
+require_once 'global_config.inc';
+require_once 'lib_various.php';
+require_once 'lib_template.php';
+require_once 'lib_error.php';
+require_once $auth_lib;
+require_once $session_lib;
+if ($cam_enabled)
+    require_once $cam_lib; // defined in global_config
+if ($slide_enabled)
+    require_once $slide_lib; // defined in global_config
+if ($cam_management_enabled)
+    require_once $cam_management_lib;
 
 /**
  * We are called by a browser with no action, but sessions is alive and login has succeeded, so go to the according screen
@@ -105,7 +113,7 @@ function controller_recording_submit_infos() {
     $_SESSION['asset'] = $record_meta_assoc['record_date'] . '_' . $record_meta_assoc['course_name'];
     file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
 
-    // And finally we can display the main screen!
+    // And finally we can display the main screen! This will init the recorders
     view_record_screen();
 }
 
@@ -801,6 +809,10 @@ function view_record_screen() {
     $metadata = $fct_metadata_get();
     //get status of recording (from file)
     $status = status_get();
+    
+    $cam_ok = false;
+    $slide_ok = false;
+        
     // 1) First of all we init the recorder
     if ($status == '') {
 
@@ -817,9 +829,6 @@ function view_record_screen() {
 
         $cam_pid = 0;
         $slide_pid = 0;
-
-        $cam_ok = false;
-        $slide_ok = false;
 
         // if cam module is enabled
         if ($cam_enabled) {
@@ -1018,6 +1027,36 @@ function set_lang($lang) {
 }
 
 /*
+ * return cam module current status
+ * return null if cam in not enabled
+ */
+function status_get_cam() {
+    global $cam_enabled;
+    global $cam_module;
+    
+    if ($cam_enabled) {
+        $fct_status_get = 'capture_' . $cam_module . '_status_get';
+        return $fct_status_get();
+    }
+    return null;
+}
+
+/*
+ * return slide module current status
+ * return null if slide in not enabled
+ */
+function status_get_slide() {
+    global $slide_enabled;
+    global $slide_module;
+    
+    if ($slide_enabled) {
+        $fct_status_get = 'capture_' . $slide_module . '_status_get';
+        return $fct_status_get();
+    }
+    return null;
+}
+
+/*
  * returns the status of current recording.
  * Status is set in each module. If status is not the same in every modules,
  * returns an "error" status.
@@ -1026,22 +1065,9 @@ function set_lang($lang) {
 function status_get() {
     global $cam_enabled;
     global $slide_enabled;
-    global $cam_module;
-    global $slide_module;
 
-    $cam_status = null;
-    $slide_status = null;
-
-    if ($cam_enabled) {
-        $fct_status_get = 'capture_' . $cam_module . '_status_get';
-        $cam_status = $fct_status_get();
-    }
-
-
-    if ($slide_enabled) {
-        $fct_status_get = 'capture_' . $slide_module . '_status_get';
-        $slide_status = $fct_status_get();
-    }
+    $cam_status = status_get_cam();
+    $slide_status = status_get_slide();
 
     if ($slide_enabled && $cam_enabled) {
         if ($cam_status == $slide_status)

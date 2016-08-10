@@ -34,10 +34,10 @@
                     return false;
                 }
                 else if (title.length > <?php
-        include_once 'global_config.inc';
-        global $title_max_length;
-        echo $title_max_length;
-        ?>) {
+                    require_once 'global_config.inc';
+                    global $title_max_length;
+                    echo $title_max_length;
+            ?>                          ) {
                     window.alert('®Title_too_long®');
                     return false;
                 }

@@ -122,6 +122,11 @@ system("chown -R $ezrecorder_username:$ezrecorder_web_user $web_basedir");
 system("chown -R $ezrecorder_username:$ezrecorder_web_user $basedir");
 system("chmod 755 $basedir/setperms.sh");
 
+$web_file_path = $web_basedir . "/services/root.inc";
+$web_file = file_get_contents($web_file_path);
+$web_file = str_replace("!ROOT", $basedir, $web_file);
+file_put_contents($web_file_path, $web_file);
+
 echo "Modification of global values in $web_basedir/index.php" . PHP_EOL;
 
 $web_file = file_get_contents($web_basedir . "/index.php");
@@ -140,5 +145,3 @@ function ping($host, $timeout) {
 
   return 0;
 }
-
-?>
