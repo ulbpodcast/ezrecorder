@@ -31,7 +31,7 @@ if [ "$REC_STATUS" == "launch_failure" ]; then
     done
 
     if [ $EXISTS_VIDEO -eq 1 ]; then
-        echo "open" >> $STATUS
+        echo "open" > $STATUS
     fi;
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > $CUT_LIST
 fi;
