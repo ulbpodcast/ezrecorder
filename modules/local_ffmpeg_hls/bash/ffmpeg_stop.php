@@ -75,13 +75,24 @@ function stop_recording($pid_file) {
     if(file_exists($pid_file)) {
         $pid = file_get_contents($pid_file);
         unlink($pid_file);
+        $return_val = 0;
         system("kill -2 $pid", $return_val);
         if($return_val != 0) {
             $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, "Could not kill FFMPEG process (pid $pid)", array($module_name, "ffmpeg_stop"));
             return false;
         }
-        while(is_process_running($pid))
-            sleep(1);
+        //wait until process closed, or $kill_timeout passed
+        $kill_timeout = 10;
+        $start = time();
+        while(true) {
+            $now = time();
+            if(($now - $kill_timeout) > $start) {
+                system("kill -9 $pid", $return_val);
+                break;
+            }
+            if(!is_process_running($pid))
+                break;
+        }
     }
     return true;
 }
