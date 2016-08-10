@@ -1,29 +1,5 @@
 <?php
 
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 require 'etc/config.inc';
 require_once __DIR__ . '/../../global_config.inc';
 require_once $basedir . '/common.inc';
@@ -393,36 +369,27 @@ function capture_ffmpeg_cancel($asset) {
     global $logger;
     global $module_name;
     global $ffmpeg_script_cancel;
-    global $ffmpeg_recorder_logs;
     global $ezrecorder_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    //$logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name, "capture_ffmpeg_cancel"));
     
-    // get status of the current recording
-    $status = capture_ffmpeg_status_get();
-    if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
-        // cancels the current recording, saves it in archive dir and stops the monitoring
-        $log_file = capture_ffmpeg_get_log_file($asset);
-        $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $ffmpeg_script_cancel . ' ' . $asset . ' >> ' . $log_file . ' 2>&1 &';
-        log_append('recording', "launching command: $cmd");
-        $fpart = exec($cmd, $outputarray, $errorcode);
-        $post_array = capture_ffmpeg_info_get('streaming', $asset);
-        if ($post_array !== false) {
-            // streaming enabled
-            global $ezcast_submit_url;
-            $post_array['action'] = 'streaming_close';
-            $res = server_request_send($ezcast_submit_url, $post_array);
-            if (strpos($res, 'error') !== false) {
-                $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": An error occured while starting streaming on the server", array("module",$module_name));
-            }
+    // cancels the current recording, saves it in archive dir and stops the monitoring
+    $log_file = capture_ffmpeg_get_log_file($asset);
+    $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $ffmpeg_script_cancel . ' ' . $asset . ' >> ' . $log_file . ' 2>&1 &';
+    log_append('recording', "launching command: $cmd");
+    $fpart = exec($cmd, $outputarray, $errorcode);
+    $post_array = capture_ffmpeg_info_get('streaming', $asset);
+    if ($post_array !== false) {
+        // streaming enabled
+        global $ezcast_submit_url;
+        $post_array['action'] = 'streaming_close';
+        $res = server_request_send($ezcast_submit_url, $post_array);
+        if (strpos($res, 'error') !== false) {
+            $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, __FUNCTION__.": An error occured while stopping streaming on the server", array("module",$module_name, "capture_ffmpeg_cancel"));
         }
-        capture_ffmpeg_recstatus_set('');
-        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array("module",$module_name));
-    } else {
-        error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel recording because of current status: $status", array("module",$module_name));
-        return false;
     }
+    capture_ffmpeg_recstatus_set('');
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array("module",$module_name, "capture_ffmpeg_cancel"));
 
     return true;
 }

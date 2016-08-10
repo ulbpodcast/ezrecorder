@@ -9,6 +9,7 @@ unlink $EZCASTDIR/var/_monitoring_pid
 PID=`cat $FFMPEG_PID`
 # ends FFMPEG
 kill -2 $PID
+#todo: kill timeout
 while ps -p $PID > /dev/null; do sleep 1; done
 unlink $FFMPEG_PID
 
