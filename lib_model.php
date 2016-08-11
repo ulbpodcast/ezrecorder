@@ -605,7 +605,7 @@ function controller_view_record_form() {
     global $recorder_monitoring_pid;
     global $logger;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, "controller_view_record_form called. Backtrace:\n" . print_r(debug_backtrace(), true), array('controller_view_record_form'));
+    //$logger->log(EventType::TEST, LogLevel::DEBUG, "controller_view_record_form called. Backtrace:\n" . print_r(debug_backtrace(), true), array('controller_view_record_form'));
 
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))

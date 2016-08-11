@@ -151,10 +151,11 @@ abstract class Logger {
      * @param AssetLogInfo $asset_info Additional information about asset if any, in the form of a AssetLogInfo structure
      * @return LogData temporary data, used by children functions
      */
-    protected function log(&$type, &$level, &$message, array &$context = array(), &$asset = "dummy", 
+    protected function _log(&$type, &$level, &$message, array &$context = array(), &$asset = "dummy", 
             &$author = null, &$cam_slide = null, &$course = null, &$classroom = null)
     {
         global $debug_mode;
+        global $service;
         
         if(!isset($message) || !$message)
             $message = "";
@@ -194,11 +195,13 @@ abstract class Logger {
         // okay, all data ready
         
 
-        $print_str = "log| [$level] / context: $tempLogData->context / type: $type / $message";
+        $print_str = "log| [$level] / context: $tempLogData->context / type: $type / " . json_encode($message);
         if(Logger::$print_logs)
             echo $print_str . PHP_EOL;
         
-        if($debug_mode && $type != EventType::PHP) //PHP events are already printed in custom_error_handling.php
+        if($debug_mode 
+                && $type != EventType::PHP //PHP events are already printed in custom_error_handling.php
+                && (!isset($service) || $service == false)) //some services will try to parse the response, and our <script> may interfere in this case
             echo("<script>console.log('$print_str');</script>");
         
         

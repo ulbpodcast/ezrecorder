@@ -257,7 +257,7 @@ class RecorderLogger extends Logger {
      */
     public function log($type, $level, $message, array $context = array(), $asset = "dummy", 
             $author = null, $cam_slide = null, $course = null, $classroom = null) {
-        $tempLogData = parent::log($type, $level, $message, $context, $asset, $author, $cam_slide, $course, $classroom);
+        $tempLogData = parent::_log($type, $level, $message, $context, $asset, $author, $cam_slide, $course, $classroom);
         
         LoggerSyncDaemon::ensure_is_running();
         

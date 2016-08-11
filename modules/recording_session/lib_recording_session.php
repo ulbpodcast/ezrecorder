@@ -20,12 +20,12 @@ include "config.inc";
  */
 function session_xml_metadata_save($metadata_assoc_array) {
     global $metadata_file;
-
+    global $debug_mode;
+    
     //create and store recording properties
     $xml = session_xml_assoc_array2metadata($metadata_assoc_array);
     file_put_contents($metadata_file, $xml);
-    chmod($metadata_file, 0644);
-
+    $res = chmod($metadata_file, 0644);    
     return true;
 }
 
