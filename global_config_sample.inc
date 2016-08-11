@@ -70,9 +70,9 @@ $auth_module = "file";
 $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 
 // debugging
-$debug_mode = false;
-$send_debug_logs_to_server = false;
-        
+$debug_mode = false; //debug mode print recorder events and php errors to console
+$send_debug_logs_to_server = false; //by default, events of type debug are not sent to ezcast
+   
 // logging
 $log_database_file = "$basedir/var/logs.sqlite";
 
