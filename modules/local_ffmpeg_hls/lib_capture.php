@@ -101,7 +101,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
     if(!file_exists($asset_dir)) {
         $res = mkdir($asset_dir, 0777);
         if(!$res) {
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not create folder $asset_dir. Check parent permissions ?", array("module",$module_name));
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not create folder $asset_dir. Check parent folder permissions ?", array("module",$module_name));
             return false;
         }
     }

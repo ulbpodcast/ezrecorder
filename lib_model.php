@@ -785,23 +785,75 @@ function user_login($login, $passwd) {
     controller_view_record_form();
 }
 
+function reset_cam_position() {
+    global $cam_management_enabled;
+    global $cam_management_module;
+    
+    if ($cam_management_enabled) {
+       //cam management enabled so try to put camera back in place
+       if ($_SESSION['recorder_type'] == 'slide') {
+           $fct_cam_move = "cam_" . $cam_management_module . "_move";
+           $fct_cam_move($GLOBALS['cam_screen_scene']); //if slide only, record screen as a backup
+       } else {
+           $fct_cam_move = "cam_" . $cam_management_module . "_move";
+           $fct_cam_move($GLOBALS['cam_default_scene']); //set ptz to the initial position
+       }
+    }
+}
+
+function init_capture(&$cam_ok, &$slide_ok) {
+    global $cam_enabled;
+    global $cam_module;
+    global $slide_enabled;
+    global $slide_module;
+    global $logger;
+    
+    reset_cam_position();
+
+    $cam_pid = 0;
+    $slide_pid = 0;
+
+    // if cam module is enabled
+    if ($cam_enabled) {
+        $fct_capture_init = 'capture_' . $cam_module . '_init';
+        $cam_ok = $fct_capture_init($cam_pid, $metadata);
+        if ($cam_ok == false) {
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("view_record_screen"));
+            log_append('error', "view_record_screen: Cam capture init failed.");
+        }
+    }
+    // if slide module is enabled
+    if ($slide_enabled) {
+        $fct_capture_init = 'capture_' . $slide_module . '_init';
+        $slide_ok = $fct_capture_init($slide_pid, $metadata);
+        if ($slide_ok == false) {
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("view_record_screen"));
+            log_append('error', "view_record_screen: Slides capture init failed.");
+        }
+    }
+
+    // capture_init is launched in background in order to save time.
+    // waits until both processes are finished to continue.
+    while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
+        sleep(0.5);
+    
+    $status = status_get();
+    if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
+        status_set('launch_failure');
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check module log for more info, until we get rid of the bash scripts)", array("init_capture"));
+    }
+}
+
 /**
  * Displays the screen with "pause/resume", video feedback, etc.
  */
 function view_record_screen() {
     global $logger;
-    global $url;
     global $session_module;
     global $cam_enabled;
-    global $cam_module;
     global $slide_enabled;
-    global $slide_module;
     global $cam_management_enabled;
     global $cam_management_module;
-    global $cam_management_views_dir;
-    global $redraw;
-    global $already_recording;
-    global $status;
     global $php_cli_cmd;
     global $cli_timeout_monitoring;
 
@@ -813,54 +865,15 @@ function view_record_screen() {
     $cam_ok = false;
     $slide_ok = false;
         
-    // 1) First of all we init the recorder
+    // First of all we init the recorder
     if ($status == '') {
-
-        if ($cam_management_enabled) {
-            //cam management enabled so try to put camera back in place
-            if ($_SESSION['recorder_type'] == 'slide') {
-                $fct_cam_move = "cam_" . $cam_management_module . "_move";
-                $fct_cam_move($GLOBALS['cam_screen_scene']); //if slide only, record screen as a backup
-            } else {
-                $fct_cam_move = "cam_" . $cam_management_module . "_move";
-                $fct_cam_move($GLOBALS['cam_default_scene']); //set ptz to the initial position
-            }
-        }
-
-        $cam_pid = 0;
-        $slide_pid = 0;
-
-        // if cam module is enabled
-        if ($cam_enabled) {
-            $fct_capture_init = 'capture_' . $cam_module . '_init';
-            $cam_ok = $fct_capture_init($cam_pid, $metadata);
-            if ($cam_ok == false) {
-                $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("view_record_screen"));
-                log_append('error', "view_record_screen: Cam capture init failed.");
-            }
-        }
-        // if slide module is enabled
-        if ($slide_enabled) {
-            $fct_capture_init = 'capture_' . $slide_module . '_init';
-            $slide_ok = $fct_capture_init($slide_pid, $metadata);
-            if ($slide_ok == false) {
-                $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("view_record_screen"));
-                log_append('error', "view_record_screen: Slides capture init failed.");
-            }
-        }
-
-        // capture_init is launched in background in order to save time.
-        // waits until both processes are finished to continue.
-        while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
-            sleep(0.5);
+        init_capture($cam_ok, $slide_ok);
     }
 
-    // something wrong happened while init the recorders
+    // did something went wrong while initializing the recorders ?
     // if capture module launch failed, reset status and display an error box
     $status = status_get();
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check module log for more info, until we get rid of the bash scripts)", array("view_record_screen"));
-        status_set('launch_failure');
         header( "refresh:1;url=index.php" );
         require_once template_getpath('div_error_launch_failure.php');
         return;
@@ -871,16 +884,23 @@ function view_record_screen() {
         $fct_cam_posnames_get = "cam_" . $cam_management_module . "_posnames_get";
         $positions = $fct_cam_posnames_get(); // List of camera positions available (used in record_screen.php)
     }
-    // DIsplaying a "disabled" image if one of the two video sources has been disabled
-    $has_camera = (strpos($metadata['record_type'], 'cam') !== false);
-    $has_slides = (strpos($metadata['record_type'], 'slide') !== false);
-
+    
     // launches the timeout monitoring process in background
     exec("$php_cli_cmd $cli_timeout_monitoring > /dev/null &", $output, $errno);
 
     log_append("recording_init", "initiated recording by request (record_type: " .
             $metadata['record_type'] . " - cam module enabled : $cam_enabled - slide module enabled : $slide_enabled");
 
+    
+    // view only variables
+    //
+    // DIsplaying a "disabled" image if one of the two video sources has been disabled
+    $has_camera = (strpos($metadata['record_type'], 'cam') !== false);
+    $has_slides = (strpos($metadata['record_type'], 'slide') !== false);
+    global $cam_management_views_dir;
+    global $redraw;
+    global $already_recording;
+    
     // And finally we display the page
     require_once template_getpath('record_screen.php');
 }
