@@ -7,6 +7,9 @@
  * 
  */
 
+global $service;
+$service = true;
+
 require_once 'global_config.inc';
 
 require_once $cam_lib;
@@ -91,7 +94,7 @@ $slide_ok = true;
 //check result
 if ($cam_enabled) {
     $fct = 'capture_' . $cam_module . '_process_result';
-    if(function_exists($fct)) { //all modules do not yet implement this
+    if(function_exists($fct)) { //all modules do not implement this yet
         $success = $fct($asset);
         if(!$success) {
             $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Cam post processing failed or result not found. Continue anyway.", array("cli_post_process"), $asset);
@@ -106,7 +109,7 @@ if ($cam_enabled) {
 
 if ($slide_enabled) {
     $fct = 'capture_' . $slide_module . '_process_result';
-    if(function_exists($fct)) { //all modules do not yet implement this
+    if(function_exists($fct)) { //all modules do not implement this yet
         $success = $fct($asset);
         if(!$success) {
             $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Slides post processing failed or result not found. Continue anyway.", array("cli_post_process"), $asset);
@@ -119,11 +122,11 @@ if ($slide_enabled) {
 
 if($slide_ok && $cam_ok)
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::INFO, "Finished successfully videos post processing.", array("cli_post_process"), $asset);
-else if (!$slide_ok && !$cam_ok) {
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::INFO, "Post processing: Both cam and slides are either disabled or failed (cam: $cam_ok, slide: $slide_ok) (1 = ok)", array("cli_post_process"), $asset);
+else if ((!$slide_enabled || !$slide_ok) && (!$cam_enabled || !$cam_ok)) {
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::INFO, "Post processing: Both cam and slides are either disabled or failed (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok)", array("cli_post_process"), $asset);
     exit(1);
 } else
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "At least one module failed video post processing (cam: $cam_ok, slide: $slide_ok) (1 = ok). Trying to continue anyway.", array("cli_post_process"), $asset);
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "At least one module failed video post processing (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok). Trying to continue anyway.", array("cli_post_process"), $asset);
 
 system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
 
@@ -131,11 +134,9 @@ system("echo \"`date` : local processing finished for both cam and slide modules
 global $cli_upload;
 global $php_cli_cmd;
 
-$asset_dir = get_asset_dir($asset);
-
 // launches the video processing in background
 $return_val = 0;
-system("$php_cli_cmd $cli_upload > $asset_dir/upload.log &", $return_val);
+system("$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log &", $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Could not start upload ($cli_upload), cli returned $return_val", array("cli_post_process"), $asset);
     exit(1);

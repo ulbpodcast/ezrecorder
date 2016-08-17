@@ -26,6 +26,9 @@
 
 // Uses ffmpeg to concatenate video files
 
+global $service;
+$service = true;
+
 include __DIR__."/lib_ffmpeg.php";
 include __DIR__."/../../../../global_config.inc";
 

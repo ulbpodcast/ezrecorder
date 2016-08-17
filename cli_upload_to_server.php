@@ -6,7 +6,6 @@
  * Usage: cli_upload_to_server.php [asset_name]
  * 
  */
-
 require_once 'global_config.inc';
 
 require_once $cam_lib;
@@ -17,6 +16,8 @@ require_once 'lib_various.php';
 require_once 'lib_model.php';
 
 Logger::$print_logs = true;
+global $service;
+$service = true;
 
 $asset = '';
 if(isset($argv[1]))
