@@ -76,7 +76,7 @@ do
                 # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
                 if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
                 then
-                    nohup $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                    $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
                         -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                         -hls_list_size 0 -hls_wrap 0 -start_number 1 \
                         $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 \
@@ -88,12 +88,12 @@ do
                         >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
                 else
                     # High
-                    nohup $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                    $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
                     -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                     -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
                     >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
                     # Low, thumbnails are created from this one
-                    nohup $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                    $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
                     -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                     -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 \
                     -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH \
@@ -101,7 +101,7 @@ do
                 fi
             else 
                 # streaming is disabled. We prepare high resolution only
-                nohup $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
                 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                 -hls_list_size 0 -hls_wrap 0 -start_number 1 \
                 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 \
