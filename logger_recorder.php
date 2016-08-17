@@ -243,6 +243,19 @@ class RecorderLogger extends Logger {
         return $to_send;
     }
 
+    public function get_default_asset_for_log() {
+        global $session_module;
+        
+        //try getting it from session
+        $fct = "session_" . $session_module . "_metadata_get";
+        $meta_assoc = $fct();
+        if($meta_assoc != false) {
+            return get_asset_name($meta_assoc['course_name'], $meta_assoc['record_date']);
+        } else {
+            return "dummy";
+        }
+    }
+    
     /**
      * Logs with an arbitrary level.
      *
@@ -255,8 +268,13 @@ class RecorderLogger extends Logger {
      * @param AssetLogInfo $asset_info Additional information about asset if any, in the form of a AssetLogInfo structure
      * @return LogData temporary data, used by children functions
      */
-    public function log($type, $level, $message, array $context = array(), $asset = "dummy", 
+    public function log($type, $level, $message, array $context = array(), $asset = "", 
             $author = null, $cam_slide = null, $course = null, $classroom = null) {
+        
+        if($asset == "") {
+            $asset = $this->get_default_asset_for_log();
+        }
+        
         $tempLogData = parent::_log($type, $level, $message, $context, $asset, $author, $cam_slide, $course, $classroom);
         
         LoggerSyncDaemon::ensure_is_running();
