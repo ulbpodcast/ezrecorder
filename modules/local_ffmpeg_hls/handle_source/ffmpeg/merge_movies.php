@@ -81,8 +81,9 @@ if ($output >= 1) {
 //We will now extract the parts user wants to keep according to the cutlist
 $err = movie_extract_cutlist($movies_path, $merge_file, $cutlist_file, $outputfilename, $asset_name);
 if($err != 0) {
-    $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err ", array("merge_movies"), $asset_name);
-    exit(1);
+    $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err. Move $merge_file to $outputfilename instead.", array("merge_movies"), $asset_name);
+    rename($movie_path/$merge_file, $movie_path/$outputfilename);
+    exit(2);
 }
 
 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"), $asset_name);

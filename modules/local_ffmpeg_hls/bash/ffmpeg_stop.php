@@ -41,8 +41,15 @@ $return_val = 0;
 system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, "Call to merge movies failed, error code: $return_val. Check merge_movies.log", array($module_name, "ffmpeg_stop"));
-    file_put_contents($result_file, "1"); 
-    exit(2);
+    file_put_contents($result_file, $return_val); 
+}
+
+//if merge movies return 2, merge has been successfully but cutting failed. Let's continue with what we got.
+if($return_val == 2) {
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, "Parts merge succeeded but cutting failed. This is BAD, but let's continue with what we got.", array($module_name, "ffmpeg_stop"));
+    //at this point, merge movie script should still have produced a cam.mov file
+} else if($return_val != 0) {
+    exit(1);
 }
 
 $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "ffmpeg_stop finished movie merging", array($module_name, "ffmpeg_stop"));
