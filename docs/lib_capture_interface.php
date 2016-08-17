@@ -99,7 +99,7 @@ function capture_modulename_cancel($asset) {};
  * @param type $asset
  * @return true on process success, false on failure or result not found
  */
-function capture_ffmpeg_process_result($asset) {}
+function capture_modulename_process_result($asset) {}
 
 /**
  * @implements
@@ -173,4 +173,3 @@ function capture_modulename_status_set($status) {};
  * Returns the features offered by the module
  */
 function capture_modulename_features_get(){};
-?>

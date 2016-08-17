@@ -23,7 +23,7 @@
                 $.colorbox.remove();
             });
 
-            function publish(moderation) {
+            function stop_and_publish(moderation) {
                 var message = '';
                 if (moderation == 'true') {
                     message = "®Unpublish®";
@@ -34,7 +34,7 @@
 
                 var res = window.confirm(message);
                 if (res)
-                    makeRequest('index.php', '?action=publish&moderation=' + moderation, 'global');
+                    makeRequest('index.php', '?action=stop_and_publish&moderation=' + moderation, 'global');
             }
 
             function cancel() {
@@ -64,8 +64,8 @@
                 <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT -->
                 <div id="troisbouton">
                     <a id="btnCancel" href="javascript:cancel();" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page3/BsupEnr.png', 1)"><img src="images/page3/AsupEnr.png" name="Image2" title="®Delete_record®" width="128" border="0" id="Image2" />®Delete_record®</a>
-                    <a id="btnPriv" href="javascript:publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page3/BpubEnr.png', 1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
-                    <a id="btnPub" href="javascript:publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page3/BpubDEnr.png', 1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
+                    <a id="btnPriv" href="javascript:stop_and_publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page3/BpubEnr.png', 1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
+                    <a id="btnPub" href="javascript:stop_and_publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page3/BpubDEnr.png', 1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
                 </div>
             </div>  
             <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT [FIN] -->

@@ -88,9 +88,13 @@ $action = '';
 if(isset($input['action']))
     $action = $input['action'];
 
+global $service; //true if we're currently running a service. 
+$service = false;
+    
 switch ($action) {
     // Someone submitted record information.
     // We save these metadata and display the record_screen
+    // This action is blocking until capture is initialized
     case 'submit_record_infos':
         controller_recording_submit_infos();
         break;
@@ -124,7 +128,7 @@ switch ($action) {
         break;
 
     // Stops recording
-    case 'publish': //new name
+    case 'stop_and_publish': //new name
     case 'recording_stop': //old name for compatibility until all recorders are updated
         controller_publish();
         break;
