@@ -62,15 +62,6 @@ function capture_ffmpeg_get_asset_ffmpeg_folder($asset, $step = '') {
     return "$asset_dir/ffmpeg/";
 }
 
-//get log file for given asset
-function capture_ffmpeg_get_log_file($asset) {
-    $folder = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-    if(!$folder)
-        return false;
-    
-    return "$folder/_log";
-}
-
 /**
  * @implements
  * Initialize the recording settings.
@@ -143,7 +134,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
     // script_init initializes FFMPEG and launches the recording
     // in background to save time (pid is returned to be handled by web_index.php)
     $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-    $log_file = capture_ffmpeg_get_log_file($asset);
+    $log_file = $working_dir . '/init.log';
     $return_val = 0;
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 >> $log_file 2>&1 & echo $! > $working_dir/init_pid";
     system($cmd, $return_val);
@@ -219,8 +210,8 @@ function capture_ffmpeg_start($asset) {
     //$logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
     
     create_ffmpeg_working_folders($asset);
-    $log_file = capture_ffmpeg_get_log_file($asset);
     $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $log_file = $working_dir . '/start.log';
     $cut_list = capture_ffmpeg_get_cutlist($asset);
     
     // adds time in the cutlist
@@ -273,8 +264,9 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     }
     
     $return_val = 0;
+    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
     $cutlist_file = capture_ffmpeg_get_cutlist($asset);
-    $log_file = capture_ffmpeg_get_log_file($asset);
+    $log_file = $working_dir . '/cutlist.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1 &";
     system($cmd, $return_val);
     if($return_val != 0) {
@@ -326,6 +318,8 @@ function capture_ffmpeg_stop(&$pid, $asset) {
         // pauses the current recording (while user chooses the way to publish the record)
         $cut_list = capture_ffmpeg_get_cutlist($asset);
         $log_file = capture_ffmpeg_get_log_file($asset);
+        $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+        $log_file = $working_dir . '/cutlist.log';
         $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
         $return_var = 0;
         system($cmd, $return_var);
@@ -359,7 +353,8 @@ function capture_ffmpeg_cancel($asset) {
     //$logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name, "capture_ffmpeg_cancel"));
     
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $log_file = capture_ffmpeg_get_log_file($asset);
+    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $log_file = $working_dir . '/cancel.log';
     $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $ffmpeg_script_cancel . ' ' . $asset . ' >> ' . $log_file . ' 2>&1 &';
     log_append('recording', "launching command: $cmd");
     $fpart = exec($cmd, $outputarray, $errorcode);
