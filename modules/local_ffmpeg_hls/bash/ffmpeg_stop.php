@@ -12,7 +12,7 @@ require_once __DIR__."/../lib_capture.php";
 Logger::$print_logs = true;
 
 if ($argc != 2) {
-    echo 'Usage: ffmpeg_stop.php <asset>' . PHP_EOL;
+    echo 'Usage: php ffmpeg_stop.php <asset>' . PHP_EOL;
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, __FILE__ . " called with wrong arg count", array($module_name, "ffmpeg_stop"));
     exit(1);
 }

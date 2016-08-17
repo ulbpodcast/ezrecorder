@@ -20,12 +20,23 @@ include "config.inc";
  */
 function session_xml_metadata_save($metadata_assoc_array) {
     global $metadata_file;
-    global $debug_mode;
+    global $logger;
     
+    $processUser = posix_getpwuid(posix_geteuid());
+    $name = $processUser['name'];
+        
     //create and store recording properties
     $xml = session_xml_assoc_array2metadata($metadata_assoc_array);
-    file_put_contents($metadata_file, $xml);
-    $res = chmod($metadata_file, 0644);    
+    $res = file_put_contents($metadata_file, $xml);
+    if(!$res) {
+        $logger->log(EventType::RECORDER_METADATA, LogLevel::ERROR, __FUNCTION__.": Failed to save metadata to $metadata_file. Current user: $name. Probably a permission problem.", array("lib_recording_session"));
+        return false;
+    }
+    $res = chmod($metadata_file, 0644);
+    if(!$res) {
+        //file is owned by podclient. Any solution ?
+        $logger->log(EventType::TEST, LogLevel::WARNING, "Could not chmod file $metadata_file. Current user: $name", array("lib_recording_session"));
+    }
     return true;
 }
 

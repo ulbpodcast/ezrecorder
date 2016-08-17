@@ -171,7 +171,11 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     chdir($movie_path);
 
     $tmp_dir = 'cutlist_tmpdir';
-    mkdir("./$tmp_dir");
+    $ok = mkdir("./$tmp_dir");
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not create temporary cut folder: $tmp_dir", array("movie_extract_cutlist"), $asset_name);
+        return "/7 Could not create temporary cut folder: $tmp_dir";
+    }
 
     // creates each recording segments to be concatenated
     foreach ($ffmpeg_params as $index => $params) {
@@ -249,7 +253,6 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
 
     if ($tmp_dir != '')
         exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
+    
     return 0;
 }
-
-?>

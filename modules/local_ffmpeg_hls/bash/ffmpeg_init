@@ -160,7 +160,9 @@ if [ $EXISTS_VIDEO -eq 0 ]
 then 
     echo "FAILURE FFMPEG"
     echo "FFMPEG Launch Failure in $CLASSROOM" | mail -s "FFMPEG Failure $CLASSROOM" $MAIL_TO
+
     echo -n "launch_failure" > $EZCASTDIR/var/status
+    exit 1
 
 else # currently recording
     #saves current date as recording init
@@ -168,4 +170,7 @@ else # currently recording
 
     #start monitoring 
     echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now
+
+    echo -n "open" > $EZCASTDIR/var/status
+    exit 0
 fi

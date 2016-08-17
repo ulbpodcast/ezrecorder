@@ -113,7 +113,9 @@ function xml_file2assoc_array($meta_path) {
     $xml = simplexml_load_file($meta_path);
     if ($xml === false)
     {
-        print_r(debug_backtrace());
+        global $debug_mode;
+        if($debug_mode)
+            print_r(debug_backtrace());
         return false;
     }
     $assoc_array = array();
