@@ -19,7 +19,7 @@ class RecorderState {
         global $session_module;
         
         $status = status_get();
-        $this->recording = $status == "" ? '0' : '1'; //no status = no recording
+        $this->recording = $status == "recording" ? '1' : '0';
         $this->status_general = $status;
         $this->status_cam = status_get_cam();
         if($this->status_cam == null) //send empty instead of null in response
