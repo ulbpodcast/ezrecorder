@@ -64,6 +64,10 @@ if (!user_logged_in()) {
         //login and password were given, try to login
         user_login($input['login'], $input['passwd']);
     } else {
+        //hackfix, until we got a proper pages/service separation
+        if(isset($input['action']) && ($input['action'] == 'view_screenshot_iframe' || $input['action'] == 'view_screenshot_image'))
+            die;
+        
         // No login infos were submitted, display login form
         controller_view_login_form();
     }

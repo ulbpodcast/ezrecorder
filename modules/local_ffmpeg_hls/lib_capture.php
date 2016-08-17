@@ -317,7 +317,6 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     if ($status == 'recording' || $status == "paused") {
         // pauses the current recording (while user chooses the way to publish the record)
         $cut_list = capture_ffmpeg_get_cutlist($asset);
-        $log_file = capture_ffmpeg_get_log_file($asset);
         $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
         $log_file = $working_dir . '/cutlist.log';
         $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
