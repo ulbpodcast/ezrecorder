@@ -31,8 +31,6 @@ $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
 
-$ffmpeg_script_merge_movies = "$ffmpeg_basedir/handle_source/ffmpeg/merge_movies.php";
-
 $ffmpeg_download_protocol = "rsync"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'
 $ffmpeg_streaming_protocol = "http"; // if you change the protocol, you might

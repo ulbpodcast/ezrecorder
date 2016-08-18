@@ -184,3 +184,55 @@ function debug_to_console($data) {
             echo("<script>console.log('PHP: ".$data."');</script>");
     }
 }
+
+function get_asset_name($course_name, $record_date) {
+    return $record_date . '_' . $course_name;
+}
+
+/* step == "upload" or "local_processing" or "" 
+    Empty step will return first found
+ *  */
+function get_asset_dir($asset, $step = '') {
+    if ($step != 'upload' && $step != 'local_processing' && $step != '')
+        return false;
+
+    switch ($step) {
+        case "upload":
+            return get_upload_to_server_dir($asset);
+        case "local_processing":
+            return get_local_processing_dir($asset);
+        default:
+            $dir = get_upload_to_server_dir($asset);
+            if(!file_exists($dir))
+                $dir = get_local_processing_dir($asset);
+            
+            if(!file_exists($dir))
+                return false;
+            
+            return $dir;
+    }
+}
+
+function get_local_processing_dir($asset = '') {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/local_processing/' . $asset . '/';
+}
+
+function get_upload_to_server_dir($asset = '') {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/upload_to_server/' . $asset . '/';
+}
+
+// @returns <slide|cam|camslide>
+function get_record_type($cam, $slide) {
+    if ($cam && $slide)
+        return "camslide";
+    elseif ($cam)
+        return "cam";
+    elseif ($slide)
+        return "slide";
+    else
+        return false;
+}

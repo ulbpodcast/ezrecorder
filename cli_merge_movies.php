@@ -1,49 +1,22 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 // Uses ffmpeg to concatenate video files
 
-global $service;
-$service = true;
-
 include __DIR__."/lib_ffmpeg.php";
-include __DIR__."/../../../../global_config.inc";
+include __DIR__."/global_config.inc";
 
 Logger::$print_logs = true;
 
 //handles an offlineqtb recording: multifile recording on podcv and podcs
 if ($argc != 6) {
-    echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file> <asset_name>\n";
-    echo "        where <root_movies_directory> is the directory containing the movies\n";
-    echo "        <commonpartname> part name that is common to all movies\n";
-    echo "        <merge_filename> filename to write output to\n";
-    echo "        <cutlist_file> the file containing the segments to extract from the recording\n";
-    echo "        <asset_name> asset name of the recording\n";
-    echo "";
-    echo "Example: php merge_movies.php /Users/podclient/Movies/local_processing/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam. /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list 2016_02_20_10h06_PHYS-S201";
+    echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file> <asset_name>" . PHP_EOL;
+    echo "        <root_movies_directory> is the directory containing the movies" . PHP_EOL;
+    echo "        <commonpartname> part name that is common to all movies" . PHP_EOL;
+    echo "        <merge_filename> filename to write output to" . PHP_EOL;
+    echo "        <cutlist_file> the file containing the segments to extract from the recording" . PHP_EOL;
+    echo "        <asset_name> asset name of the recording" . PHP_EOL;
+    echo PHP_EOL;
+    echo "Example: php merge_movies.php /Users/podclient/Movies/local_processing/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam.mov /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list 2016_02_20_10h06_PHYS-S201" . PHP_EOL;
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "ffmpeg merge_movies called with wrong arguments", array("merge_movies"));
     die;
 }

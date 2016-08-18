@@ -19,26 +19,43 @@ Logger::$print_logs = true;
 global $service;
 $service = true;
 
-$asset = '';
 if(isset($argv[1]))
 {
-    $asset = $argv[1];
+    $asset_tmp = $argv[1];
+    $asset_dir = get_asset_dir($asset_tmp);
+    if(!file_exists($asset_dir)) {
+        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Asset dir not found", array("cli_upload_to_server"));
+        exit(1);
+    }
+    
+    $metadata_filepath = $asset_dir . '/metadata.xml';
+    if(!file_exists($asset_dir)) {
+        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Metadata not found: $metadata_filepath", array("cli_upload_to_server"));
+        exit(1);
+    }
+    
+    $meta_assoc = session_xml_metadata2assoc_array($metadata_filepath);
+    if($meta_assoc == false) {
+        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue (1)", array("cli_upload_to_server"));
+        exit(1);
+    }
+    
 } else {
     //get session metadata to find last course
     $fct = "session_" . $session_module . "_metadata_get";
     $meta_assoc = $fct();
     if($meta_assoc == false) {
-        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array("cli_upload_to_server"));
+        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue (2)", array("cli_upload_to_server"));
         exit(1);
     }
-
-    $record_date = $meta_assoc['record_date'];
-    $course_name = $meta_assoc['course_name'];
-    $record_type = $meta_assoc['record_type'];
-
-    $asset = get_asset_name($course_name, $record_date);
 }
 
+$record_date = $meta_assoc['record_date'];
+$course_name = $meta_assoc['course_name'];
+//$record_type = $meta_assoc['record_type'];
+
+$asset = get_asset_name($course_name, $record_date);
+    
 $asset_dir = get_asset_dir($asset);
 $metadata_file = "$asset_dir/metadata.xml";
 if (!file_exists($metadata_file)) {
@@ -46,7 +63,6 @@ if (!file_exists($metadata_file)) {
     echo "Error: metadata file $metadata_file does not exist" . PHP_EOL;
     exit(2);
 }
-
 
 ////call EZcast server and tell it a recording is ready to download
 

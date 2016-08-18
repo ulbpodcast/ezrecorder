@@ -5,7 +5,7 @@
  * All path should be absolute
  */
 
-require_once dirname(__FILE__) . '/../../etc/config.inc';
+require_once("global_config.inc");
 
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)
@@ -177,17 +177,19 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         return "/7 Could not create temporary cut folder: $tmp_dir";
     }
 
+    file_put_contents($cutlist_file.'_debug', print_r($ffmpeg_params, true), FILE_APPEND);
+
     // creates each recording segments to be concatenated
     foreach ($ffmpeg_params as $index => $params) {
         $try = 0;
-        $part_duration = 0;
+        $part_duration = -999;
         $part_start_second = $params[0];
         $desired_part_duration = $params[1];
         // sometimes, ffmpeg doesn't extract the recording segment properly
         // This results in a shortened segment which may cause problems in the final rendering 
         // We then loop on segment extraction to make sure it has the expected duration
         $try_count = 3;
-        while ($try < $try_count && $part_duration < $desired_part_duration-1) { //minus one second for margin
+        while ($try < $try_count && abs($part_duration - $desired_part_duration) > 1) { //allow one second difference max
             // extracts the recording segment from the full recording
             // -ss : the segment starts at $param[0] seconds of the full video
             // -t  : the segment lasts $param[1] seconds long
@@ -221,10 +223,10 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         }
         if($try == $try_count) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
+        } else if ($try == 0) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::CRITICAL, "WHAT? We didn't even loop once, there is a logic error here.", array("movie_extract_cutlist"), $asset_name);
         }
     }
-
-    file_put_contents($cutlist_file.'_debug', PHP_EOL . print_r($ffmpeg_params, true), FILE_APPEND);
 
     $join_file = "$tmp_dir/concat.txt";
     if(file_exists($join_file))

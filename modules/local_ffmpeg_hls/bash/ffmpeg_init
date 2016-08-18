@@ -166,7 +166,7 @@ then
 
 else # currently recording
     #saves current date as recording init
-    echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list
+    echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list.txt
 
     #start monitoring 
     echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now

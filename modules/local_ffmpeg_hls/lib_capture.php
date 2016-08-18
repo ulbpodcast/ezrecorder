@@ -50,7 +50,7 @@ function capture_ffmpeg_get_cutlist($asset) {
     if(!$folder)
         return false;
     
-    return "$folder/_cut_list";
+    return "$folder/_cut_list.txt";
 }
 
 //get ffmpeg working folder for asset. Folder can be both in local_processing and upload_to_server
@@ -136,14 +136,15 @@ function capture_ffmpeg_init(&$pid, $meta_assoc) {
     $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
     $log_file = $working_dir . '/init.log';
     $return_val = 0;
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 >> $log_file 2>&1 & echo $! > $working_dir/init_pid";
+    $init_pid_file = "$working_dir/init_pid.txt";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 >> $log_file 2>&1 & echo $! > $init_pid_file";
     system($cmd, $return_val);
     if($return_val) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Init command failed: $cmd", array("module",$module_name));
         capture_ffmpeg_status_set("launch_failure");
         return false;
     }
-    $pid = file_get_contents("$working_dir/init_pid");
+    $pid = file_get_contents($init_pid_file);
 
     // init the streaming
     if ($streaming_info !== false) {
@@ -326,7 +327,8 @@ function capture_ffmpeg_stop(&$pid, $asset) {
             $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, "Record stopping failed: $cmd", array("module", $module_name));
             return false;
         }
-        //$pid = file_get_contents("$tmp_dir/stop_pid");
+        $pid = 0; //cutlist is not started in background
+        
         // set the new status for the current recording
         capture_ffmpeg_status_set('stopped');
         $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array("module",$module_name));
@@ -380,14 +382,15 @@ function capture_ffmpeg_cancel($asset) {
  */
 function capture_ffmpeg_process_result($asset) {
     global $logger;
+    global $process_result_filename;
     
     $working_dir = get_asset_dir($asset);
-    $result_file = "$working_dir/process_result";
-    if(!file_exists($result_file)) {
-        $logger->log(EventType::TEST, LogLevel::DEBUG, "Return false because file $result_file does not exists", array("capture_ffmpeg_process_result"));
+    $process_result_file = "$working_dir/$process_result_filename";
+    if(!file_exists($process_result_file)) {
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "Return false because file $process_result_file does not exists", array("capture_ffmpeg_process_result"));
         return false;
     }
-    $result = file_get_contents($result_file);
+    $result = file_get_contents($process_result_file);
     if($result) 
         $result = trim($result);
     
@@ -425,7 +428,7 @@ function capture_ffmpeg_process($asset, &$pid) {
     if ($status != 'recording' && $status != 'open') {
         // saves recording in processing dir and processes it
         $process_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-        $pid_file = "$process_dir/stop_pid";
+        $pid_file = "$process_dir/stop_pid.txt";
         $log_file = "$process_dir/stop.log";
         $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_stop $asset >> $log_file 2>&1  & echo $! > $pid_file";
         log_append('recording', "launching command: $cmd");

@@ -3,6 +3,8 @@
 require_once("logger.php");
 require_once("logger_sync_daemon.php");
 require_once("global_config.inc");
+require_once($session_lib);
+require_once("lib_various.php");
 
 /**
  * This is the ezcast recorder logger,

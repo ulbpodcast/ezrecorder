@@ -31,6 +31,7 @@ $ezcast_submit_url = "http://your.ezcast.server/ezmanager/recorder/index.php"; /
 $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZrecorder alerts
 $php_cli_cmd = "/usr/bin/php"; // PHP binary
 $ffmpeg_cli_cmd = "/usr/local/bin/ffmpeg"; //FFMPEG binary
+$ffmpeg_script_merge_movies = "$basedir/cli_merge_movies.php";
 
 $nopic_file = "$basedir/nopic.jpg";
 
