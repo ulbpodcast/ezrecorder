@@ -94,7 +94,7 @@ if(!$cam_enabled && !$slide_enabled) { //we may have errors on both, stop in thi
 }
 
 //update record type depending on failures above
-$record_type = get_record_type($cam_enabled, $slide_enabled);
+$record_type = RecordType::to_string_for_options($cam_enabled, $slide_enabled);
 
 $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Starting upload to ezcast", array("cli_upload_to_server"), $asset);
 

@@ -278,7 +278,7 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     
     $set_status = $pause ? 'paused' : 'recording';
     capture_ffmpeg_status_set($set_status);
-    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $asset" . 'd by user', array("module",$module_name), $asset);
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array("module",$module_name), $asset);
     echo "ok";
     return true;
 }
@@ -327,7 +327,6 @@ function capture_ffmpeg_stop(&$pid, $asset) {
             $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, "Record stopping failed: $cmd", array("module", $module_name));
             return false;
         }
-        $pid = 0; //cutlist is not started in background
         
         // set the new status for the current recording
         capture_ffmpeg_status_set('stopped');
@@ -557,7 +556,7 @@ function capture_ffmpeg_info_get($action, $asset = '') {
             if ($ffmpeg_streaming_quality == 'none')
                 return false;
             
-            $asset_dir = get_local_processing_dir($asset);
+            $asset_dir = get_asset_dir($asset);
             if(!file_exists($asset_dir)) {
                 $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: streaming: No asset dir found, no info to give. File: $asset_dir.", array("module",$module_name));
                 return false;
@@ -701,4 +700,3 @@ function capture_ffmpeg_tmpdir_get($asset) {
     return $tmp_dir;
 }
 
-?>

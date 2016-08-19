@@ -31,13 +31,11 @@ function reconnect_active_session() {
     $already_recording = ($status == 'recording' || $status == 'paused');
     if ($already_recording || $status == 'open') {
         //state is one of the recording mode
-        $_SESSION['recorder_mode'] = 'view_record_screen';
         $redraw = true;
         view_record_screen();
     } else if ($status == 'stopped') {
         //stopped means we have already clicked on stop
-        $_SESSION['recorder_mode'] = 'view_record_submit';
-        controller_view_record_submit();
+        controller_stop_and_view_record_submit();
     } else
         controller_view_record_form(); //none of the above cases to this is a first form screen
 }
@@ -66,7 +64,14 @@ function controller_recording_submit_infos() {
         error_print_message(template_get_message('type_not_defined', get_lang()), false);
         die;
     }
-
+    
+    $valid_record_type = validate_allowed_record_type($input['record_type']);
+    if($valid_record_type == false) {
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::CRITICAL, "Invalid record type given (".$input['record_type']."), cannot continue", array('controller'));
+        error_print_message(template_get_message('type_not_valid', get_lang()), false);
+        die;
+    }
+    
     $streaming = (isset($input['streaming']) && $input['streaming'] == 'enabled') ? 'true' : 'false';
 
     // authorization check
@@ -76,11 +81,10 @@ function controller_recording_submit_infos() {
         $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
         log_append('warning', $msg);
         $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array('controller'));
-
         die;
     }
     $_SESSION['recorder_course'] = $input['course'];
-    $_SESSION['recorder_type'] = $input['record_type'];
+    $_SESSION['recorder_type'] = $valid_record_type;
 
     $datetime = date($dir_date_format);
 
@@ -90,7 +94,7 @@ function controller_recording_submit_infos() {
         'origin' => $classroom,
         'title' => trim($input['title']),
         'description' => $input['description'],
-        'record_type' => $input['record_type'],
+        'record_type' => $valid_record_type,
         'moderation' => 'true',
         'author' => $_SESSION['user_full_name'],
         'netid' => $_SESSION['user_login'],
@@ -108,9 +112,8 @@ function controller_recording_submit_infos() {
     }
 
     log_append("submit info from recording form");
-    // Don't forget to save the current viewed page into a session var, just in cast the user reloads the page
-    $_SESSION['recorder_mode'] = 'view_record_screen';
-    $_SESSION['asset'] = $record_meta_assoc['record_date'] . '_' . $record_meta_assoc['course_name'];
+    
+    $_SESSION['asset'] = get_asset_name($record_meta_assoc['course_name'], $record_meta_assoc['record_date']);
     file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
 
     // And finally we can display the main screen! This will init the recorders (blocking call)
@@ -215,7 +218,7 @@ function close_session() {
 /**
  * Stops the recording and processes it
  */
-function controller_publish() {
+function controller_stop_and_publish() {
     global $logger;
     global $input;
     global $php_cli_cmd;
@@ -795,7 +798,8 @@ function user_login($login, $passwd) {
     $_SESSION['user_real_login'] = $res['real_login'];
     $_SESSION['user_full_name'] = $res['full_name'];
     $_SESSION['user_email'] = $res['email'];
-    set_lang($input['lang']);
+    if(isset($input['lang']))
+        set_lang($input['lang']);
     template_repository_path($template_folder . get_lang());
 
     // 3) Now we have to check whether or not there is still a recording ongoing.
@@ -818,7 +822,7 @@ function user_login($login, $passwd) {
             if ($status == 'recording' || $status == 'paused' || $status == 'open')
                 view_record_screen(); //go directly to record screen
             else if ($status == 'stopped')
-                controller_view_record_submit();
+                controller_stop_and_view_record_submit();
             else
                 controller_view_record_form(); //ask metadata again
             die;
@@ -990,29 +994,27 @@ function view_record_screen() {
  * After stopping the recording
  */
 
-function controller_view_record_submit() {
+function controller_stop_and_view_record_submit() {
     global $cam_management_enabled;
     global $cam_management_module;
     global $logger;
 
     $asset = $_SESSION['asset'];
     if (!$asset) {
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_view_record_submit called without asset', array('controller'));
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_stop_and_view_record_submit called without asset', array('controller_stop_and_view_record_submit'));
         die();
     }
     
-    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array('controller'), $asset);
+    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array('controller_stop_and_view_record_submit'), $asset);
 
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller'), $asset);
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller_stop_and_view_record_submit'), $asset);
 
     $success = stop_current_record(false);
     if(!$success) {
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Stopping failed. Trying to continue anyway.', array('controller_view_record_submit'), $asset);
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Stopping failed. Trying to continue anyway.', array('controller_stop_and_view_record_submit'), $asset);
     }
 
     //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
-
-    $_SESSION['recorder_mode'] = 'view_record_submit';
 
     if ($cam_management_enabled) {
         //cam management enabled so try to put camera back in initial pos

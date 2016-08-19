@@ -225,14 +225,110 @@ function get_upload_to_server_dir($asset = '') {
     return $ezrecorder_recorddir . '/upload_to_server/' . $asset . '/';
 }
 
-// @returns <slide|cam|camslide>
-function get_record_type($cam, $slide) {
-    if ($cam && $slide)
-        return "camslide";
-    elseif ($cam)
-        return "cam";
-    elseif ($slide)
-        return "slide";
-    else
+// record type represented as in integer
+class RecordType {
+    const CAM      = 0x1;
+    const SLIDE    = 0x2;
+        
+    /**
+     * Compose record type string for given cam/slide int options
+     * @param integer $type_int
+     * @return <slide|cam|camslide> or false
+     */
+    static function to_string($type_int) {
+        if($type_int & self::CAM && $type_int & self::SLIDE)
+            return "camslide";
+        else if ($type_int & self::CAM)
+            return "cam";
+        else if ($type_int & self::SLIDE)
+            return "slide";
+        else
+            return false;
+    }
+    
+    /**
+     * Compose record type string for given cam/slide bool options
+     * Dunno how to name this function, feel free to change
+     * @param boolean $cam
+     * @param boolean $slide
+     * @return <slide|cam|camslide> or false
+     */
+    static function to_string_for_options($cam, $slide) {
+        if ($cam && $slide)
+            return "camslide";
+        elseif ($cam)
+            return "cam";
+        elseif ($slide)
+            return "slide";
+        else
+            return false;
+    }
+
+    /**
+     * Return record type int from string
+     * @param string $camslide
+     * @return integer
+     */
+    static function from_string($camslide) {
+        $type = 0;
+        if(strpos($camslide,"cam")!==false)
+            $type |= self::CAM;
+        if(strpos($camslide,"slide")!==false)
+            $type |= self::SLIDE;
+
+        return $type;
+    }
+}
+
+/* Return allowed RecordType to be used on this recorder 
+   @return allowed types as an integer
+ *  */
+function get_allowed_record_type() {
+    global $cam_enabled;
+    global $slide_enabled;
+    
+    $allowed = 0;
+    if($cam_enabled)
+        $allowed |= RecordType::CAM;
+    if($slide_enabled)
+        $allowed |= RecordType::SLIDE;
+        
+    return $allowed;
+}
+
+/**
+ * Return allowed record type for given type, or false if not any
+ * Example: Giving "camslide" to this function will return "cam" if slide is disabled.
+ * 
+ * @param string $record_type_str <slide|cam|camslide>
+ * @return <slide|cam|camslide> or false or false
+ */
+function validate_allowed_record_type($record_type_str) {
+    global $logger;
+    
+    //convert to int record type for operations, then back to string
+    $record_type_int = RecordType::from_string($record_type_str);
+    $allowed_int = get_allowed_record_type();
+    //get all allowed types from given record type
+    $ok_types_int = $record_type_int & $allowed_int;
+    $ok_type_str = RecordType::to_string($ok_types_int);
+     
+    /*
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "record_type_str: $record_type_str", array('controller'));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "allowed_int: $allowed_int", array('controller'));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "ok_types_int: $ok_types_int", array('controller'));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "ok_type_str: $ok_type_str", array('controller'));
+    */
+    
+    if($ok_type_str == false) {
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::ERROR, "No valid given record type in $record_type_str ($record_type_int). Only allowed types are: $allowed_int", array('controller'));
         return false;
+    }
+    
+    //user asked for camslide but only part only one of those was valid
+    if($record_type_str != $ok_type_str) {
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::ERROR, "Only part of given record type $record_type_str ($record_type_int) was valid. Only allowed types are: $allowed_int", array('controller'));
+    }
+    
+    return $ok_type_str;
 }

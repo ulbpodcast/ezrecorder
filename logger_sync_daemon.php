@@ -12,9 +12,10 @@ class LoggerSyncDaemon {
     const SYNC_BATCH_SIZE = 1000;
       
     public static function ensure_is_running() {
-        $current_dir = __DIR__;
+        global $basedir;
         if(!self::is_running()) {
-            system("php -f ". self::CLI_SYNC_DAEMON . " > $current_dir/var/log_sync_daemon 2>&1 &");
+            system("php -f ". self::CLI_SYNC_DAEMON . " > $basedir/var/log_sync_daemon 2>&1 &");
+            //it seems we sometimes have two sync_daemon running. Can this be because the background process is started only after the next log line has been executed ?
         }
     }
     
@@ -33,16 +34,16 @@ class LoggerSyncDaemon {
         $last_id_sent = 0;
         $ok = $logger->get_last_log_sent($last_id_sent);
         if(!$ok) {
-             $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array("LoggerSyncDaemon"));
             return 1;
         }
         
-        $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url.", array("LoggerSyncDaemon"));
+        //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Sending logs newer than $last_id_sent at address $log_push_url.", array("LoggerSyncDaemon"));
 
         $events_to_send = $logger->get_all_events_newer_than($last_id_sent, self::SYNC_BATCH_SIZE);
 
         if(count($events_to_send) == 0) {
-            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "All okay, nothing to send", array("LoggerSyncDaemon"));
+           // $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "All okay, nothing to send", array("LoggerSyncDaemon"));
             return 0;
         }
 

@@ -79,6 +79,8 @@
         <label id="Title_not_defined" lang="en">Undefined title</label>
         <label id="Type_not_defined" lang="fr">Format d'enregistrement non-défini</label>
         <label id="Type_not_defined" lang="en">Undefined record type</label>
+        <label id="Type_not_valid" lang="fr">Format d'enregistrement invalide</label>
+        <label id="Type_not_valid" lang="en">Invalid record type</label>
         <label id="Media_submitted_public" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album public une fois l'opération terminée.</label>
         <label id="Media_submitted_public" lang="en">Record saved and waiting for processing.&lt;br/&gt;It will be added to your public album once ready.</label>
         <label id="Media_submitted_private" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album privé une fois l'opération terminée.</label>

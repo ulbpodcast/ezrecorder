@@ -127,14 +127,12 @@ switch ($action) {
 
     // view submit menu, called when the user press the stop button
     case 'view_press_stop':
-    case 'view_record_submit': //old name for compatibility until all recorders are updated
-        controller_view_record_submit();
+        controller_stop_and_view_record_submit();
         break;
 
     // Stops recording
     case 'stop_and_publish': //new name
-    case 'recording_stop': //old name for compatibility until all recorders are updated
-        controller_publish();
+        controller_stop_and_publish();
         break;
 
     // Discards a record

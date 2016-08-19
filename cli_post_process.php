@@ -43,6 +43,11 @@ if(isset($argv[1]))
 }
 
 $asset_dir = get_asset_dir($asset);
+if(!$asset_dir) {
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get asset directory for asset '$asset'. Is asset already sent to server?", array("cli_post_process"), $asset);
+    exit(1);
+}
+
 $metadata_file = "$asset_dir/metadata.xml";
 if (!file_exists($metadata_file)) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get asset metadata file from dir: $asset_dir, cannot continue", array("cli_post_process"), $asset);
@@ -139,12 +144,15 @@ global $php_cli_cmd;
 
 $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::DEBUG, "Call to $cli_upload", array("cli_post_process"), $asset);
 
-// launches the video processing in background
+$asset_dir = get_asset_dir($asset, 'upload'); //asset has moved to upload_to_server
 $return_val = 0;
-system("$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log", $return_val);
+$cmd = "$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log";
+system($cmd, $return_val);
 if($return_val != 0) {
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Could not start upload ($cli_upload), cli returned $return_val", array("cli_post_process"), $asset);
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Could not start upload ($cli_upload), cli returned $return_val. Command: $cmd", array("cli_post_process"), $asset);
     exit(1);
 }
+
+echo "OK";
 
 exit(0);
