@@ -1,17 +1,19 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * This script can be used to automate test to a recorder (can be used from a distant machine)
+ * TODO: allow to use args to also allow automating this script
  */
 
 define("COOKIE_FILE", "cookie.txt");
 $default_classroom = 1;
+$default_user = "admin";
 $default_records = 1;
 $default_pause = 1;
 $default_part_duration = 30;
 $default_pause_delay = 15;
 $default_delay_between_records = 10;
+$web_path = "ezrecorder/";
 
 date_default_timezone_set("Europe/Brussels");
 $date = date("Y_m_d_H\hi\ms\s");
@@ -22,7 +24,7 @@ echo "This program is aimed to test the recorders." . PHP_EOL;
 echo "First, you are going to enter some specific settings for the tests." . PHP_EOL;
 echo "-------------------------------------------------------------------" . PHP_EOL . PHP_EOL;
 echo "Select the classroom you want to perform the tests: " . PHP_EOL;
-echo " - S-V (Recorder devl) [1]" . PHP_EOL;
+echo " - S-V (Recorder dev) [1]" . PHP_EOL;
 echo " - S-R42-4-502         [2]" . PHP_EOL;
 echo " - S-R42-5-503         [3]" . PHP_EOL;
 echo " - S-R42-5-110         [4]" . PHP_EOL;
@@ -40,8 +42,11 @@ echo " - E-F2-303            [15]" . PHP_EOL;
 echo " - E-SAND              [16]" . PHP_EOL;
 
 $choice = readline("Choice [default: $default_classroom]: ");
+if(!$choice)
+    $choice = $default_classroom;
 switch ($choice) {
-    case 2:  $classroom = "164.15.43.45";                 break;
+    case 1:  $classroom = "164.15.43.45";                 break;
+    case 2:  $classroom = "podcv-s-r42-4-502.ulb.ac.be";  break;
     case 3:  $classroom = "podcv-s-r42-5-503.ulb.ac.be";  break;
     case 4:  $classroom = "podc-s-r42-5-110.ulb.ac.be";   break;
     case 5:  $classroom = "podcv-s-ub2.ulb.ac.be";        break;
@@ -56,21 +61,27 @@ switch ($choice) {
     case 14: $classroom = "podcv-e-bremer.ulb.ac.be";     break;
     case 15: $classroom = "podcv-e-f2.ulb.ac.be";         break;
     case 16: $classroom = "podcv-e-sand.ulb.ac.be";       break;
-    default: $classroom = "podcv-s-v.ulb.ac.be";          break;
+    default: echo "Try again";                            die();
 }
-$username = readline("Enter username for recorder: ");
+$username = readline("Enter username for recorder [default: $default_user]: ");
+if(!$username)
+    $username = $default_user;
+
 $password = readline("Enter password for recorder: ");
 
 $settings = false;
 
+$curl_url = "http://$classroom/$web_path/index.php";
+
 do {
 // Login the user
-    display_logs("Logins the user [$username]");
-    $response = curl_read_url("http://$classroom/ezrecorder/index.php?action=login&login=$username&passwd=$password");
+    test_log("Logins the user [$username]");
+    $response = curl_read_url("$curl_url?action=login&login=$username&passwd=$password");
     $response = explode("\n", $response);
-    display_logs($response[1]);
-    if (strpos($response[1], 'login screen') !== false) {
-        display_logs('Authentication failure');
+    //print_r($response);
+    //test_log($response[1]);
+    if (strpos($response[1], 'autotest_login_screen') !== false) {
+        test_log('Authentication failure');
         die;
     }
 
@@ -101,7 +112,7 @@ do {
             $choice = readline("Enter delay of the pause (in seconds) [default: $default_pause_delay]: ");
             $pause_delay = is_numeric($choice) ? $choice : $default_pause_delay;
         }
-        $choice = readline("With moderation (y/N) [default: y]: ");
+        $choice = readline("With moderation (y/n) [default: y]: ");
         $moderation = (strtoupper($choice) == 'N' || strtoupper($choice) == 'NO') ? 'false' : 'true';
         if ($records > 1){
             $choice = readline("Enter delay between two recordings (in seconds) [default: $default_delay_between_records]: ");
@@ -131,9 +142,9 @@ do {
         $default_pause = $pause;
     }
 // Submit values for recording
-    display_logs("Submits form values for the recording");
+    test_log("Submits form values for the recording");
 
-    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
+    $response = curl_read_url("$curl_url?" .
             "action=submit_record_infos" .
             "&course=$album" .
             "&title=${classroom}%0A-%0A${date}%0A-%0A" . (($default_records+1) - $records) .
@@ -145,8 +156,8 @@ do {
 
     do {
 // Recording start
-        display_logs((($action == "recording_start") ? "Starts" : "Resumes") . " the recording [" . (($default_records+1) - $records) ."]");
-        $response = curl_read_url("http://$classroom/$recorder/index.php?" .
+        test_log((($action == "recording_start") ? "Starts" : "Resumes") . " the recording [" . (($default_records+1) - $records) ."]");
+        $response = curl_read_url("$curl_url?" .
                 "action=$action");
 
 // Records for N seconds
@@ -154,9 +165,8 @@ do {
 
 // Pauses the recording if required
         if ($pause > 0) {
-            display_logs("Pauses the recording");
-            $response = curl_read_url("http://$classroom/$recorder/index.php?" .
-                    "action=recording_pause");
+            test_log("Pauses the recording");
+            $response = curl_read_url("$curl_url?action=recording_pause");
 
 // Wait for the pause
             sleep($pause_delay);
@@ -166,14 +176,12 @@ do {
     } while ($pause >= 0);
 
 // Recording stop
-    display_logs("Stops the recording");
-    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
-            "action=view_press_stop");
+    test_log("Stops the recording");
+    $response = curl_read_url("$curl_url?action=view_press_stop");
 
 // Publish in private album
-    display_logs("Publishes recording in album [moderation : $moderation]");
-    $response = curl_read_url("http://$classroom/$recorder/index.php?" .
-            "action=recording_stop" .
+    test_log("Publishes recording in album [moderation : $moderation]");
+    $response = curl_read_url("$curl_url?action=stop_and_publish" .
             "&moderation=$moderation");
 
     $records--;
@@ -181,6 +189,7 @@ do {
     sleep($delay_between_records);
 } while ($records > 0);
 
+test_log("Finished");
 
 function curl_read_url($url) {
     global $logs_file;
@@ -208,11 +217,9 @@ function curl_read_url($url) {
     return ($errno != 0) ? false : $retValue;
 }
 
-function display_logs($txt) {
+function test_log($txt) {
     global $logs_file;
     $msg = "[" . date("Y-m-d H:i:s") . "] " . $txt . PHP_EOL;
     echo $msg;
     file_put_contents($logs_file, $msg, FILE_APPEND);
 }
-
-?>
