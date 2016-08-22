@@ -130,25 +130,15 @@
                     <div style="text-align: center; height: 180px;">
                         <?php if ($has_camera) {
                             ?>
-                            <iframe src="index.php?action=view_screenshot_iframe&amp;source=cam" width="255px" height="178px" scrolling="false" frameborder="0"><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
+                            <iframe id ="cam_frame" src="index.php?action=view_screenshot_iframe&amp;source=cam" width="255px" height="178px" scrolling="false" frameborder="0"><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
                             <?php
                         }
-                        /* else {
-                          ?>
-                          <img src="images/disabled.jpg" alt="®Disabled®" style="display: block; position: absolute; top: 90px; left: 95px;" />
-                          <?php
-                          } */
 
                         if ($has_slides) {
                             ?>
-                            <iframe src="index.php?action=view_screenshot_iframe&amp;source=slides" width="255px" height="178px" scrolling="false" style="overflow:hidden;" frameborder="0"q><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
+                            <iframe id ="slide_frame" src="index.php?action=view_screenshot_iframe&amp;source=slides" width="255px" height="178px" scrolling="false" style="overflow:hidden;" frameborder="0"q><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
                             <?php
                         }
-                        /* else {
-                          ?>
-                          <img src="images/disabled.jpg" alt="®Disabled®" style="display: block; position: absolute; top: 90px; left: 430px;" />
-                          <?php
-                          } */
                         ?>
                     </div>
                     <!-- <div id="camera">
