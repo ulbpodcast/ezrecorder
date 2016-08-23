@@ -1,9 +1,7 @@
 #!/bin/bash -x
 
-# This script must be sudo authorized for _www to run as podclient
-
 #include localdefs
-source $(dirname $0)/../etc/localdefs
+source $(dirname $0)/localdefs
 
 ASSET=$1
 
@@ -15,4 +13,6 @@ echo "podcv: transfers files to upload_ok directory"
 mv $UPLOADDIR $STORDIR
 
 # removes all temp files used for the recording
+mv $EZCASTDIR/var/$ASSET/_cut_list $STORDIR
+rm -rf $EZCASTDIR/var/$ASSET
 rm -rf $STORDIR/*/low

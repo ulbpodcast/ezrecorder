@@ -34,7 +34,7 @@ if(isset($argv[1]))
         exit(1);
     }
     
-    $meta_assoc = session_xml_metadata2assoc_array($metadata_filepath);
+    $meta_assoc = xml_file2assoc_array($metadata_filepath);
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue (1)", array("cli_upload_to_server"));
         exit(1);

@@ -31,6 +31,8 @@
  */
 require_once 'config.inc';
 require_once 'lib_tools.php';
+require_once '../../../global_config.inc';
+require_once "$basedir/lib_various.php";
 
 if ($argc !== 4) {
     print "Expected 3 parameters (found $argc) " . PHP_EOL;

@@ -26,8 +26,8 @@
  */
 
 require 'config.inc';
-include_once $basedir . '/lib_various.php';
-include_once $basedir . '/lib_error.php';
+require_once $basedir . '/lib_various.php';
+require_once $basedir . '/lib_error.php';
 require_once $basedir . '/common.inc';
 
 $module_name = "capture_localqtb";
@@ -56,14 +56,14 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
 
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
 
     // status of the current recording
@@ -76,14 +76,14 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
         // error occured while launching QTB
         if (capture_localqtb_status_get() == 'launch_failure') {
             error_last_message("can't open because QTB failed to launch");
-            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because QTB failed to launch", array("module",$module_name));
+            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because QTB failed to launch", array(__FUNCTION__), $asset);
             return false;
         }
         // the recording is now 'open'
         capture_localqtb_status_set('open');
     } else {
         error_last_message("capture_init: can't open because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because current of status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because current of status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -103,7 +103,7 @@ function capture_localqtb_start($asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     // qtbrec starts the recording in QTB
     // $pid is used in web_index.php
@@ -116,7 +116,7 @@ function capture_localqtb_start($asset) {
     } else {
         capture_localqtb_status_set("error");
         error_last_message("capture_start: can't start recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't start recording because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't start recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -134,7 +134,7 @@ function capture_localqtb_pause($asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     // get status of the current recording
     $status = capture_localqtb_status_get();
@@ -142,10 +142,10 @@ function capture_localqtb_pause($asset) {
         // qtbpause pauses the recording in QTB
         system("sudo -u $localqtb_username $localqtb_script_qtbpause >> $localqtb_recorder_logs 2>&1 &");
         capture_localqtb_status_set('paused');
-        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was paused", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was paused", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_pause: can't pause recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't pause recording because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't pause recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -163,7 +163,7 @@ function capture_localqtb_resume($asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     // get status of the current recording
     $status = capture_localqtb_status_get();
@@ -172,10 +172,10 @@ function capture_localqtb_resume($asset) {
         system("sudo -u $localqtb_username $localqtb_script_qtbresume >> $localqtb_recorder_logs 2>&1 &");
         // sets the new status of the current recording
         capture_localqtb_status_set('recording');
-        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was resumed", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was resumed", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_resume: can't resume recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't resume recording because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't resume recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -193,7 +193,7 @@ function capture_localqtb_stop(&$pid, $asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
@@ -210,11 +210,11 @@ function capture_localqtb_stop(&$pid, $asset) {
         capture_localqtb_status_set('stopped');
     } else {
         error_last_message("capture_stop: can't pause recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't stop recording because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't stop recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
-    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was stopped. Last status was: $last_status", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was stopped. Last status was: $last_status", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -229,7 +229,7 @@ function capture_localqtb_cancel($asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     // get status of the current recording
     $status = capture_localqtb_status_get();
@@ -238,10 +238,10 @@ function capture_localqtb_cancel($asset) {
         $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbcancel . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1';
         log_append('recording', "launching command: $cmd");
         $fpart = exec($cmd, $outputarray, $errorcode);
-        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel recording because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -262,7 +262,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     global $localqtb_processing_tools;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
@@ -271,7 +271,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
         $localqtb_processing_tool = $localqtb_processing_tools[0];
 
     // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     $status = capture_localqtb_status_get();
     if ($status != 'recording' && $status != 'open') {
@@ -287,7 +287,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
         capture_localqtb_status_set('');
     } else {
         error_last_message("capture_stop: can't process recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel process because of current status: $status", array("module",$module_name));
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel process because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -299,7 +299,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Processing successfully started", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Processing successfully started", array(__FUNCTION__), $asset);
     
     return true;
 }
@@ -320,7 +320,7 @@ function capture_localqtb_finalize($asset) {
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
@@ -331,7 +331,7 @@ function capture_localqtb_finalize($asset) {
     $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
     exec($cmd);
-    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Finished finalization", array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Finished finalization", array(__FUNCTION__), $asset);
 }
 
 
@@ -424,7 +424,7 @@ function capture_localqtb_status_set($status) {
     file_put_contents($localqtb_status_file, $status);
     file_put_contents($localqtb_last_request_file, time());
     
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__), $asset);
 }
 
 /**

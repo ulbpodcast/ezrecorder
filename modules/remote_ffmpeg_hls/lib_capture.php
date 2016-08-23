@@ -1,31 +1,6 @@
 <?php
 
 /*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-/*
  * This file contains all functions related to the video slide capture from a remote mac
  * It implements the "recorder interface" which is used in web_index. 
  * the function annotated with the comment "@implements" are required to make 
@@ -35,9 +10,51 @@
  * on the remote server. 
  */
 
-require "config.inc";
+require_once "config.inc";
 require_once $basedir . "/lib_various.php";
-include_once $basedir . "/lib_error.php";
+require_once $basedir . "/lib_error.php";
+require_once $basedir . '/modules/local_ffmpeg_hls/lib_capture.php';
+
+//get ffmpeg working folder for asset. Folder can be both in local_processing and upload_to_server
+function get_asset_remoteffmpeg_folder($asset, $step = '') {
+    $asset_dir = get_asset_dir($asset, $step);
+    if($asset_dir == false)
+        return false;
+    
+    return "$asset_dir/remoteffmpeg/";
+}
+
+function create_remoteffmpeg_working_folders($asset) {
+    global $logger;
+    global $module_name;
+    
+    $dir = get_asset_remoteffmpeg_folder($asset, 'local_processing');
+    
+    $ok = create_working_dir($dir);
+    
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array("module",$module_name), $asset);
+    }
+    return $ok;
+}
+
+/**
+ * Create bash & php configurations files on remote remote recorder
+ * Return true on success
+ * @param $return_val return value of the remote install script
+*/
+function capture_remoteffmpeg_install_remote_config(&$return_val) {
+    global $remoteffmpeg_username;
+    global $remoteffmpeg_script_install_config;
+    global $remoteffmpeg_ip;
+    global $remote_script_call;    
+    global $remoteffmpeg_recorddir;
+    
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_script_install_config '$remoteffmpeg_recorddir'";
+    system($cmd, $return_val);
+    
+    return $return_val == 0;
+}
 
 /**
  * @implements 
@@ -45,7 +62,7 @@ include_once $basedir . "/lib_error.php";
  * This function should be called before the use of the camera
  * @param associate_array $meta_assoc metadata relative to the current recording
  */
-function capture_remoteffmpeg_init(&$pid, $meta_assoc) {
+function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $remoteffmpeg_script_init;
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_ip;
@@ -53,43 +70,62 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc) {
     global $remoteffmpeg_username;
     global $remoteffmpeg_streaming_info;
     global $remote_script_datafile_set;
-
-    $streaming = 'false';
-
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
-    $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-
-    $xml = capture_assoc_array2metadata($meta_assoc);
-    // put the xml string in a metadata file on the local mac mini
-    file_put_contents($tmp_dir . "/_metadata.xml", $xml);
-
-    if (capture_remoteffmpeg_status_get() == '') {
-        $streaming_info = capture_remoteffmpeg_info_get('streaming', $asset);
-        if ($streaming_info !== false) {
-            $streaming = 'true';
-            $xml = capture_assoc_array2metadata($streaming_info);
-            // put the xml string in a metadata file on the remote mac mini
-            system("sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip " . escapeshellarg($xml) . " $remoteffmpeg_streaming_info &");
-        }
-        /* remote script call requires:
-         * - the remote ip
-         * - the absolute path to the logs file
-         * - the remote script to execute
-         */
-        // '> /dev/null' discards output, '&' executes the process as background task and 'echo $!' returns the pid
-        system("sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_init $asset $streaming 1 > /dev/null & echo $! > $tmp_dir/pid");
-        //      system("sudo -u $remoteffmpeg_username ssh -o ConnectTimeout=10 $remoteffmpeg_ip \"$remoteffmpeg_script_qtbnew >> $remoteffmpeg_recorder_logs 2>&1\"");
-        $pid = file_get_contents($tmp_dir . '/pid');
-        if (capture_remoteffmpeg_status_get() == 'launch_failure') {
-            error_last_message("can't open because remote FMLE failed to launch");
-            return false;
-        }
-
-        capture_remoteffmpeg_status_set('open');
-    } else {
-        error_last_message("capture_init: can't open because current status: $status");
+    global $logger;
+    
+    $return_val = 0;
+    $success = capture_remoteffmpeg_install_remote_config($return_val);
+    if(!$success) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Install remote config failed with return value $return_val", array(__FUNCTION__), $asset);
         return false;
     }
+    
+    $success = create_remoteffmpeg_working_folders($asset);
+    if(!$success) {
+        $processUser = posix_getpwuid(posix_geteuid());
+        $name = $processUser['name'];
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "current user: $name", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not create ffmpeg working folder. Check parent folder permissions ?", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    // status of the current recording, should be empty
+    $status = capture_remoteffmpeg_status_get();
+    if ($status != '') { // has a status
+        error_last_message("capture_init: can't open because of current status: $status");
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
+    }
+    
+    $streaming_info = capture_remoteffmpeg_info_get('streaming', $asset);
+    if ($streaming_info !== false) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, "Streaming is enabled", array(__FUNCTION__), $asset);
+        
+        $xml = xml_assoc_array2metadata($streaming_info);
+        // put the xml string in a metadata file on the remote mac mini
+        system("sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip " . escapeshellarg($xml) . " $remoteffmpeg_streaming_info &");
+    }
+    
+    /* remote script call requires:
+     * - the remote ip
+     * - the absolute path to the logs file
+     * - the remote script to execute
+     */
+    // '> /dev/null' discards output, '&' executes the process as background task and 'echo $!' returns the pid
+    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $streaming = $streaming_info !== false ? 'true' : 'false';
+    $init_pid_file = "$working_dir/init.pid";
+    $log_file = $working_dir . '/init.log';
+    $return_val = 0;
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_init $asset $streaming 1 > $log_file 2>&1 & echo $! > $init_pid_file";
+    system($cmd, $return_val);
+    if($return_val) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Init command failed with return val $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
+        capture_remoteffmpeg_status_set("launch_failure");
+        return false;
+    }
+    $pid = file_get_contents($init_pid_file);
+
+    //TODO FIXME: we don't even check result of init here
+    capture_remoteffmpeg_status_set('open');
 
     return true;
 }
@@ -97,6 +133,7 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc) {
 /**
  * @implements
  * Launch the recording process 
+ * TODO: duplicate code, 
  */
 function capture_remoteffmpeg_start($asset) {
     global $remoteffmpeg_script_start;
@@ -104,26 +141,81 @@ function capture_remoteffmpeg_start($asset) {
     global $remote_script_call;
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
-
-
+    global $logger;
+    
+    create_remoteffmpeg_working_folders($asset);
+    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $log_file = $working_dir . '/start.log';
+    
     /* remote script call requires:
      * - the remote ip
      * - the absolute path to the logs file
      * - the remote script to execute
      * - optional args for the script to execute
      */
-    system("sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_start $asset > /dev/null &");
-
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_start $asset >> $log_file 2>&1";
+    
+    $return_code = 0;
+    system($cmd, $return_code);
+    if($return_code != 0) {
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO,"Recording start failed at command execution with return code $return_code. Command: $cmd.", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
     //update recording status
-    if (capture_remoteffmpeg_status_get() == "open") {
+    $status = capture_remoteffmpeg_status_get();
+    if ($status == "open") {
         capture_remoteffmpeg_status_set('recording');
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "User started recording, recording start mark set", array(__FUNCTION__), $asset);
     } else {
-        error_last_message("capture_start: can't start recording because current status: $status");
         capture_remoteffmpeg_status_set("error");
+        error_last_message("Can't start recording because current status: $status");
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Recording could not be started because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
     return true;
+}
+
+//pause or resume recording, by writing in the cutlist.
+// @param $action string Only valid inputs are "pause" or "resume"
+function capture_remoteffmpeg_pause_resume($action, $asset) {
+    global $logger;    
+    global $remoteffmpeg_script_cutlist;
+    global $remoteffmpeg_ip;
+    global $remote_script_call;
+    global $remoteffmpeg_recorder_logs;
+    global $remoteffmpeg_username;
+    
+    $pause = $action == "pause";
+    $resume = $action == "resume";
+    
+    if(!$pause && !$resume)
+        return false;
+    
+    // get status of the current recording
+    $status = capture_remoteffmpeg_status_get();
+    if(   ($pause  && $status != 'recording')
+       || ($resume && $status != 'paused' && $status != 'stopped')  ) {
+        error_last_message("capture_pause: can't $action recording because current status: $status");
+        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::WARNING, "Can't $action recording because current status: $status", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    $return_val = 0;
+    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $log_file = $working_dir . '/cutlist.log';
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset $action >> $log_file 2>&1";
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed. Command: $cmd", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    $set_status = $pause ? 'paused' : 'recording';
+    capture_remoteffmpeg_status_set($set_status);
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
+    return true;    
 }
 
 /**
@@ -131,21 +223,7 @@ function capture_remoteffmpeg_start($asset) {
  * Pauses the current recording
  */
 function capture_remoteffmpeg_pause($asset) {
-    global $remoteffmpeg_script_cutlist;
-    global $remoteffmpeg_ip;
-    global $remote_script_call;
-    global $remoteffmpeg_recorder_logs;
-    global $remoteffmpeg_username;
-
-    if (capture_remoteffmpeg_status_get() == 'recording') {
-        system("sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset pause > /dev/null &");
-        capture_remoteffmpeg_status_set('paused');
-    } else {
-        error_last_message("capture_pause: can't pause recording because current status: $status");
-        return false;
-    }
-
-    return true;
+    return capture_remoteffmpeg_pause_resume('pause', $asset);
 }
 
 /**
@@ -153,22 +231,7 @@ function capture_remoteffmpeg_pause($asset) {
  * Resumes the current paused recording
  */
 function capture_remoteffmpeg_resume($asset) {
-    global $remoteffmpeg_script_cutlist;
-    global $remoteffmpeg_ip;
-    global $remote_script_call;
-    global $remoteffmpeg_recorder_logs;
-    global $remoteffmpeg_username;
-
-    $status = capture_remoteffmpeg_status_get();
-    if ($status == 'paused' || $status == 'stopped') {
-        system("sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset resume > /dev/null &");
-        capture_remoteffmpeg_status_set('recording');
-    } else {
-        error_last_message("capture_resume: can't resume recording because current status: $status");
-        return false;
-    }
-
-    return true;
+    return capture_remoteffmpeg_pause_resume('resume', $asset);
 }
 
 /**
@@ -181,18 +244,32 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     global $remote_script_call;
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
+    global $logger;
 
-    $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-
+    $pid = 0; //pid not used, we don't background anything in there
+    
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::NOTICE, "Stopping ffmpeg capture", array(__FUNCTION__), $asset);
+        
+    // check current recording status
     $status = capture_remoteffmpeg_status_get();
-    if ($status == 'recording' || $status == 'paused') {
-        system("sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset stop > /dev/null & echo $! > $tmp_dir/pid");
-        $pid = file_get_contents("$tmp_dir/pid");
-        capture_remoteffmpeg_status_set('stopped');
-    } else {
-        error_last_message("capture_pause: can't pause recording because current status: $status");
+    if ($status != 'recording' && $status != "paused") {
+        error_last_message("capture_stop: can't stop recording because current status: $status");
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, "Can't stop recording because current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
+    
+    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $log_file = $working_dir . '/cutlist.log';
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset stop >> $log_file 2>&1";
+    $return_var = 0;
+    system($cmd, $return_var);
+    if($return_var != 0) {
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, "Record stopping failed: $cmd", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    capture_remoteffmpeg_status_set('stopped');
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
 
     return true;
 }
@@ -207,22 +284,21 @@ function capture_remoteffmpeg_cancel($asset) {
     global $remote_script_call;
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
-
-    $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-
-    $status = capture_remoteffmpeg_status_get();
-    if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
-
-        $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cancel $asset";
-        log_append('recording', "launching command: $cmd");
-        $fpart = exec($cmd, $outputarray, $errorcode);
-        system("rm -rf $tmp_dir");
-        //update (clear) status
-        capture_remoteffmpeg_rec_status_set('');
-    } else {
-        error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
+    global $logger;
+    
+    // cancels the current recording, saves it in archive dir and stops the monitoring
+    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $log_file = $working_dir . '/cancel.log';
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cancel $asset >> $log_file 2>&1";
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Record cancel script start failed: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
+    
+    //update (clear) status
+    capture_remoteffmpeg_rec_status_set('');
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__));
 
     return true;
 }
@@ -238,40 +314,48 @@ function capture_remoteffmpeg_process($asset, &$pid) {
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_processing_tool;
     global $remoteffmpeg_processing_tools;
-    global $remote_script_datafile_set;
     global $remoteffmpeg_username;
-    global $remoteffmpeg_basedir;
 
-    $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
     $status = capture_remoteffmpeg_status_get();
-
-    if ($status != 'recording' && $status != 'open') {
-
-        if (!in_array($remoteffmpeg_processing_tool, $remoteffmpeg_processing_tools))
-            $remoteffmpeg_processing_tool = $remoteffmpeg_processing_tools[0];
-
-        $xml = capture_assoc_array2metadata($meta_assoc);
-        // put the xml string in a metadata file on the remote mac mini
-        system("sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip " . escapeshellarg($xml) . " $remoteffmpeg_basedir/var/_metadata.xml &");
-        // put the xml string in a metadata file on the local mac mini
-        file_put_contents($tmp_dir . "/_metadata.xml", $xml);
-
-        $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $asset $remoteffmpeg_processing_tool > /dev/null 2>&1 & echo $! > $tmp_dir/pid";
-        log_append('recording', "launching command: $cmd");
-        system($cmd);
-        $pid = file_get_contents("$tmp_dir/pid");
-
-        //update (clear) status
-        capture_remoteffmpeg_status_set('');
-        capture_remoteffmpeg_rec_status_set('');
-    } else {
-        error_last_message("capture_stop: can't stop recording because current status: $status");
+    // If record is still going on at this point, try to stop it (should not happen, this is a security)
+    if ($status == 'recording' || $status == 'open') {
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, "Function called while status was still $status. Try to stop it.", array(__FUNCTION__), $asset);
+        stop_current_record(false);
+    }
+    
+    $status = capture_remoteffmpeg_status_get();
+    if ($status == 'recording' || $status == 'open') {
+        error_last_message("Can't start recording process because of current status: $status");
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "Can't start recording process because of current status: $status", array(__FUNCTION__), $asset);
+        $pid = 0;
         return false;
     }
+    
+    if (!in_array($remoteffmpeg_processing_tool, $remoteffmpeg_processing_tools))
+        $remoteffmpeg_processing_tool = $remoteffmpeg_processing_tools[0];
 
-    //should be saved in Movies/local_processing/<date+hour>/
-    //combine cam and slide:
-    //one need to activate at on the mac:
+    // saves recording in processing dir and start processing
+    $process_dir = get_asset_remoteffmpeg_folder($asset);
+    $pid_file = "$process_dir/stop_pid.txt";
+    $log_file = "$process_dir/stop.log";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $asset $remoteffmpeg_processing_tool >> $log_file 2>&1 & echo $! > $pid_file";
+    $return_val = 0;
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "FFMPEG stop script launch failed with return code $return_val", array(__FUNCTION__), $asset);
+        $pid = 0;
+        return false;
+    }
+    $pid = file_get_contents($pid_file);
+    
+    
+    //update (clear) status
+    capture_remoteffmpeg_status_set('');
+    capture_remoteffmpeg_rec_status_set('');
+
+    // should be saved in Movies/local_processing/<date+hour>/
+    // combine cam and slide:
+    // one need to activate at on the mac:
     //	vi /System/Library/LaunchDaemons/com.apple.atrun.plisto
     //	change Disabled tag value from <true /> to <false/>
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
@@ -297,21 +381,21 @@ function capture_remoteffmpeg_finalize($asset) {
     global $remoteffmpeg_recorder_logs;
     global $remote_script_call;
     global $remoteffmpeg_username;
-
-    // retrieves the metadata relative to the recording
-    $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-    $meta_assoc = xml_file2assoc_array($tmp_dir . '/_metadata.xml');
-
-    $record_date = $meta_assoc['record_date'];
-    $course_name = $meta_assoc['course_name'];
-
-    // calls the remote script
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_finalize $course_name $record_date > /dev/null";
-    log_append("finalizing: execute cmd '$cmd'");
-
-    $pid = system($cmd);
-
-    system("rm -rf $tmp_dir");
+    global $logger;
+    
+    // launches finalization remote bash script
+    $working_dir = get_asset_remoteffmpeg_folder($asset, 'upload');
+    $log_file = $working_dir . '/finalize.log';
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_finalize $asset >> $log_file 2>&1";
+    $return_val = 0;
+    $output = system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output $output", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    $logger->log(EventType::RECORDER_FINALIZE, LogLevel::DEBUG, "Successfully finished finalization", array(__FUNCTION__), $asset);
+    return true;
 }
 
 /**
@@ -370,28 +454,41 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $ezcast_submit_url;
     global $classroom;
     global $cam_module;
+    global $logger;
 
     switch ($action) {
         case 'download':
-            $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-            $meta_assoc = xml_file2assoc_array($tmp_dir . "/_metadata.xml");
-
+            $filename = $remoteffmpeg_upload_dir . $asset . "/slide.mov";
+            
+            //Todo: check file existence on remote server
+            
+            // rsync requires ssh protocol is set (key sharing) on the remote server
             $download_info_array = array("ip" => $remoteffmpeg_ip,
                 "protocol" => $remoteffmpeg_download_protocol,
                 "username" => $remoteffmpeg_username,
-                "filename" => $remoteffmpeg_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/slide.mov");
+                "filename" => $filename);
             return $download_info_array;
-            break;
         case 'streaming':
+            //TODO check asset dir existence on remote server
+            
             include_once 'info.php';
-            if ($remoteffmpeg_streaming_quality == 'none') return false; 
-            $tmp_dir = capture_remoteffmpeg_tmpdir_get($asset);
-            $meta_assoc = xml_file2assoc_array($tmp_dir . "/_metadata.xml");
+            if ($remoteffmpeg_streaming_quality == 'none') 
+                return false; 
+            
+             $asset_dir = get_asset_dir($asset);
+            if(!file_exists($asset_dir)) {
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: streaming: No asset dir found, no info to give. File: $asset_dir.", array(__FUNCTION__), $asset);
+                return false;
+            }
+            
+            $meta_assoc = xml_file2assoc_array("$asset_dir/_metadata.xml");
+            
             // streaming is disabled if it has not been enabled by user
             // or if the module type is not of record type
-            $module_type = (($cam_module == $module_name) ? 'cam' : 'slide');
+            $module_type = (($cam_module == $module_name) ? 'cam' : 'slide'); 
             if ($meta_assoc['streaming'] === 'false' || ($meta_assoc['record_type'] !== 'camslide' && $meta_assoc['record_type'] != $module_type))
                 return false;
+            
             $streaming_info_array = array(
                 "ip" => $remoteffmpeg_ip, 
                 "submit_url" => $ezcast_submit_url,
@@ -435,17 +532,20 @@ function capture_remoteffmpeg_status_get() {
  * Defines the status of the current video
  */
 function capture_remoteffmpeg_status_set($status) {
-
     global $remoteffmpeg_ip;
     global $remoteffmpeg_status_file;
     global $remote_script_datafile_set;
     global $remoteffmpeg_username;
-
-    $status = "'$status'";
-
-    $curr_time = time();
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip $status $remoteffmpeg_status_file";
-    $res = exec($cmd, $outputarray, $errorcode);
+    global $logger;
+    
+    $return_val = 0;
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip '$status' $remoteffmpeg_status_file";
+    system($cmd, $return_val);
+    if($return_val == 0) {
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "Status set to ".$status, array(__FUNCTION__));
+    } else {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to set status to $status. Cmd: $cmd", array(__FUNCTION__));
+    }
 }
 
 /**
@@ -482,44 +582,11 @@ function capture_remoteffmpeg_rec_status_get() {
 }
 
 function capture_remoteffmpeg_rec_status_set($status) {
-
     global $remoteffmpeg_ip;
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_set;
     global $remoteffmpeg_username;
 
-    $status = "'$status'";
-
-    $curr_time = time();
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip $status $remoteffmpeg_rec_status_file";
-    $res = exec($cmd, $outputarray, $errorcode);
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip '$status' $remoteffmpeg_rec_status_file";
+    system($cmd, $return_val);
 }
-
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata string
- */
-function capture_assoc_array2metadata($assoc_array) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    return $xml_txt;
-}
-
-function capture_remoteffmpeg_tmpdir_get($asset) {
-    global $remoteffmpeg_local_basedir;
-    static $tmp_dir;
-
-    $tmp_dir = $remoteffmpeg_local_basedir . '/var/' . $asset;
-    if (!file_exists($tmp_dir))
-        mkdir($tmp_dir, 0777, true);
-
-    return $tmp_dir;
-}
-
-?>

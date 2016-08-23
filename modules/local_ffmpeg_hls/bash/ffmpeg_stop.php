@@ -18,10 +18,10 @@ if ($argc != 2) {
 
 $asset = $argv[1];
 
-$process_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+$process_dir = get_asset_ffmpeg_folder($asset);
 $asset_dir = get_asset_dir($asset, "local_processing");
 $pid_file = "$process_dir/process_pid";
-$cutlist_file = capture_ffmpeg_get_cutlist($asset);
+$cutlist_file = ffmpeg_get_cutlist_file($asset);
 $process_result_file = "$asset_dir/$process_result_filename";
 $cam_file_name = "cam.mov";
 

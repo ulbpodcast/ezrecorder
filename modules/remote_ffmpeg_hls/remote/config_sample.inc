@@ -25,7 +25,7 @@
  */
 
 // used by cli_monitoring.php when a recording has timed out
-$remoteffmpeg_basedir = dirname(__FILE__).'/';
+$remoteffmpeg_basedir = __DIR__.'/';
 $remoteffmpeg_recorddir = '~/Movies/';
 $remoteffmpeg_moviesdir = $remoteffmpeg_recorddir.'ffmpeg_hls';
 $remoteffmpeg_movie_name = "ffmpegmovie";
@@ -35,13 +35,5 @@ $remoteffmpeg_status_file = $remoteffmpeg_basedir . 'var/status';
 $remoteffmpeg_streaming_info = $remoteffmpeg_basedir . 'var/streaming.xml';
 $remoteffmpeg_cli_streaming = $remoteffmpeg_basedir . 'cli_streaming_content_send.php';
 
-$remoteffmpeg_input_source = "UltraStudioMiniRecorder"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | ...)
+$remoteffmpeg_input_source = "avfoundation"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | ...)
 // you might have to adapt the 'bash/ffmpeg_init' script
-
-$remoteffmpeg_open = $remoteffmpeg_basedir . '/applescript/fmle_open.scpt';
-$remoteffmpeg_action = $remoteffmpeg_basedir . '/applescript/fmle_action.scpt';
-
-$remoteffmpeg_capture_file = $remoteffmpeg_basedir . 'var/pic_new.jpg';
-$ffmpegpath = "/usr/local/bin/ffmpeg";
-$remoteffmpeg_mono = true; // determines whether the input audio source is mono or stereo
-?>

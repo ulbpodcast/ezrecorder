@@ -49,7 +49,7 @@ require 'config.inc';
          $meta['record_date'] : YYYY_MM_DD_HH\hmm (i.e 2014_01_01_00h00)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_modulename_init(&$pid, $meta_assoc) {};
+function capture_modulename_init(&$pid, $meta_assoc, $asset) {};
 
 /**
  * @implements

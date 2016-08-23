@@ -439,7 +439,7 @@ function stop_current_record($start_post_process = true) {
     
     $asset = $session[0];
     
-    $asset_dir = get_local_processing_dir($asset);
+    $asset_dir = get_asset_dir($asset, 'local_processing');
 
     $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
     $meta_xml_string = $fct_metadata_xml_get();
@@ -883,41 +883,69 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     global $slide_module;
     global $logger;
     
+    //create asset name
+    $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
+    if($asset == '') {
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Couldn't get asset name from metadata, metadata probably invalid.", array("init_capture"));
+        return false;
+    }
+    
+    $asset_dir = get_asset_dir($asset, "local_processing");
+    
+    //create asset dir
+    if(!file_exists($asset_dir)) {
+        $ok = mkdir($asset_dir, 0777, true); //mode is not set ??
+        if($ok)
+            chmod($asset_dir, 0777);
+        else {
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $dir", array("init_capture"), $asset);
+            return false;
+        }
+    }
+    
+    // saves recording metadata as xml file
+    $success = xml_assoc_array2file($metadata, "$asset_dir/_metadata.xml");
+    if(!$success) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Can't init because _metadata writing failed", array("init_capture"), $asset);
+        return false;
+    }
+    
     reset_cam_position();
 
     $cam_pid = 0;
     $slide_pid = 0;
-
-    // if cam module is enabled
+    
+    // inits are is started in background to allow both to prepare at the same time
+    // init cam module if enabled
     if ($cam_enabled) {
         $fct_capture_init = 'capture_' . $cam_module . '_init';
-        $cam_ok = $fct_capture_init($cam_pid, $metadata);
+        $cam_ok = $fct_capture_init($cam_pid, $metadata, $asset);
         if ($cam_ok == false) {
-            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("view_record_screen"));
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("init_capture"), $asset);
             log_append('error', "view_record_screen: Cam capture init failed.");
         }
     }
-    // if slide module is enabled
+    // init slide module if enabled
     if ($slide_enabled) {
         $fct_capture_init = 'capture_' . $slide_module . '_init';
-        $slide_ok = $fct_capture_init($slide_pid, $metadata);
+        $slide_ok = $fct_capture_init($slide_pid, $metadata, $asset);
         if ($slide_ok == false) {
-            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("view_record_screen"));
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("init_capture"), $asset);
             log_append('error', "view_record_screen: Slides capture init failed.");
         }
     }
 
-    // capture_init is launched in background in order to save time.
     // waits until both processes are finished to continue.
     while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
         sleep(0.5);
     
+    //inits scripts will set at status when they are done, check the result here
     $status = status_get();
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
         status_set('launch_failure');
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check _log in asset directory for more info, until we get rid of the bash scripts)", array("init_capture"));
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check _log in asset directory for more info, until we get rid of the bash scripts)", array("init_capture"), $asset);
     } else {
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array("init_capture"));
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array("init_capture"), $asset);
     }
 }
 

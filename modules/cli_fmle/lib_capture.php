@@ -53,7 +53,7 @@ function capture_clifmle_init(&$pid, $meta_assoc) {
     $tmp_dir = capture_clifmle_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
 
     // status of the current recording
@@ -215,7 +215,7 @@ function capture_clifmle_process($meta_assoc, &$pid) {
         $clifmle_processing_tool = $clifmle_processing_tools[0];
 
     // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     $status = capture_clifmle_status_get();
     if ($status != 'recording' && $status != 'open') {

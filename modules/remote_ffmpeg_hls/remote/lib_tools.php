@@ -32,39 +32,6 @@
 
 require_once 'config.inc';
 
-/**
- * 
- * @param path $file_path the path to the xml file
- * @return assoc_array|false
- * @desc opens a metadatafile (xml 1 level) and returns all properties and values in an associative array
- */
-function xml_file2assoc_array($file_path) {
-    $xml = simplexml_load_file($file_path);
-    if ($xml === false)
-        return false;
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
-}
-
-/**
- *
- * @param <type> $assoc_array the array to convert as xml string
- * @return <xml_string>
- * @desc takes an associative array and transforms it in a xml metadata string
- */
-function assoc_array2xml_file($assoc_array) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    return $xml_txt;
-}
-
 // sends an associative array to a server via CURL
 function server_request_send($server_url, $post_array) {
     global $remoteffmpeg_basedir;
@@ -116,5 +83,3 @@ function rec_status_set($status) {
     file_put_contents($remoteffmpeg_rec_status_file, $status);
 }
 
-
-?>

@@ -89,19 +89,14 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
  * @return <xml_string>
  * @desc takes an assoc array and transform it in a xml metadata file
  */
-function assoc_array2xml_file($assoc_array, $metadata_file) {
+function xml_assoc_array2file($assoc_array, $metadata_file) {
     global $logger;
     
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
+    $xml_txt = xml_assoc_array2metadata($assoc_array);
     $result = file_put_contents($metadata_file, $xml_txt);
     if($result == false) {
         print_r(debug_backtrace());
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array("assoc_array2xml_file"));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array("xml_assoc_array2file"));
         return false;
     }
 
@@ -109,6 +104,29 @@ function assoc_array2xml_file($assoc_array, $metadata_file) {
     return true;
 }
 
+/**
+ *
+ * @param <type> $assoc_array
+ * @return <xml_string>
+ * @desc takes an assoc array and transform it in a xml metadata string
+ */
+function xml_assoc_array2metadata($assoc_array) {
+    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
+    $xml = new SimpleXMLElement($xmlstr);
+    foreach ($assoc_array as $key => $value) {
+        $xml->addChild($key, $value);
+    }
+    $xml_txt = $xml->asXML();
+    return $xml_txt;
+}
+
+
+/**
+ * Open an xml file and return its content as an assoc array
+ * @global type $debug_mode
+ * @param type $meta_path
+ * @return boolean
+ */
 function xml_file2assoc_array($meta_path) {
     $xml = simplexml_load_file($meta_path);
     if ($xml === false)
@@ -190,7 +208,7 @@ function get_asset_name($course_name, $record_date) {
 }
 
 /* step == "upload" or "local_processing" or "" 
-    Empty step will return first found
+    Empty step will return first found, or local_processing dir if folder was not found
  *  */
 function get_asset_dir($asset, $step = '') {
     if ($step != 'upload' && $step != 'local_processing' && $step != '')
@@ -205,9 +223,6 @@ function get_asset_dir($asset, $step = '') {
             $dir = get_upload_to_server_dir($asset);
             if(!file_exists($dir))
                 $dir = get_local_processing_dir($asset);
-            
-            if(!file_exists($dir))
-                return false;
             
             return $dir;
     }

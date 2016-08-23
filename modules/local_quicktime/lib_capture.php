@@ -27,8 +27,8 @@
 
 
 require 'config.inc';
-include_once $basedir . '/lib_various.php';
-include_once $basedir . '/lib_error.php';
+require_once $basedir . '/lib_various.php';
+require_once $basedir . '/lib_error.php';
 
 /*
  * This file contains all functions related to the video capture from an analog camera.
@@ -55,7 +55,7 @@ function capture_localqt_init(&$pid, $meta_assoc) {
     $asset = $meta_assoc['course_name'] . '_' . $meta_assoc['record_date'];
     $tmp_dir = capture_localqt_tmpdir_get($asset);
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
 
     // status of the current recording
@@ -223,7 +223,7 @@ function capture_localqt_process($meta_assoc, &$pid) {
     $tmp_dir = capture_localqt_tmpdir_get($asset);
 
     // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     $status = capture_localqt_status_get();
     if ($status != 'recording' && $status != 'open') {

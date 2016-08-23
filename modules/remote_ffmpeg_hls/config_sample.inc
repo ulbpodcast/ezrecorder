@@ -38,9 +38,9 @@ $remoteffmpeg_username = "podclient"; // username on the local recorder
 $remoteffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highlow | high | low | none) 
 
 $remote_basedir = "/path/to/ezrecorder"; // basedir on the remote recorder
-$remoteffmpeg_basedir = $basedir . 'remote_modules/remote_ffmpeg_hls/'; // remote_ffmpeg_hls module on the remote recorder
+$remoteffmpeg_basedir = "/Library/ezrecorder/modules/remote_ffmpeg_hls/remote/"; // remote_ffmpeg_hls module on the remote recorder
 $remoteffmpeg_local_basedir = dirname(__FILE__).'/'; // basedir on this machine
-$remoteffmpeg_recorddir = '~/Movies/';
+$remoteffmpeg_recorddir = '~/Movies/'; //path on remote recorder
 $remoteffmpeg_upload_dir = $remoteffmpeg_recorddir . '/upload_to_server/';
 
 $remoteffmpeg_status_file = $remoteffmpeg_basedir . 'var/status'; // Current recorder status (paused, recording, stopped,...)
@@ -62,6 +62,7 @@ $remoteffmpeg_script_start = $remoteffmpeg_basedir . 'bash/ffmpeg_start';
 $remoteffmpeg_script_cutlist = $remoteffmpeg_basedir . 'bash/ffmpeg_cutlist';
 $remoteffmpeg_script_stop = $remoteffmpeg_basedir . 'bash/ffmpeg_stop';
 $remoteffmpeg_script_finalize = $remoteffmpeg_basedir . 'bash/ffmpeg_finalize';
+$remoteffmpeg_script_install_config = $remoteffmpeg_basedir . 'cli_install.php';
 
 // put some data in a specified file
 $remote_script_datafile_set = $remoteffmpeg_local_basedir . 'bash/dataset';

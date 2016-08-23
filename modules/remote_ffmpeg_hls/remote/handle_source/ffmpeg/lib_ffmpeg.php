@@ -16,7 +16,7 @@ require_once dirname(__FILE__) . '/../../config.inc';
  * @return boolean
  */
 function movie_join_parts($movies_path, $commonpart, $output) {
-    global $ffmpegpath;
+    global $ffmpeg_cli_cmd;
     $tmpdir = 'tmpdir';
 
     chdir($movies_path);
@@ -31,9 +31,9 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     for ($i = 0; $i < $movie_count; $i++) {
         // high resolution exists
         if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
-            $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
         } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
-            $cmd = "$ffmpegpath -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
         }
         exec($cmd);
     }
@@ -50,7 +50,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         // -f concat : option for concatenation
         // -i file : input is the list of files
         // -c copy : copy the existing codecs (no reencoding)
-        $cmd = "$ffmpegpath -f concat -i $movies_path/tmp.txt $movies_path/$output";
+        $cmd = "$ffmpeg_cli_cmd -f concat -i $movies_path/tmp.txt $movies_path/$output";
         print $cmd . PHP_EOL;
         exec($cmd, $cmdoutput, $returncode);
         // deletes the temporary text file
@@ -65,7 +65,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
 }
 
 function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '') {
-     global $ffmpegpath;
+     global $ffmpeg_cli_cmd;
 
     if (!isset($movie_out) || $movie_out == '')
         $movie_out = $movie_in;
@@ -130,13 +130,13 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             // -y  : the segment is replaced if already existing
             $more_params = ($try >= 1) ? ' -probesize 1000000 -analyzeduration 1000000 ' : ''; // increase analyze duration
             $more_params .= ($try >= 2) ? ' -pix_fmt yuv420p ' : ''; // defines pixel format, which is often lacking
-            $cmd = "$ffmpegpath -i $movie_path/$movie_in -ss " . $params[0] . " -t " . $params[1] . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
+            $cmd = "$ffmpeg_cli_cmd -i $movie_path/$movie_in -ss " . $params[0] . " -t " . $params[1] . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
             print "*************************************************************************" . PHP_EOL .
                     $cmd . PHP_EOL .
                     "*************************************************************************" . PHP_EOL;
             exec($cmd, $cmdoutput, $returncode);
             // the segment has been extracted, we verify here its duration
-            $cmd = "$ffmpegpath -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
+            $cmd = "$ffmpeg_cli_cmd -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
             $part_duration = system($cmd); // duration in HH:MM:SS
             sscanf($part_duration, "%d:%d:%d", $hours, $minutes, $seconds);
             $part_duration = $hours * 3600 + $minutes * 60 + $seconds; // duration in seconds
@@ -156,7 +156,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpegpath -f concat -i $movie_path/tmp.txt -c copy -y $movie_path/$movie_out";
+    $cmd = "$ffmpeg_cli_cmd -f concat -i $movie_path/tmp.txt -c copy -y $movie_path/$movie_out";
     print $cmd . PHP_EOL;
     exec($cmd, $cmdoutput, $returncode);
     // deletes the temporary text file

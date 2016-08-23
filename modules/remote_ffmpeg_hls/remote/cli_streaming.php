@@ -32,7 +32,8 @@
  */
 require_once 'lib_tools.php';
 require_once 'config.inc';
-require_once '../../global_config.inc';
+require_once '../../../global_config.inc';
+require_once "$basedir/lib_various.php";
 
 if ($argc !== 2) {
     print "Expected 1 parameter (found $argc) " . PHP_EOL;

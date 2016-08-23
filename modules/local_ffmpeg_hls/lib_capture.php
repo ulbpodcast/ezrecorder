@@ -8,7 +8,6 @@ require_once 'create_bash_configs.php';
 include_once $basedir . '/lib_error.php';
 require_once $basedir . '/lib_model.php';
 
-$module_name = "capture_ffmpeg";
 /*
  * This file contains all functions related to the video capture using ffmpeg
  * It implements the "recorder interface" which is used in web_index.
@@ -32,21 +31,20 @@ function create_working_dir($dir) {
 
 function create_ffmpeg_working_folders($asset) {
     global $logger;
-    global $module_name;
     
-    $dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset, 'local_processing');
+    $dir = get_asset_ffmpeg_folder($asset, 'local_processing');
     
     $ok = create_working_dir($dir);
     
     if(!$ok) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array("module",$module_name), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", __FUNCTION__, $asset);
     }
     return $ok;
 }
 
 //get ffmpeg cutlist file for asset
-function capture_ffmpeg_get_cutlist($asset) {
-    $folder = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+function ffmpeg_get_cutlist_file($asset) {
+    $folder = get_asset_ffmpeg_folder($asset);
     if(!$folder)
         return false;
     
@@ -54,12 +52,62 @@ function capture_ffmpeg_get_cutlist($asset) {
 }
 
 //get ffmpeg working folder for asset. Folder can be both in local_processing and upload_to_server
-function capture_ffmpeg_get_asset_ffmpeg_folder($asset, $step = '') {
+function get_asset_ffmpeg_folder($asset, $step = '') {
     $asset_dir = get_asset_dir($asset, $step);
     if($asset_dir == false)
         return false;
     
     return "$asset_dir/ffmpeg/";
+}
+
+function init_streaming($asset) {
+    global $logger;
+    global $ffmpeg_streaming_quality;
+    global $ezcast_submit_url;
+    global $ffmpeg_cli_streaming;
+    global $php_cli_cmd;
+    global $ffmpeg_streaming_info;
+    
+    if (file_exists($ffmpeg_streaming_info))
+        unlink($ffmpeg_streaming_info);
+
+    //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
+    $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
+    if ($streaming_info !== false) {
+        // defines that the streaming is enabled
+        // It must be done before calling $ffmpeg_script_init (for preparing low and high HLS streams)
+        file_put_contents($ffmpeg_streaming_info, var_export($streaming_info, true));
+    } else {
+        return true;
+    }
+    
+    // streaming is enabled, we send a request to EZmanager to
+    // init the streamed asset
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, __FUNCTION__.": Streaming is enabled", array(__FUNCTION__), $asset);
+
+    $post_array = $streaming_info;
+    $post_array['action'] = 'streaming_init';
+    $result = server_request_send($ezcast_submit_url, $post_array);
+
+    if (strpos($result, 'Curl error') !== false) {
+        // an error occured with CURL
+        $meta_assoc['streaming'] = 'false';
+        unlink($ffmpeg_streaming_info);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Curl failed to send request to server: $result", array(__FUNCTION__), $asset);
+    }
+    //not used $result = unserialize($result);
+    // executes the command for sending TS segments to EZmanager in background
+    // for low and high qualities
+    if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
+        exec("$php_cli_cmd $ffmpeg_cli_streaming " . $meta_assoc['course_name']
+                . " " . $meta_assoc['record_date'] . " high > /dev/null &");
+    }
+    if (strpos($ffmpeg_streaming_quality, 'low') !== false) {
+        exec("$php_cli_cmd $ffmpeg_cli_streaming " . $meta_assoc['course_name']
+                . " " . $meta_assoc['record_date'] . " low > /dev/null &");
+    }
+    
+    return true;
 }
 
 /**
@@ -70,112 +118,60 @@ function capture_ffmpeg_get_asset_ffmpeg_folder($asset, $step = '') {
  * @param associative_array $meta_assoc Metadata related to the record (used in cli_monitoring.php)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_ffmpeg_init(&$pid, $meta_assoc) {
+function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $logger;
-    global $module_name;
     global $ffmpeg_script_init;
     global $ffmpeg_recorder_logs;
     global $ezrecorder_username;
-    global $ezcast_submit_url;
-    global $ffmpeg_streaming_info;
-    global $ffmpeg_streaming_quality;
     global $ffmpeg_input_source;
-    global $php_cli_cmd;
-    global $ffmpeg_cli_streaming;
     global $bash_env;
     global $ffmpeg_basedir;
 
-    $asset = get_asset_name($meta_assoc['course_name'], $meta_assoc['record_date']);
-    
     //prepare bash variables
     $success = create_bash_configs($bash_env, $ffmpeg_basedir . "etc/localdefs");
     if (!$success) {
         file_put_contents($ffmpeg_recorder_logs, "capture_ffmpeg_init: ERROR: Unable to create bash variables file\n", FILE_APPEND);
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Unable to create bash variables file", array("module",$module_name));
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Unable to create bash variables file", array(__FUNCTION__), $asset);
         return false;
     }
 
+    $success = create_ffmpeg_working_folders($asset);
+    if(!$success) {
+        $processUser = posix_getpwuid(posix_geteuid());
+        $name = $processUser['name'];
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "current user: $name", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not create ffmpeg working folder. Check parent folder permissions ?", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
     // status of the current recording, should be empty
     $status = capture_ffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Current status is: '$status' at init time, this shouldn't happen", array("module",$module_name));
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING,"Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
 
-    $success = create_ffmpeg_working_folders($asset); //try to continue anyway if this fails
-    if(!$success) {
-        $processUser = posix_getpwuid(posix_geteuid());
-        $name = $processUser['name'];
-        $logger->log(EventType::TEST, LogLevel::DEBUG, "current user: $name", array("module",$module_name));
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not create ffmpeg working folder. Check parent folder permissions ?", array("module",$module_name));
-        return false;
-    }
-    
     $asset_dir = get_asset_dir($asset, "local_processing");
-    
-    // saves recording metadata as xml file
-    $success = assoc_array2xml_file($meta_assoc, "$asset_dir/_metadata.xml");
-    if(!$success) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Can't init because _metadata writing failed", array("module",$module_name));
-        return false;
-    }
-
-    if (file_exists($ffmpeg_streaming_info))
-        unlink($ffmpeg_streaming_info);
-
-    //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
-    $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
-    if ($streaming_info !== false) {
-        // defines that the streaming is enabled
-        // It must be done before calling $ffmpeg_script_init (for preparing low and high HLS streams)
-        file_put_contents($ffmpeg_streaming_info, var_export($streaming_info, true));
-    }
-    
+        
     // script_init initializes FFMPEG and launches the recording
     // in background to save time (pid is returned to be handled by web_index.php)
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_ffmpeg_folder($asset);
     $log_file = $working_dir . '/init.log';
+    $init_pid_file = "$working_dir/init.pid";
     $return_val = 0;
-    $init_pid_file = "$working_dir/init_pid.txt";
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 >> $log_file 2>&1 & echo $! > $init_pid_file";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 > $log_file 2>&1 & echo $! > $init_pid_file";
     system($cmd, $return_val);
     if($return_val) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Init command failed: $cmd", array("module",$module_name));
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Init command failed with return val: $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
         capture_ffmpeg_status_set("launch_failure");
         return false;
     }
     $pid = file_get_contents($init_pid_file);
 
     // init the streaming
-    if ($streaming_info !== false) {
-        // streaming is enabled, we send a request to EZmanager to
-        // init the streamed asset
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, __FUNCTION__.": Streaming is enabled", array("module",$module_name));
+    init_streaming($asset);
 
-        $post_array = $streaming_info;
-        $post_array['action'] = 'streaming_init';
-        $result = server_request_send($ezcast_submit_url, $post_array);
-
-        if (strpos($result, 'Curl error') !== false) {
-            // an error occured with CURL
-            $meta_assoc['streaming'] = 'false';
-            unlink($ffmpeg_streaming_info);
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Curl failed to send request to server: $result", array("module",$module_name));
-        }
-        //not used $result = unserialize($result);
-        // executes the command for sending TS segments to EZmanager in background
-        // for low and high qualities
-        if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
-            exec("$php_cli_cmd $ffmpeg_cli_streaming " . $meta_assoc['course_name']
-                    . " " . $meta_assoc['record_date'] . " high > /dev/null &", $output, $errno);
-        }
-        if (strpos($ffmpeg_streaming_quality, 'low') !== false) {
-            exec("$php_cli_cmd $ffmpeg_cli_streaming " . $meta_assoc['course_name']
-                    . " " . $meta_assoc['record_date'] . " low > /dev/null &", $output, $errno);
-        }
-    }
-
-    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::INFO, __FUNCTION__.": Successfully initialized module (init script is still running in background at this point)", array("module",$module_name));
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::INFO, "Successfully initialized module (init script is still running in background at this point)", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -192,7 +188,7 @@ function capture_ffmpeg_troubleshoot() {
     if($return_val == 0) {
         $troubleshoot_output .= "Camera ping ($cam_ip) succeeded". PHP_EOL;
     } else {
-        $troubleshoot_output .= "/!\ Camera ping ($cam_ip) failed". PHP_EOL;
+        $troubleshoot_output .= "/!\ Camera ping ($cam_ip) failed. Output: $output". PHP_EOL;
     }
 }
 
@@ -201,85 +197,78 @@ function capture_ffmpeg_troubleshoot() {
  * Launches the recording process
  */
 function capture_ffmpeg_start($asset) {
-    global $logger;
-    global $module_name;
     global $ffmpeg_script_start;
-    global $ffmpeg_recorder_logs;
     global $ezrecorder_username;
     global $ffmpeg_input_source;
+    global $logger;
 
-    //$logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
+    //$logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
     create_ffmpeg_working_folders($asset);
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_ffmpeg_folder($asset);
     $log_file = $working_dir . '/start.log';
-    $cut_list = capture_ffmpeg_get_cutlist($asset);
+    $cut_list = ffmpeg_get_cutlist_file($asset);
     
-    // adds time in the cutlist
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_start $asset $working_dir $ffmpeg_input_source $cut_list >> $log_file 2>&1";
+    
     $return_code = 0;
-    system("sudo -u $ezrecorder_username $ffmpeg_script_start $asset $working_dir $ffmpeg_input_source $cut_list >> $log_file 2>&1 &", $return_code);
+    system($cmd, $return_code);
     if($return_code != 0) {
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO,"Recording start failed at $ffmpeg_script_start execution with return code $return_code.", array("module",$module_name, "capture_ffmpeg_start"));
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO,"Recording start failed at command execution with return code $return_code. Command: $cmd.", array(__FUNCTION__), $asset);
         return false;
     }
     
-    //TODO: The status has probably not changed yet since the last process in started in background
     //update recording status
     $status = capture_ffmpeg_status_get();
     if ($status == "open") {
         capture_ffmpeg_status_set('recording');
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO, __FUNCTION__.": User started recording", array("module",$module_name));
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "User started recording, recording start mark set", array(__FUNCTION__), $asset);
     } else {
         capture_ffmpeg_status_set("error");
-        error_last_message("capture_start: can't start recording because current status: $status");
-        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, __FUNCTION__.": Recording could not be started. Status: $status", array("module",$module_name));
+        error_last_message("Can't start recording because current status: $status");
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Recording could not be started because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
-
-    //$logger->log(EventType::RECORDER_START, LogLevel::DEBUG, __FUNCTION__.": Status at function end: $status", array("module",$module_name));
-
-    return true;
+    
+    return true;    
 }
 
 //pause or resume recording, by writing in the cutlist.
 // @param $action string Only valid inputs are "pause" or "resume"
 function capture_ffmpeg_pause_resume($action, $asset) {
+    global $logger;    
+    global $ffmpeg_script_cutlist;
+    global $ezrecorder_username;
+    
     $pause = $action == "pause";
     $resume = $action == "resume";
     
     if(!$pause && !$resume)
         return false;
     
-    global $logger;    
-    global $module_name;
-    global $ffmpeg_script_cutlist;
-    global $ezrecorder_username;
-    
     // get status of the current recording
     $status = capture_ffmpeg_status_get();
     if(   ($pause  && $status != 'recording')
        || ($resume && $status != 'paused' && $status != 'stopped')  ) {
         error_last_message("capture_pause: can't $action recording because current status: $status");
-        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::WARNING, __FUNCTION__.": Can't $action recording because current status: $status", array("module",$module_name));
+        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::WARNING, "Can't $action recording because current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
     
     $return_val = 0;
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-    $cutlist_file = capture_ffmpeg_get_cutlist($asset);
+    $working_dir = get_asset_ffmpeg_folder($asset);
+    $cutlist_file = ffmpeg_get_cutlist_file($asset);
     $log_file = $working_dir . '/cutlist.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1 &";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
     system($cmd, $return_val);
     if($return_val != 0) {
-        echo "$cmd failed";
-        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array("module",$module_name), $asset);
+        $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
     
     $set_status = $pause ? 'paused' : 'recording';
     capture_ffmpeg_status_set($set_status);
-    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array("module",$module_name), $asset);
-    echo "ok";
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -305,38 +294,57 @@ function capture_ffmpeg_resume($asset) {
  */
 function capture_ffmpeg_stop(&$pid, $asset) {
     global $logger;
-    global $module_name;
     global $ffmpeg_script_cutlist;
     global $ezrecorder_username;
 
     $pid = 0; //pid not used, we don't background anything in there
     
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::NOTICE, "Stopping ffmpeg capture", array("module", $module_name));
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::NOTICE, "Stopping ffmpeg capture", array(__FUNCTION__), $asset);
     
-    // get status of the current recording
+    // check current recording status
     $status = capture_ffmpeg_status_get();
-    if ($status == 'recording' || $status == "paused") {
-        // pauses the current recording (while user chooses the way to publish the record)
-        $cut_list = capture_ffmpeg_get_cutlist($asset);
-        $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-        $log_file = $working_dir . '/cutlist.log';
-        $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
-        $return_var = 0;
-        system($cmd, $return_var);
-        if($return_var != 0) {
-            $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, "Record stopping failed: $cmd", array("module", $module_name));
-            return false;
-        }
-        
-        // set the new status for the current recording
-        capture_ffmpeg_status_set('stopped');
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array("module",$module_name));
-    } else {
+    if ($status != 'recording' && $status != "paused") {
         error_last_message("capture_stop: can't stop recording because current status: $status");
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, __FUNCTION__.": Can't stop recording because current status: $status", array("module",$module_name));
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, "Can't stop recording because current status: $status", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
+    // pauses the current recording (while user chooses the way to publish the record)
+    $cut_list = ffmpeg_get_cutlist_file($asset);
+    $working_dir = get_asset_ffmpeg_folder($asset);
+    $log_file = $working_dir . '/cutlist.log';
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
+    $return_var = 0;
+    system($cmd, $return_var);
+    if($return_var != 0) {
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, "Record stopping failed: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
 
+    // set the new status for the current recording
+    capture_ffmpeg_status_set('stopped');
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
+
+    return true;
+}
+
+function stop_streaming($asset) {
+    global $logger;
+    global $ezcast_submit_url;
+    
+    $post_array = capture_ffmpeg_info_get('streaming', $asset);
+    if ($post_array !== false) {
+        // streaming enabled
+        $post_array['action'] = 'streaming_close';
+        $res = server_request_send($ezcast_submit_url, $post_array);
+        if (strpos($res, 'error') !== false) {
+            $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, __FUNCTION__.": An error occured while stopping streaming on the server", array(__FUNCTION__), $asset);
+            return false;
+        }
+       return true;
+    }
+    
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::NOTICE, "Successfully sent stop streaming request", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -346,30 +354,23 @@ function capture_ffmpeg_stop(&$pid, $asset) {
  */
 function capture_ffmpeg_cancel($asset) {
     global $logger;
-    global $module_name;
     global $ffmpeg_script_cancel;
     global $ezrecorder_username;
 
-    //$logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name, "capture_ffmpeg_cancel"));
-    
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_ffmpeg_folder($asset);
     $log_file = $working_dir . '/cancel.log';
-    $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $ffmpeg_script_cancel . ' ' . $asset . ' >> ' . $log_file . ' 2>&1 &';
-    log_append('recording', "launching command: $cmd");
-    $fpart = exec($cmd, $outputarray, $errorcode);
-    $post_array = capture_ffmpeg_info_get('streaming', $asset);
-    if ($post_array !== false) {
-        // streaming enabled
-        global $ezcast_submit_url;
-        $post_array['action'] = 'streaming_close';
-        $res = server_request_send($ezcast_submit_url, $post_array);
-        if (strpos($res, 'error') !== false) {
-            $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, __FUNCTION__.": An error occured while stopping streaming on the server", array("module",$module_name, "capture_ffmpeg_cancel"));
-        }
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel $asset >> $log_file 2>&1";
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Record cancel script start failed: $cmd", array(__FUNCTION__), $asset);
+        return false;
     }
+    
+    stop_streaming($asset);
+    
     capture_ffmpeg_recstatus_set('');
-    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array("module",$module_name, "capture_ffmpeg_cancel"));
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__));
 
     return true;
 }
@@ -405,62 +406,53 @@ function capture_ffmpeg_process_result($asset) {
  */
 function capture_ffmpeg_process($asset, &$pid) {
     global $logger;
-    global $module_name;
     global $ffmpeg_script_stop;
     global $ffmpeg_processing_tool;
     global $ffmpeg_processing_tools;
     global $ezrecorder_username;
 
-    //$logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
-    
+    //any use for this ?
     if (!in_array($ffmpeg_processing_tool, $ffmpeg_processing_tools))
         $ffmpeg_processing_tool = $ffmpeg_processing_tools[0];
 
     $status = capture_ffmpeg_status_get();
     // If record is still going on at this point, try to stop it (should not happen, this is a security)
     if ($status == 'recording' || $status == 'open') {
-        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, "capture_ffmpeg_process called while status was still $status. Try to stop it.", array("module",$module_name));
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, "Function called while status was still $status. Try to stop it.", array(__FUNCTION__), $asset);
         stop_current_record(false);
     }
     
     $status = capture_ffmpeg_status_get();
-    if ($status != 'recording' && $status != 'open') {
-        // saves recording in processing dir and processes it
-        $process_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset);
-        $pid_file = "$process_dir/stop_pid.txt";
-        $log_file = "$process_dir/stop.log";
-        $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_stop $asset >> $log_file 2>&1  & echo $! > $pid_file";
-        log_append('recording', "launching command: $cmd");
-        // returns the process id of the background task
-        $return_val = 0;
-        system($cmd, $return_val);
-        if($return_val != 0) {
-            $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "FFMPEG stop script launch failed with return code $return_val", array("module",$module_name));
-            $pid = 0;
-            return false;
-        }
-        $pid = file_get_contents($pid_file);
-
-        $post_array = capture_ffmpeg_info_get('streaming', $asset);
-        if ($post_array !== false) {
-            global $ezcast_submit_url;
-            $post_array['action'] = 'streaming_close';
-            $res = server_request_send($ezcast_submit_url, $post_array);
-            if (strpos($res, 'error') !== false) {
-                $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, __FUNCTION__.": An error occured while starting streaming on the server", array("module",$module_name));
-            }
-        }
-
-        //update (clear) status
-        capture_ffmpeg_status_set('');
-        capture_ffmpeg_recstatus_set('');
-    } else {
-        error_last_message("capture_stop: can't start recording process because of current status: $status");
-        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, __FUNCTION__.": Can't start recording process because of current status: $status", array("module",$module_name));
+    if ($status == 'recording' || $status == 'open') {
+        error_last_message("Can't start recording process because of current status: $status");
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "Can't start recording process because of current status: $status", array(__FUNCTION__), $asset);
         $pid = 0;
         return false;
     }
+    
+    // saves recording in processing dir and start processing
+    $process_dir = get_asset_ffmpeg_folder($asset);
+    $pid_file = "$process_dir/stop_pid.txt";
+    $log_file = "$process_dir/stop.log";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_stop $asset >> $log_file 2>&1 & echo $! > $pid_file";
+    log_append('recording', "launching command: $cmd");
+    // returns the process id of the background task
+    $return_val = 0;
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "FFMPEG stop script launch failed with return code $return_val", array(__FUNCTION__), $asset);
+        $pid = 0;
+        return false;
+    }
+    $pid = file_get_contents($pid_file);
 
+    //shouldn't this be done at stop already ?
+    stop_streaming($asset);
+
+    //update (clear) status
+    capture_ffmpeg_status_set('');
+    capture_ffmpeg_recstatus_set('');
+    
     //should be saved in get_asset_dir($asset, "local_processing");
     //combine cam and slide:
     //one need to activate at on the mac:
@@ -469,7 +461,7 @@ function capture_ffmpeg_process($asset, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, __FUNCTION__.": Processing successfully started", array("module",$module_name));
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, __FUNCTION__.": Processing successfully started", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -484,36 +476,21 @@ function capture_ffmpeg_process($asset, &$pid) {
  */
 function capture_ffmpeg_finalize($asset) {
     global $logger;
-    global $module_name;
     global $ffmpeg_script_finalize;
-    global $ffmpeg_recorder_logs;
     global $ezrecorder_username;
 
-    //$logger->log(EventType::RECORDER_FINALIZE, LogLevel::DEBUG, __FUNCTION__.": called", array("module",$module_name));
-    
-    $asset_dir = get_asset_dir($asset, 'upload');
-    $metadata_file = "$asset_dir/_metadata.xml";
-    // retrieves course_name and record_date
-    $meta_assoc = xml_file2assoc_array($metadata_file); 
-    if($meta_assoc == false) {
-        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Couldn't get metadata file $metadata_file for finalization", array("module",$module_name));
-        return false;
-    }
-    
     // launches finalization bash script
-    $asset_name = get_asset_name( $meta_assoc['course_name'], $meta_assoc['record_date']);
-    $working_dir = capture_ffmpeg_get_asset_ffmpeg_folder($asset, 'upload');
+    $working_dir = get_asset_ffmpeg_folder($asset, 'upload');
     $log_file = $working_dir . '/finalize.log';
-    $cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $ffmpeg_script_finalize . " $asset_name >> " . $log_file . ' 2>&1';
-    log_append("finalizing: execute cmd '$cmd'");
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_finalize $asset >> $log_file 2>&1";
     $return_val = 0;
     $output = system($cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, __FUNCTION__.": Finalisation failed with error code $return_val and output $output", array("module",$module_name));
+        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output $output", array(__FUNCTION__), $asset);
         return false;
     }
     
-    $logger->log(EventType::RECORDER_FINALIZE, LogLevel::DEBUG, __FUNCTION__.": Successfully finished finalization", array("module",$module_name));
+    $logger->log(EventType::RECORDER_FINALIZE, LogLevel::DEBUG, "Successfully finished finalization", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -526,7 +503,6 @@ function capture_ffmpeg_finalize($asset) {
  * @return info array or false if failure
  */
 function capture_ffmpeg_info_get($action, $asset = '') {
-    global $module_name;
     global $ezrecorder_ip;
     global $ffmpeg_download_protocol;
     global $ffmpeg_streaming_protocol;
@@ -540,7 +516,7 @@ function capture_ffmpeg_info_get($action, $asset = '') {
         case 'download':
             $filename = get_asset_dir($asset, 'upload') . "/cam.mov";
             if(!file_exists($filename)) {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array("module",$module_name));
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
                 return false; //invalid file
             }
             
@@ -558,7 +534,7 @@ function capture_ffmpeg_info_get($action, $asset = '') {
             
             $asset_dir = get_asset_dir($asset);
             if(!file_exists($asset_dir)) {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: streaming: No asset dir found, no info to give. File: $asset_dir.", array("module",$module_name));
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: streaming: No asset dir found, no info to give. File: $asset_dir.", array(__FUNCTION__), $asset);
                 return false;
             }
             
@@ -654,11 +630,10 @@ function capture_ffmpeg_features_get() {
  */
 function capture_ffmpeg_status_set($status) {
     global $logger;
-    global $module_name;
     global $ffmpeg_status_file;
 
     file_put_contents($ffmpeg_status_file, $status);
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": Status set to ".$status, array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "Status set to ".$status, array(__FUNCTION__));
 }
 
 /**
@@ -682,21 +657,8 @@ function capture_ffmpeg_recstatus_get() {
  */
 function capture_ffmpeg_recstatus_set($status) {
     global $logger;
-    global $module_name;
     global $ffmpeg_recstatus_file;
 
     file_put_contents($ffmpeg_recstatus_file, $status);
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array("module",$module_name));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__));
 }
-
-function capture_ffmpeg_tmpdir_get($asset) {
-    global $basedir;
-    static $tmp_dir;
-
-    $tmp_dir = $basedir . '/var/local_ffmpeg_hls/'. $asset;
-    if (!file_exists($tmp_dir))
-        mkdir($tmp_dir, 0777, true);
-
-    return $tmp_dir;
-}
-

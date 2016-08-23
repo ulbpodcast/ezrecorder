@@ -56,7 +56,7 @@ function capture_localfmle_init(&$pid, $meta_assoc) {
     $tmp_dir = capture_localfmle_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
 
     // status of the current recording
@@ -225,7 +225,7 @@ function capture_localfmle_process($meta_assoc, &$pid) {
         $localfmle_processing_tool = $localfmle_processing_tools[0];
 
     // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     $status = capture_localfmle_status_get();
     if ($status != 'recording' && $status != 'open') {

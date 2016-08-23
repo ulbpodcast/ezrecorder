@@ -55,7 +55,7 @@ function capture_remotefmle_init(&$pid, $meta_assoc) {
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
 
-    $xml = escapeshellarg(capture_assoc_array2metadata($meta_assoc));
+    $xml = escapeshellarg(xml_assoc_array2metadata($meta_assoc));
     // put the xml string in a metadata file on the local mac mini
     file_put_contents($tmp_dir . "/_metadata.xml", $xml);
 
@@ -238,7 +238,7 @@ function capture_remotefmle_process($meta_assoc, &$pid) {
         if (!in_array($remotefmle_processing_tool, $remotefmle_processing_tools))
             $remotefmle_processing_tool = $remotefmle_processing_tools[0];
 
-        $xml = capture_assoc_array2metadata($meta_assoc);
+        $xml = xml_assoc_array2metadata($meta_assoc);
         // put the xml string in a metadata file on the remote mac mini
         system("sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip " . escapeshellarg($xml) . " $remotefmle_basedir/var/_metadata.xml &");
         // put the xml string in a metadata file on the local mac mini
@@ -290,7 +290,7 @@ function capture_remotefmle_finalize($asset) {
 
     // retrieves the metadata relative to the recording
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-    $meta_assoc = capture_metadata2assoc_array($tmp_dir . '/_metadata.xml');
+    $meta_assoc = xml_file2assoc_array($tmp_dir . '/_metadata.xml');
 
     $record_date = $meta_assoc['record_date'];
     $course_name = $meta_assoc['course_name'];
@@ -360,7 +360,7 @@ function capture_remotefmle_info_get($action, $asset = '') {
     switch ($action) {
         case 'download':
             $tmp_dir = capture_remotefmle_tmpdir_get($asset);
-            $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
+            $meta_assoc = xml_file2assoc_array($tmp_dir . "/_metadata.xml");
 
             $download_info_array = array("ip" => $remotefmle_ip,
                 "protocol" => $remotefmle_download_protocol,
@@ -447,44 +447,6 @@ function capture_remotefmle_rec_status_set($status) {
     $curr_time = time();
     $cmd = "sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip $status $remotefmle_rec_status_file";
     $res = exec($cmd, $outputarray, $errorcode);
-}
-
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata string
- */
-function capture_assoc_array2metadata($assoc_array) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    return $xml_txt;
-}
-
-/**
- * transforms an xml file or xml string in an associative array
- * @param type $meta_path
- * @param type $xml_file
- * @return boolean
- */
-function capture_metadata2assoc_array($meta_path, $xml_file = true) {
-    if ($xml_file) {
-        $xml = simplexml_load_file($meta_path);
-    } else {
-        $xml = simplexml_load_string($meta_path);
-    }
-    if ($xml === false) {
-        return false;
-    }
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
 }
 
 function capture_remotefmle_tmpdir_get($asset) {

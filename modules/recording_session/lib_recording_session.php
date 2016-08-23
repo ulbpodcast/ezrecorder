@@ -10,6 +10,8 @@
  */
 
 include "config.inc";
+require_once __DIR__."/../../global_config.inc";
+require_once "$basedir/lib_various.php";
 
 /**
  * @implements
@@ -26,7 +28,7 @@ function session_xml_metadata_save($metadata_assoc_array) {
     $name = $processUser['name'];
         
     //create and store recording properties
-    $xml = session_xml_assoc_array2metadata($metadata_assoc_array);
+    $xml = xml_assoc_array2metadata($metadata_assoc_array);
     $res = file_put_contents($metadata_file, $xml);
     if(!$res) {
         $logger->log(EventType::RECORDER_METADATA, LogLevel::ERROR, __FUNCTION__.": Failed to save metadata to $metadata_file. Current user: $name. Probably a permission problem.", array("lib_recording_session"));
@@ -59,7 +61,7 @@ function session_xml_metadata_get() {
     global $metadata_file;
 
     if (file_exists($metadata_file))
-        return session_xml_metadata2assoc_array($metadata_file);
+        return xml_file2assoc_array($metadata_file);
     else 
         return false;
 }
@@ -205,38 +207,3 @@ function session_xml_current_user_get() {
 
     return file_get_contents($lock_file);
 }
-
-/**
- *
- * @param path $meta_path
- * @return assoc_array|false
- * @desc open a metadatafile (xml 1 level) and return all properties and values in an associative array
- */
-function session_xml_metadata2assoc_array($meta_path) {
-    $xml = simplexml_load_file($meta_path);
-    if ($xml === false)
-        return false;
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
-}
-
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata string
- */
-function session_xml_assoc_array2metadata($assoc_array) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    return $xml_txt;
-}
-
-?>

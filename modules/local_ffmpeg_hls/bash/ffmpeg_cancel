@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+# This script must be sudo authorized for _www to run as podclient
+
 #include localdefs
 source $(dirname $0)/../etc/localdefs
 
@@ -8,8 +10,7 @@ unlink $EZCASTDIR/var/_monitoring_pid
 #stop recording 
 PID=`cat $FFMPEG_PID`
 # ends FFMPEG
-kill -2 $PID
-#todo: kill timeout
+kill -9 $PID
 while ps -p $PID > /dev/null; do sleep 1; done
 unlink $FFMPEG_PID
 
@@ -17,7 +18,7 @@ unlink $FFMPEG_PID
 if [ -e $FFMPEG_PID2 ]
 then
     PID2=`cat $FFMPEG_PID2`
-    kill -2 $PID2
+    kill -9 $PID2
     while ps -p $PID2 > /dev/null; do sleep 1; done
     unlink $FFMPEG_PID2
 fi

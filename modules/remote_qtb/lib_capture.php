@@ -290,7 +290,7 @@ function capture_remoteqtb_finalize($asset) {
 
     // retrieves the metadata relative to the recording
     $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-    $meta_assoc = capture_metadata2assoc_array($tmp_dir . '/_metadata.xml');
+    $meta_assoc = xml_file2assoc_array($tmp_dir . '/_metadata.xml');
 
     $record_date = $meta_assoc['record_date'];
     $course_name = $meta_assoc['course_name'];
@@ -352,7 +352,7 @@ function capture_remoteqtb_info_get($action, $asset = '') {
     switch ($action) {
         case 'download':
             $tmp_dir = capture_remoteqtb_tmpdir_get($asset);
-            $meta_assoc = capture_metadata2assoc_array($tmp_dir . "/_metadata.xml");
+            $meta_assoc = xml_file2assoc_array($tmp_dir . "/_metadata.xml");
 
             $download_info_array = array("ip" => $remoteqtb_ip,
                 "protocol" => $remoteqtb_download_protocol,
@@ -426,28 +426,6 @@ function capture_assoc_array2metadata($assoc_array) {
     }
     $xml_txt = $xml->asXML();
     return $xml_txt;
-}
-
-/**
- * transforms an xml file or xml string in an associative array
- * @param type $meta_path
- * @param type $xml_file
- * @return boolean
- */
-function capture_metadata2assoc_array($meta_path, $xml_file = true) {
-    if ($xml_file) {
-        $xml = simplexml_load_file($meta_path);
-    } else {
-        $xml = simplexml_load_string($meta_path);
-    }
-    if ($xml === false) {
-        return false;
-    }
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
 }
 
 function capture_remoteqtb_tmpdir_get($asset) {
