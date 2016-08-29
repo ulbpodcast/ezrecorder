@@ -313,20 +313,8 @@ echo "*                         C  O  N  F  I  G                        *"
 echo "*******************************************************************"
 echo ""
 
-echo -n "Creating the config file..."
+echo "Creating the config file..."
 $php_path cli_install.php "$php_path" "$ffmpeg_path"
-
-$php_path cli_install_modules_selection.php
-$php_path cli_install_modules_config.php
-
-echo " "
-echo "*******************************************************************"
-echo "*          T E M P L A T E S   G E N E R A T I O N                *"
-echo "*******************************************************************"
-echo ""
-#regenerate template files
-$php_path cli_template_generate.php tmpl_sources/ fr tmpl
-$php_path cli_template_generate.php tmpl_sources/ en tmpl
 
 $(dirname $0)/setperms.sh
 

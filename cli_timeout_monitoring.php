@@ -71,6 +71,3 @@ while (true) {
 
     sleep($sleep_time);
 }
-
-
-?>

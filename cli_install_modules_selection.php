@@ -1,29 +1,4 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 
 /*
  * This is a CLI script that loops on the modules in ./modules and lets the 
@@ -32,11 +7,12 @@
  * 
  */
 
-if (!file_exists(dirname(__FILE__) . "/global_config.inc")) {
+if (!file_exists(__DIR__ . "/global_config.inc")) {
     echo 'Missing file : global_config.inc';
     die;
 } else {
-    require dirname(__FILE__) . "/global_config.inc";
+    $in_install = true; //check usage in global_config.inc, this allow including the global_config_sample without failing
+    require __DIR__ . "/global_config.inc";
 }
 
 echo "*******************************************************************" . PHP_EOL;
@@ -60,7 +36,7 @@ foreach ($modules as $module) {
 }
 
 
-$config = file_get_contents(dirname(__FILE__) . "/global_config.inc");
+$config = file_get_contents(__DIR__ . "/global_config.inc");
 
 /* ------------ CAM RECORDING MODULE ------------- */
 echo PHP_EOL;
@@ -272,11 +248,4 @@ if (count($modules_array['session']) > 0) {
     echo "No session management module found. Make sure a session managmeent module has been set up before using EZrecorder !" . PHP_EOL;
 }
 
-file_put_contents(dirname(__FILE__) . "/global_config.inc", $config);
-
-function read_line($prompt = '') {
-    echo $prompt;
-    return rtrim(fgets(STDIN), "\n");
-}
-
-?>
+file_put_contents(__DIR__ . "/global_config.inc", $config);

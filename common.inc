@@ -3,7 +3,7 @@
 /** All static variables of ezrecorder should go here
  *  */
 
-include_once('global_config.inc');
+require_once('global_config.inc');
 require_once('logger_recorder.php');
 
 

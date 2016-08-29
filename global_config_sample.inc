@@ -1,6 +1,6 @@
 <?php
 
-$config_version = "20160726";
+$config_version = "20160829";
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -77,5 +77,9 @@ $send_debug_logs_to_server = false; //by default, events of type debug are not s
 // logging
 $log_database_file = "$basedir/var/logs.sqlite";
 
+global $in_install;
 //load static variables
-require_once(__DIR__ . '/common.inc');
+if(!isset($in_install)) {
+    require_once(__DIR__ . '/common.inc');
+}
+

@@ -260,6 +260,47 @@ function template_get_message($id, $lang) {
     return (string) $res;
 }
 
+function template_generate($source_folder, $lang, $output_folder, &$error = '') {
+    global $accepted_languages;
+    
+    if (!is_dir($source_folder)) {
+        $error = 'Error: source folder ' . $source_folder . ' does not exist';
+        return false;
+    }
+    
+    if (!is_dir($source_folder)) {
+        $error = 'Error: source folder ' . $source_folder . ' does not exist';
+        return false;
+    }
+
+    if (!is_dir($output_folder)) {
+        mkdir($output_folder);
+        chmod($output_folder, 0755);
+        if (!is_dir($output_folder)) {
+            $error = 'Error: Unable to create output folder "' . $source_folder . '"';
+            return false;
+        }
+    }
+
+    if (!in_array($lang, $accepted_languages)) {
+        $error = 'Error: language ' . $lang . ' not supported';
+        return false;
+    }
+
+    $files = template_list_files($source_folder);
+
+    //
+    // Parsing each template file
+    //
+    foreach ($files as $file) {
+        //echo 'Translating ' . $file . '...' . PHP_EOL;
+        template_parse($file, $lang, $output_folder);
+        //echo 'Translation complete' . PHP_EOL . PHP_EOL;
+    }
+    return true;
+}
+
+
 /**
  *
  * @param [string $msg error meesage (optional)]
@@ -310,4 +351,3 @@ function template_set_warnings_visible() {
     global $warning_visible;
     $warning_visible = true;
 }
-?>

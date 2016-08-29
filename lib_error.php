@@ -106,4 +106,3 @@ function error_last_message($msg = '') {
        return true;
    }
 }
-?>

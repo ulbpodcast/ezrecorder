@@ -18,7 +18,7 @@ if(!$res)
     exit(2);
 
 //create work folder
-if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')){
+if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')) {
     $res = mkdir($remoteffmpeg_recorddir . '/ffmpeg_hls', 0755, true);
     if(!$res)
         exit(3);

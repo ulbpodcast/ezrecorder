@@ -20,7 +20,3 @@ foreach ($modules as $module) {
 }
 echo PHP_EOL;
 
-function read_line($prompt = '') {
-    echo $prompt;
-    return rtrim(fgets(STDIN), "\n");
-}

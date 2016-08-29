@@ -11,9 +11,11 @@ if ($argc < 3) {
     die;
 }
 
+$in_install = true; //check usage in global_config.inc, this allow including the global_config_sample without failing
+
 if (file_exists("global_config.inc")) {
     require_once 'global_config.inc';
-    echo PHP_EOL . "Would you like to setup EZrecorder's global configuration now? (global_config.inc)" . PHP_EOL;
+    echo "Would you like to setup EZrecorder's global configuration now? (global_config.inc)" . PHP_EOL;
     $choice = read_line("[Y/n]: ");
 } else {
     require_once 'global_config_sample.inc';
@@ -22,6 +24,7 @@ if (file_exists("global_config.inc")) {
     $choice = 'Y';
 }
 $basedir = __DIR__;
+
 
 /*
  * First, we add user's configuration in global-config.inc
@@ -36,7 +39,7 @@ if (strtoupper($choice) != 'N') {
     if ($value != "")
         $ezrecorder_ip = $value;
 
-    if(!ping($ezrecorder_ip, 2000))
+    if(!test_connect($ezrecorder_ip, 2000))
       echo "This IP does not seems to be valid. You should double-check it and fix it in the final config file if needed." . PHP_EOL;
 
     $value = read_line("Recorder username (used to launch bash scripts) ['$ezrecorder_username']: ");
@@ -133,13 +136,46 @@ $web_file = file_get_contents($web_basedir . "/index.php");
 $web_file = str_replace("!PATH", $basedir, $web_file);
 file_put_contents($web_basedir . "/index.php", $web_file);
 
+echo "Is this recorder a [M]aster or a [R]emote recorder ?" . PHP_EOL;
+while($choice != "M" && $choice != "R")
+    $choice = strtoupper(read_line("[M/R]: "));
+
+$master = $choice == "M";
+   
+if($master) {
+    require("cli_install_modules_selection.php");
+    require("cli_install_modules_config.php");
+} else {
+    echo "\033[31mRemote recorder installation in not yet implemented, run cli_install.php" .
+        "in the remote module directory (for exemple 'remote_ffmpeg_hls/remote/cli_install.php'\033[0m" . PHP_EOL;
+}
+
+echo PHP_EOL;
+echo "*******************************************************************" . PHP_EOL;
+echo "*          T E M P L A T E S   G E N E R A T I O N                *" . PHP_EOL;
+echo "*******************************************************************" . PHP_EOL;
+echo PHP_EOL;
+//regenerate template files
+require_once("lib_template.php");
+echo "Templates for all languages will be generated in folder 'tmpl'" . PHP_EOL;
+
+$res = template_generate("tmpl_sources/", "fr", "tmpl", $error);
+if(!$res) {
+    echo $error . PHP_EOL;
+}
+$res = template_generate("tmpl_sources/", "en", "tmpl", $error);
+if(!$res) {
+    echo $error . PHP_EOL;
+}
+echo "Templates generation done" . PHP_EOL;
+
 function read_line($prompt = '') {
     echo $prompt;
     return rtrim(fgets(STDIN), "\n");
 }
 
 //Try to connect on port 80. return 0 on failure, 1 on success
-function ping($host, $timeout) {
+function test_connect($host, $timeout) {
   if(fSockOpen($host, 80, $errno, $errstr, $timeout))
     return 1;
 
