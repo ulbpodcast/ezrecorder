@@ -2,11 +2,12 @@
 
 #This file should be called automatically at each remote_ffmpeg_hls init, no need to execute it yourself
 
+//args: $remoteffmpeg_recorddir
 if($argc != 2)
     exit(1);
 
-require_once '../../../global_config.inc';
-require_once 'config_sample.inc';
+require_once __DIR__.'/../../../global_config.inc';
+require_once __DIR__.'/config_sample.inc';
 
 $remoteffmpeg_recorddir = $argv[1];
 
@@ -38,5 +39,7 @@ $res = file_put_contents("$remoteffmpeg_basedir/bash/localdefs", $bash_file);
 if(!$res)
     exit(4);
 
-system("chmod -R 755 $remoteffmpeg_local_basedir/bash");
+system("chmod -R 755 $remoteffmpeg_basedir/bash", $return_val);
+if($return_val != 0)
+    exit(5);
 

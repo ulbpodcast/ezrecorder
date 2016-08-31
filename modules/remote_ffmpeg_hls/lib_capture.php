@@ -10,48 +10,28 @@
  * on the remote server. 
  */
 
-require_once "config.inc";
+require_once __DIR__."/config.inc";
 require_once $basedir . "/lib_various.php";
 require_once $basedir . "/lib_error.php";
 require_once $basedir . '/modules/local_ffmpeg_hls/lib_capture.php';
-
-//get ffmpeg working folder for asset. Folder can be both in local_processing and upload_to_server
-function get_asset_remoteffmpeg_folder($asset, $step = '') {
-    $asset_dir = get_asset_dir($asset, $step);
-    if($asset_dir == false)
-        return false;
+require_once __DIR__. "info.php";
     
-    return "$asset_dir/remoteffmpeg/";
-}
-
-function create_remoteffmpeg_working_folders($asset) {
-    global $logger;
-    global $module_name;
-    
-    $dir = get_asset_remoteffmpeg_folder($asset, 'local_processing');
-    
-    $ok = create_working_dir($dir);
-    
-    if(!$ok) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array("module",$module_name), $asset);
-    }
-    return $ok;
-}
 
 /**
  * Create bash & php configurations files on remote remote recorder
  * Return true on success
  * @param $return_val return value of the remote install script
 */
-function capture_remoteffmpeg_install_remote_config(&$return_val) {
+function capture_remoteffmpeg_install_remote_config(&$return_val, &$output = '') {
     global $remoteffmpeg_username;
     global $remoteffmpeg_script_install_config;
     global $remoteffmpeg_ip;
     global $remote_script_call;    
+    global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_recorddir;
     
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_script_install_config '$remoteffmpeg_recorddir'";
-    system($cmd, $return_val);
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs php $remoteffmpeg_script_install_config '$remoteffmpeg_recorddir'";
+    $output = system($cmd, $return_val);
     
     return $return_val == 0;
 }
@@ -71,15 +51,17 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $remoteffmpeg_streaming_info;
     global $remote_script_datafile_set;
     global $logger;
+    global $module_name;
     
     $return_val = 0;
-    $success = capture_remoteffmpeg_install_remote_config($return_val);
+    $output = '';
+    $success = capture_remoteffmpeg_install_remote_config($return_val, $output);
     if(!$success) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Install remote config failed with return value $return_val", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Install remote config failed with return value $return_val. Output: $output", array(__FUNCTION__), $asset);
         return false;
     }
     
-    $success = create_remoteffmpeg_working_folders($asset);
+    $success = create_module_working_folders($module_name, $asset);
     if(!$success) {
         $processUser = posix_getpwuid(posix_geteuid());
         $name = $processUser['name'];
@@ -110,12 +92,12 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
      * - the remote script to execute
      */
     // '> /dev/null' discards output, '&' executes the process as background task and 'echo $!' returns the pid
-    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $streaming = $streaming_info !== false ? 'true' : 'false';
     $init_pid_file = "$working_dir/init.pid";
     $log_file = $working_dir . '/init.log';
     $return_val = 0;
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_init $asset $streaming 1 > $log_file 2>&1 & echo $! > $init_pid_file";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_init $asset $working_dir 1 $streaming > $log_file 2>&1 & echo $! > $init_pid_file";
     system($cmd, $return_val);
     if($return_val) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Init command failed with return val $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
@@ -142,9 +124,10 @@ function capture_remoteffmpeg_start($asset) {
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
     global $logger;
+    global $module_name;
     
-    create_remoteffmpeg_working_folders($asset);
-    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    create_module_working_folders($module_name, $asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/start.log';
     
     /* remote script call requires:
@@ -153,7 +136,7 @@ function capture_remoteffmpeg_start($asset) {
      * - the remote script to execute
      * - optional args for the script to execute
      */
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_start $asset >> $log_file 2>&1";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_start $asset $working_dir $cut_list  >> $log_file 2>&1";
     
     $return_code = 0;
     system($cmd, $return_code);
@@ -186,7 +169,8 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     global $remote_script_call;
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
-    
+    global $module_name;
+
     $pause = $action == "pause";
     $resume = $action == "resume";
     
@@ -203,7 +187,7 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     }
     
     $return_val = 0;
-    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/cutlist.log';
     $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset $action >> $log_file 2>&1";
     system($cmd, $return_val);
@@ -245,6 +229,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
     global $logger;
+    global $module_name;
 
     $pid = 0; //pid not used, we don't background anything in there
     
@@ -258,7 +243,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
         return false;
     }
     
-    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/cutlist.log';
     $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cutlist $asset stop >> $log_file 2>&1";
     $return_var = 0;
@@ -269,7 +254,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     }
     
     capture_remoteffmpeg_status_set('stopped');
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
 
     return true;
 }
@@ -285,9 +270,10 @@ function capture_remoteffmpeg_cancel($asset) {
     global $remoteffmpeg_recorder_logs;
     global $remoteffmpeg_username;
     global $logger;
-    
+    global $module_name;
+
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $working_dir = get_asset_remoteffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/cancel.log';
     $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_cancel $asset >> $log_file 2>&1";
     system($cmd, $return_val);
@@ -315,6 +301,8 @@ function capture_remoteffmpeg_process($asset, &$pid) {
     global $remoteffmpeg_processing_tool;
     global $remoteffmpeg_processing_tools;
     global $remoteffmpeg_username;
+    global $slide_file_name;
+    global $module_name;
 
     $status = capture_remoteffmpeg_status_get();
     // If record is still going on at this point, try to stop it (should not happen, this is a security)
@@ -335,10 +323,10 @@ function capture_remoteffmpeg_process($asset, &$pid) {
         $remoteffmpeg_processing_tool = $remoteffmpeg_processing_tools[0];
 
     // saves recording in processing dir and start processing
-    $process_dir = get_asset_remoteffmpeg_folder($asset);
+    $process_dir = get_asset_module_folder($module_name, $asset);
     $pid_file = "$process_dir/stop_pid.txt";
     $log_file = "$process_dir/stop.log";
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $asset $remoteffmpeg_processing_tool >> $log_file 2>&1 & echo $! > $pid_file";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_stop $asset $slide_file_name >> $log_file 2>&1 & echo $! > $pid_file";
     $return_val = 0;
     system($cmd, $return_val);
     if($return_val != 0) {
@@ -382,9 +370,10 @@ function capture_remoteffmpeg_finalize($asset) {
     global $remote_script_call;
     global $remoteffmpeg_username;
     global $logger;
-    
+    global $module_name;
+
     // launches finalization remote bash script
-    $working_dir = get_asset_remoteffmpeg_folder($asset, 'upload');
+    $working_dir = get_asset_module_folder($module_name, $asset, 'upload');
     $log_file = $working_dir . '/finalize.log';
     $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remoteffmpeg_recorder_logs $remoteffmpeg_script_finalize $asset >> $log_file 2>&1";
     $return_val = 0;

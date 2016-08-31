@@ -10,7 +10,7 @@ $ffmpeg_movie_name = 'ffmpegmovie';
 
 $ffmpeg_monitoring_file = $ffmpeg_basedir.'var/_monitoring_pid';
 $ffmpeg_pid_file = $ffmpeg_basedir.'var/ffmpeg_pid';
-// second pid is only used when multiple ffmpeg process are needed
+// second pid is only used when multiple ffmpeg process are needed (for high and low stream)
 $ffmpeg_pid2_file = $ffmpeg_basedir.'var/ffmpeg_pid2';
 $ffmpeg_status_file = $ffmpeg_basedir.'var/status'; // Current recorder status (paused, recording, stopped,...)
 $ffmpeg_recstatus_file = $ffmpeg_basedir.'var/rec_status'; // Current recording status (recording, stopped)
@@ -61,5 +61,3 @@ $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 //rstp uris. Used when source is set to rtsp.
 $bash_env['FFMPEG_RTSP_MEDIA_HIGH_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/xx";
 $bash_env['FFMPEG_RTSP_MEDIA_LOW_URI']="rtsp://xxx.xxx.xxx.xxx:xxx/yy";
-$bash_env['TMP_PID']=$ffmpeg_basedir."/var/tmp_pid";
-        

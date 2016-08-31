@@ -21,11 +21,11 @@ if ($argc != 6) {
     die;
 }
 
-$movies_path = $argv[1]; //basedir containing movies (typically /Users/podclient/Movies/local_processing/date_course)
-$commonpart = $argv[2]; // common part of video name (typically 'ffmpegmovie')
+$movies_path    = $argv[1]; //basedir containing movies (typically /Users/podclient/Movies/local_processing/date_course)
+$commonpart     = $argv[2]; // common part of video name (typically 'ffmpegmovie')
 $outputfilename = $argv[3]; // // name for output file (typically 'cam.mov')
-$cutlist_file = $argv[4]; // file containing the video segments to extract from the full recording
-$asset_name = $argv[5];
+$cutlist_file   = $argv[4]; // file containing the video segments to extract from the full recording
+$asset_name     = $argv[5];
 
 //
 //First start with merging parts of each stream 

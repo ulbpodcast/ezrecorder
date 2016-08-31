@@ -228,6 +228,15 @@ function get_asset_dir($asset, $step = '') {
     }
 }
 
+//get module working folder for asset. Folder can be both in local_processing and upload_to_server
+function get_asset_module_folder($module, $asset, $step = '') {
+    $asset_dir = get_asset_dir($asset, $step);
+    if($asset_dir == false)
+        return false;
+    
+    return "$asset_dir/$module/";
+}
+
 function get_local_processing_dir($asset = '') {
     global $ezrecorder_recorddir;
 
@@ -239,6 +248,34 @@ function get_upload_to_server_dir($asset = '') {
 
     return $ezrecorder_recorddir . '/upload_to_server/' . $asset . '/';
 }
+
+function create_working_dir($dir) {
+    global $logger;
+    
+    $ok = true;
+    if(!file_exists($dir)) {
+        $ok = mkdir($dir, 0777, true); //mode is not set ??
+        if($ok)
+            chmod($dir, 0777);
+        else
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $dir");
+    }
+    return $ok;
+}
+
+function create_module_working_folders($module_name, $asset) {
+    global $logger;
+    
+    $dir = get_asset_module_folder($module_name, $asset, 'local_processing');
+    
+    $ok = create_working_dir($dir);
+    
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array(__FUNCTION__), $asset);
+    }
+    return $ok;
+}
+
 
 // record type represented as in integer
 class RecordType {

@@ -13,6 +13,4 @@ echo "podcv: transfers files to upload_ok directory"
 mv $UPLOADDIR $STORDIR
 
 # removes all temp files used for the recording
-mv $EZCASTDIR/var/$ASSET/_cut_list $STORDIR
-rm -rf $EZCASTDIR/var/$ASSET
 rm -rf $STORDIR/*/low

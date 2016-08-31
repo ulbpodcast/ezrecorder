@@ -7,6 +7,7 @@ source $(dirname $0)/../etc/localdefs
 
 WORKING_DIR=$1
 INPUT=$2
+
 MOVIESNB=`ls -la $MOVIESDIR | grep $COMMON_MOVIE_NAME | wc -l  | sed -e 's/^[ \t]*//'`
 CURRENT_INDEX=`ls -la $MOVIESDIR/${COMMON_MOVIE_NAME}_$(($MOVIESNB - 1 ))/high/${COMMON_MOVIE_NAME}*.ts | wc -l | sed -e 's/^[ \t]*//'`
 

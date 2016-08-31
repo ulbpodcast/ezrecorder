@@ -54,9 +54,9 @@ if (strtoupper($choice) != 'N') {
     if ($value != "")
         $web_basedir = $value;
 
-    $value = read_line("URL to EZmanager server submit service ['$ezcast_submit_url']: ");
+    $value = read_line("URL to EZmanager server ['$ezcast_manager_url']: ");
     if ($value != "")
-        $ezcast_submit_url = $value;
+        $ezcast_manager_url = $value;
 
     $value = read_line("EZrecorder's alerts destination mail address ['$mailto_admins']: ");
     if ($value != "")
@@ -75,7 +75,7 @@ if (strtoupper($choice) != 'N') {
     $config = preg_replace('/\$basedir = (.+);/', '\$basedir = "' . $basedir . '/";', $config);
     $config = preg_replace('/\$web_basedir = (.+);/', '\$web_basedir = "' . $web_basedir . '";', $config);
     $config = preg_replace('/\$ezrecorder_web_user = (.+);/', '\$ezrecorder_web_user = "' . $ezrecorder_web_user . '";', $config);
-    $config = preg_replace('/\$ezcast_submit_url = (.+);/', '\$ezcast_submit_url = "' . $ezcast_submit_url . '";', $config);
+    $config = preg_replace('/\$ezcast_submit_url = (.+);/', '\$ezcast_manager_url = "' . $ezcast_manager_url . '";', $config);
     $config = preg_replace('/\$mailto_admins = (.+);/', '\$mailto_admins = "' . $mailto_admins . '";', $config);
     $config = preg_replace('/\$php_cli_cmd = (.+);/', '\$php_cli_cmd = "' . $php_cli_cmd . '";', $config);
     $config = preg_replace('/\$ffmpeg_cli_cmd = (.+);/', '\$ffmpeg_cli_cmd = "' . $ffmpeg_cli_cmd . '";', $config);
@@ -146,8 +146,8 @@ if($master) {
     require("cli_install_modules_selection.php");
     require("cli_install_modules_config.php");
 } else {
-    echo "\033[31mRemote recorder installation in not yet implemented, run cli_install.php" .
-        "in the remote module directory (for exemple 'remote_ffmpeg_hls/remote/cli_install.php'\033[0m" . PHP_EOL;
+    echo "Nothing else to configure for remote recorders" . PHP_EOL;
+    echo "\033[31mIf you're using the old remote_fmle_cutlist/remote_fmle_regular/remote_qtb, you'll still need to execute remote_modules/*/cli_install.php.'\033[0m" . PHP_EOL;
 }
 
 echo PHP_EOL;

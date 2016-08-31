@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# First 3 args are always the same
+# First 3 args are always the same. LOGS_FILE is a remote path.
 SLIDE_IP=$1
 LOGS_FILE=$2
 BASH_SCRIPT=$3

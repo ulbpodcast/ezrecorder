@@ -4,10 +4,12 @@
 Stops the recording and start post processing
 */
 
-require_once __DIR__."/../etc/config.inc";
-require_once __DIR__."/../lib_capture.php";
-require_once "$basedir/lib_various.php";    
-require_once __DIR__."/../info.php";
+require_once __DIR__."/../config.inc";
+//require_once __DIR__."/../../lib_capture.php";
+require_once __DIR__."/../../../../lib_various.php"; 
+require_once __DIR__."/../../../../global_config.inc"; 
+require_once __DIR__."/../../info.php";
+require_once __DIR__."/../../../../lib_ffmpeg.php";
 
 Logger::$print_logs = true;
 $log_context = basename(__FILE__, '.php');
@@ -32,16 +34,15 @@ if(!file_exists($asset_dir)) {
             "Could not find asset dir $asset_dir", array($log_context));
     exit(2);
 }
-
+    
 file_put_contents($process_result_file, "2"); //error by default in result file
 
 #stop monitoring
-if(file_exists($ffmpeg_monitoring_file))
-    unlink($ffmpeg_monitoring_file);
+if(file_exists($remoteffmpeg_monitoring_file))
+    unlink($remoteffmpeg_monitoring_file);
 
 #stop recording 
-stop_ffmpeg($ffmpeg_pid_file);
-stop_ffmpeg($ffmpeg_pid2_file); //low stream if any
+stop_ffmpeg($remoteffmpeg_pid_file);
         
 $cmd = "/usr/bin/nice -n 10 $php_cli_cmd $ffmpeg_script_merge_movies $process_dir $ffmpeg_movie_name $video_file_name $cutlist_file $asset >> $process_dir/merge_movies.log 2>&1";
 $return_val = 0;
@@ -56,7 +57,7 @@ if($return_val != 0) {
 if($return_val == 2) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, 
             "Parts merge succeeded but cutting failed. This is BAD, but let's continue with what we got.", array($log_context));
-    //at this point, merge movie script should still have produced a cam.mov file
+    //at this point, merge movie script should still have produced a slide.mov file
 } else if($return_val != 0) {
     exit(1);
 }

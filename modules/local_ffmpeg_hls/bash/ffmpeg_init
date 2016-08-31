@@ -14,6 +14,15 @@ CALLS=$4
 MAXCALLS=3 	# attemps starting the process $MAXCALLS times before considering it failed
 EXISTS_VIDEO=0 		# 1 if ${COMMON_MOVIE_NAME}* exists on EZrecorder
 
+#first clean up eventual movie remaining
+if [ -d "$WORKING_DIR" ]; then
+   #to fix: this will also move last trash folder into the new trash folder
+   SDAT=`date +"%Y_%m_%d_%Hh%M"`
+   TRASH_DIR=${WORKING_DIR}/trash_${SDAT}/
+   mkdir $TRASH_DIR
+   mv $WORKING_DIR/* $TRASH_DIR/
+fi
+
 TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_0/
 HIGH_DIR=${TARGET_DIR}/high
 LOW_DIR=${TARGET_DIR}/low
@@ -99,7 +108,7 @@ do
                     -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                     -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 \
                     -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH \
-                    >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID2
+                    >/dev/null 2> $TARGET_DIR/ffmpeg2.log & echo $! > $FFMPEG_PID2
                 fi
             else 
                 # streaming is disabled. We prepare high resolution only
@@ -162,10 +171,8 @@ if [ $EXISTS_VIDEO -eq 0 ]
 then 
     echo "FAILURE FFMPEG"
     echo "FFMPEG Launch Failure in $CLASSROOM" | mail -s "FFMPEG Failure $CLASSROOM" $MAIL_TO
-
     echo -n "launch_failure" > $EZCASTDIR/var/status
     exit 1
-
 else # currently recording
     #saves current date as recording init
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list.txt

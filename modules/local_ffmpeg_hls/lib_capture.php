@@ -15,50 +15,6 @@ require_once $basedir . '/lib_model.php';
  * sure the web_index.php can work properly.
  */
 
-function create_working_dir($dir) {
-    global $logger;
-    
-    $ok = true;
-    if(!file_exists($dir)) {
-        $ok = mkdir($dir, 0777, true); //mode is not set ??
-        if($ok)
-            chmod($dir, 0777);
-        else
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $dir");
-    }
-    return $ok;
-}
-
-function create_ffmpeg_working_folders($asset) {
-    global $logger;
-    
-    $dir = get_asset_ffmpeg_folder($asset, 'local_processing');
-    
-    $ok = create_working_dir($dir);
-    
-    if(!$ok) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", __FUNCTION__, $asset);
-    }
-    return $ok;
-}
-
-//get ffmpeg cutlist file for asset
-function ffmpeg_get_cutlist_file($asset) {
-    $folder = get_asset_ffmpeg_folder($asset);
-    if(!$folder)
-        return false;
-    
-    return "$folder/_cut_list.txt";
-}
-
-//get ffmpeg working folder for asset. Folder can be both in local_processing and upload_to_server
-function get_asset_ffmpeg_folder($asset, $step = '') {
-    $asset_dir = get_asset_dir($asset, $step);
-    if($asset_dir == false)
-        return false;
-    
-    return "$asset_dir/ffmpeg/";
-}
 
 function init_streaming($asset) {
     global $logger;
@@ -126,7 +82,8 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $ffmpeg_input_source;
     global $bash_env;
     global $ffmpeg_basedir;
-
+    global $module_name;
+    
     //prepare bash variables
     $success = create_bash_configs($bash_env, $ffmpeg_basedir . "etc/localdefs");
     if (!$success) {
@@ -135,7 +92,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         return false;
     }
 
-    $success = create_ffmpeg_working_folders($asset);
+    $success = create_module_working_folders($module_name, $asset);
     if(!$success) {
         $processUser = posix_getpwuid(posix_geteuid());
         $name = $processUser['name'];
@@ -155,7 +112,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         
     // script_init initializes FFMPEG and launches the recording
     // in background to save time (pid is returned to be handled by web_index.php)
-    $working_dir = get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/init.log';
     $init_pid_file = "$working_dir/init.pid";
     $return_val = 0;
@@ -201,13 +158,14 @@ function capture_ffmpeg_start($asset) {
     global $ezrecorder_username;
     global $ffmpeg_input_source;
     global $logger;
-
+    global $module_name;
+    
     //$logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
-    create_ffmpeg_working_folders($asset);
-    $working_dir = get_asset_ffmpeg_folder($asset);
+    create_module_working_folders($module_name, $asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/start.log';
-    $cut_list = ffmpeg_get_cutlist_file($asset);
+    $cut_list = ffmpeg_get_cutlist_file($module_name, $asset);
     
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_start $asset $working_dir $ffmpeg_input_source $cut_list >> $log_file 2>&1";
     
@@ -239,6 +197,7 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     global $logger;    
     global $ffmpeg_script_cutlist;
     global $ezrecorder_username;
+    global $module_name;
     
     $pause = $action == "pause";
     $resume = $action == "resume";
@@ -256,8 +215,8 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     }
     
     $return_val = 0;
-    $working_dir = get_asset_ffmpeg_folder($asset);
-    $cutlist_file = ffmpeg_get_cutlist_file($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
+    $cutlist_file = ffmpeg_get_cutlist_file($module_name, $asset);
     $log_file = $working_dir . '/cutlist.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
     system($cmd, $return_val);
@@ -296,7 +255,8 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     global $logger;
     global $ffmpeg_script_cutlist;
     global $ezrecorder_username;
-
+    global $module_name;
+    
     $pid = 0; //pid not used, we don't background anything in there
     
     $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::NOTICE, "Stopping ffmpeg capture", array(__FUNCTION__), $asset);
@@ -310,8 +270,8 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     }
     
     // pauses the current recording (while user chooses the way to publish the record)
-    $cut_list = ffmpeg_get_cutlist_file($asset);
-    $working_dir = get_asset_ffmpeg_folder($asset);
+    $cut_list = ffmpeg_get_cutlist_file($module_name, $asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/cutlist.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
     $return_var = 0;
@@ -323,7 +283,7 @@ function capture_ffmpeg_stop(&$pid, $asset) {
 
     // set the new status for the current recording
     capture_ffmpeg_status_set('stopped');
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
 
     return true;
 }
@@ -356,9 +316,10 @@ function capture_ffmpeg_cancel($asset) {
     global $logger;
     global $ffmpeg_script_cancel;
     global $ezrecorder_username;
+    global $module_name;
 
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $working_dir = get_asset_ffmpeg_folder($asset);
+    $working_dir = get_asset_module_folder($module_name, $asset);
     $log_file = $working_dir . '/cancel.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel $asset >> $log_file 2>&1";
     system($cmd, $return_val);
@@ -410,7 +371,9 @@ function capture_ffmpeg_process($asset, &$pid) {
     global $ffmpeg_processing_tool;
     global $ffmpeg_processing_tools;
     global $ezrecorder_username;
-
+    global $cam_file_name;
+    global $module_name;
+    
     //any use for this ?
     if (!in_array($ffmpeg_processing_tool, $ffmpeg_processing_tools))
         $ffmpeg_processing_tool = $ffmpeg_processing_tools[0];
@@ -431,10 +394,10 @@ function capture_ffmpeg_process($asset, &$pid) {
     }
     
     // saves recording in processing dir and start processing
-    $process_dir = get_asset_ffmpeg_folder($asset);
+    $process_dir = get_asset_module_folder($module_name, $asset);
     $pid_file = "$process_dir/stop_pid.txt";
     $log_file = "$process_dir/stop.log";
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_stop $asset >> $log_file 2>&1 & echo $! > $pid_file";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_stop $asset $cam_file_name >> $log_file 2>&1 & echo $! > $pid_file";
     log_append('recording', "launching command: $cmd");
     // returns the process id of the background task
     $return_val = 0;
@@ -478,9 +441,10 @@ function capture_ffmpeg_finalize($asset) {
     global $logger;
     global $ffmpeg_script_finalize;
     global $ezrecorder_username;
-
+    global $module_name;
+    
     // launches finalization bash script
-    $working_dir = get_asset_ffmpeg_folder($asset, 'upload');
+    $working_dir = get_asset_module_folder($module_name, $asset, 'upload');
     $log_file = $working_dir . '/finalize.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_finalize $asset >> $log_file 2>&1";
     $return_val = 0;

@@ -3,7 +3,6 @@
 require_once("logger.php");
 require_once("logger_sync_daemon.php");
 require_once("global_config.inc");
-require_once($session_lib);
 require_once("lib_various.php");
 
 /**
@@ -246,6 +245,8 @@ class RecorderLogger extends Logger {
     }
 
     public function get_default_asset_for_log() {
+        /* removed for now, remote recorder may not have session module and we don't have a way to know if we're remote or not at this point
+        require_once($session_lib); //problem right now: remote module may not have this module configured
         global $session_module;
         
         //try getting it from session
@@ -256,6 +257,9 @@ class RecorderLogger extends Logger {
         } else {
             return "dummy";
         }
+         * 
+         */
+        return "dummy";
     }
     
     /**

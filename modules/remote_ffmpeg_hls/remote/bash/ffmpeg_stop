@@ -1,57 +1,5 @@
 #!/bin/bash -x
 
-# EZCAST EZrecorder
-#
-# Copyright (C) 2016 Université libre de Bruxelles
-#
-# Written by Michel Jansens <mjansens@ulb.ac.be>
-# 	     Arnaud Wijns <awijns@ulb.ac.be>
-#            Antoine Dewilde
-# UI Design by Julien Di Pietrantonio
-#
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 3 of the License, or (at your option) any later version.
-#
-# This software is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this software; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This script must be sudo authorized for _www to run as podclient
 
-#include localdefs
-source $(dirname $0)/localdefs
-
-ASSET=$1
-PROCESSING_TOOL=$2
-STORDIR=$RECORDDIR/local_processing/ffmpeg_$ASSET
-
-#stop monitoring
-unlink $EZCASTDIR/var/_monitoring_pid
-
-#stop recording 
-PID=`cat $FFMPEG_PID`
-# ends FFMPEG
-kill -2 $PID
-while ps -p $PID > /dev/null; do sleep 1; done
-
-METADATAPATH=$EZCASTDIR/var/$ASSET/_metadata.xml
-
-
-echo "EZrecorder : saving camera movie to $STORDIR<br>"
-mkdir $STORDIR
-mv $MOVIESDIR/${COMMON_MOVIE_NAME}* $STORDIR 
-mv $EZCASTDIR/var/ffmpeg.log $STORDIR
-#copy metadata
-cp $METADATAPATH  $STORDIR/metadata.xml
-
-if [ -e $STREAMING_INFO ]
-then
-    $PHP_PATH $CLI_STREAMING "close"
-fi
- 
-/usr/bin/nice -n 10 $EZCASTDIR/bash/ffmpeg_process_recording $ASSET $PROCESSING_TOOL >> $STORDIR/processing.log 2>&1
+php $(dirname $0)/ffmpeg_stop.php "$@"

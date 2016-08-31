@@ -6,6 +6,7 @@
  */
 
 require_once("global_config.inc");
+require_once("lib_various.php");
 
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)
@@ -257,4 +258,13 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
     
     return 0;
+}
+
+//get ffmpeg cutlist file for asset
+function ffmpeg_get_cutlist_file($module_name, $asset) {
+    $folder = get_asset_module_folder($module_name, $asset);
+    if(!$folder)
+        return false;
+    
+    return "$folder/_cut_list.txt";
 }

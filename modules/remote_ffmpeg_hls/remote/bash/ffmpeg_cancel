@@ -3,6 +3,9 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
+#asset not used yet
+ASSET=$1
+
 unlink $EZCASTDIR/var/_monitoring_pid
 
 #stop recording 
@@ -10,22 +13,7 @@ PID=`cat $FFMPEG_PID`
 # ends FFMPEG
 kill -9 $PID
 while ps -p $PID > /dev/null; do sleep 1; done
-
-#Finally clean up eventual movie remains
-SDAT=`date +"%Y_%m_%d_%Hh%M"`
-ASSET=$1
-
 unlink $FFMPEG_PID
-
-mkdir  $RECORDDIR/trash/$SDAT 
-wait
-mv $MOVIESDIR/${COMMON_MOVIE_NAME}*  $RECORDDIR/trash/$SDAT/
-mv $RECORDDIR/ffmpeg.log  $RECORDDIR/trash/$SDAT/
-if [ "$ASSET" != "" ]
-then
-mv $EZCASTDIR/var/$ASSET/_cut_list $RECORDDIR/trash/$SDAT/
-rm -rf $EZCASTDIR/var/$ASSET
-fi
 
 if [ -e $STREAMING_INFO ]
 then

@@ -9,6 +9,7 @@ ASSET=$1
 TARGET_DIR=$2
 INPUT=$3
 CUT_LIST=$4
+
 REC_STATUS=`cat $STATUS`
 
 #Verifies that the recording has been properly launched

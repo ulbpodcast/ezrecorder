@@ -421,19 +421,19 @@ function stop_current_record($start_post_process = true) {
     global $slide_module;
     
     if(!file_exists($recorder_session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called but no current recorder session file found", array("stop_current_record"));
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called but no current recorder session file found", array(__FUNCTION__));
         return false;
     }
         
     $recorder_session_file = file_get_contents($recorder_session);
     if($recorder_session_file == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session file could not be read ", array("stop_current_record"));
+        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session file could not be read ", array(__FUNCTION__));
         return false;
     }
     
     $session = explode(';', $recorder_session_file);
     if($session == false || empty($session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session was invalid. File contained: $recorder_session_file", array("stop_current_record"));
+        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session was invalid. File contained: $recorder_session_file", array(__FUNCTION__));
         return false;
     }
     
@@ -444,14 +444,14 @@ function stop_current_record($start_post_process = true) {
     $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
     $meta_xml_string = $fct_metadata_xml_get();
     if($meta_xml_string == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Current metadata from session was invalid, cannot continue.", array("stop_current_record"), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Current metadata from session was invalid, cannot continue.", array(__FUNCTION__), $asset);
         return false;
     }
     
     // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
     $res = file_put_contents($asset_dir . "/metadata.xml", $meta_xml_string);
     if($res == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not write metadata to asset dir ($asset_dir)", array("stop_current_record"), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not write metadata to asset dir ($asset_dir)", array(__FUNCTION__), $asset);
         return false;
     }
     
@@ -463,7 +463,7 @@ function stop_current_record($start_post_process = true) {
         $fct_capture_stop = 'capture_' . $slide_module . '_stop';
         $success = $fct_capture_stop($slide_pid, $asset);
         if (!$success) {
-            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, 'Cam module stopping failed. Trying to continue anyway.', array('stop_current_record'), $asset);
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, 'Cam module stopping failed. Trying to continue anyway.', array(__FUNCTION__), $asset);
         }
         
     }
@@ -472,7 +472,7 @@ function stop_current_record($start_post_process = true) {
         $fct_capture_stop = 'capture_' . $cam_module . '_stop';
         $success = $fct_capture_stop($cam_pid, $asset);
         if (!$success) {
-            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, 'Cam module stopping failed. Trying to continue anyway.', array('stop_current_record'), $asset);
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, 'Cam module stopping failed. Trying to continue anyway.', array(__FUNCTION__), $asset);
         }
     }
 
@@ -910,14 +910,13 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         return false;
     }
     
-    reset_cam_position();
-
     $cam_pid = 0;
     $slide_pid = 0;
     
     // inits are is started in background to allow both to prepare at the same time
     // init cam module if enabled
     if ($cam_enabled) {
+        reset_cam_position();
         $fct_capture_init = 'capture_' . $cam_module . '_init';
         $cam_ok = $fct_capture_init($cam_pid, $metadata, $asset);
         if ($cam_ok == false) {
@@ -1029,17 +1028,16 @@ function controller_stop_and_view_record_submit() {
 
     $asset = $_SESSION['asset'];
     if (!$asset) {
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_stop_and_view_record_submit called without asset', array('controller_stop_and_view_record_submit'));
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_stop_and_view_record_submit called without asset', array(__FUNCTION__));
         die();
     }
     
-    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array('controller_stop_and_view_record_submit'), $asset);
-
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array('controller_stop_and_view_record_submit'), $asset);
+    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array(__FUNCTION__), $asset);
 
     $success = stop_current_record(false);
     if(!$success) {
-        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Stopping failed. Trying to continue anyway.', array('controller_stop_and_view_record_submit'), $asset);
+        $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Stopping failed. Trying to continue anyway.', array(__FUNCTION__), $asset);
     }
 
     //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
