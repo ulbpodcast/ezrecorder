@@ -65,9 +65,9 @@ function controller_recording_submit_infos() {
         die;
     }
     
-    $valid_record_type = validate_allowed_record_type($input['record_type']);
+    $valid_record_type = validate_allowed_record_type($input['record_type'], get_allowed_record_type());
     if($valid_record_type == false) {
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::CRITICAL, "Invalid record type given (".$input['record_type']."), cannot continue", array('controller'));
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::CRITICAL, "Invalid record type given (".$input['record_type']."), cannot continue", array(__FUNCTION__));
         error_print_message(template_get_message('type_not_valid', get_lang()), false);
         die;
     }
@@ -80,7 +80,7 @@ function controller_recording_submit_infos() {
         error_print_message('You do not have permission to access course ' . $input['course'], false);
         $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
         log_append('warning', $msg);
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array('controller'));
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array(__FUNCTION__));
         die;
     }
     $_SESSION['recorder_course'] = $input['course'];
@@ -120,6 +120,52 @@ function controller_recording_submit_infos() {
     view_record_screen();
 }
 
+/** Update record_type in metadata file according to allowed cam/slide
+ * You can for example use this to disable camera in metadata if camera failed
+*/
+function update_metadata_with_allowed_types($meta_assoc, $allow_cam, $allow_slide, &$new_record_type = null) {
+    $record_type = $meta_assoc['record_type'];
+
+    $allowed = RecordType::to_int_for_options($allow_cam, $allow_slide);
+    $new_record_type = validate_allowed_record_type($record_type, $allowed);
+
+    if($record_type != $new_record_type) {
+        //write new type
+        $meta_assoc['record_type'] = $new_record_type;
+    }
+    //else nothing to do, type is ok
+    
+    return true;
+}
+
+/**
+ * Same as update_metadata_with_allowed_types but will open file and write to it if needed
+ * Return true on success
+ * @param $new_record_type new record type after filtering
+ * @param $meta_assoc metadata array that was read from file
+ */
+function update_metadata_file_with_allowed_types($metadata_file, $allow_cam, $allow_slide, &$new_record_type = null, &$meta_assoc = null) {
+    global $logger;
+    
+    $meta_assoc = xml_file2assoc_array($metadata_file);
+    if($meta_assoc == false) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not get session metadata file: $metadata_file", array(__FUNCTION__));
+        return false;
+    }
+    
+    update_metadata_with_allowed_types($meta_assoc, $allow_cam, $allow_slide, $new_record_type);
+    
+    //write back to file if needed
+    if($new_record_type != $meta_assoc['record_type']) {
+        $ok = xml_assoc_array2file($meta_assoc, $metadata_file);
+        if(!$ok) {
+            $logger->log(EventType::TEST, LogLevel::ERROR, "Could not write new record type to file ($metadata_file).", array(__FUNCTION__));
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Starts a new recording
  */
@@ -141,7 +187,7 @@ function controller_recording_start() {
 
     if ($user != $_SESSION['user_login']) {
         error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
-        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array('controller'), $asset);
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -149,7 +195,7 @@ function controller_recording_start() {
     $status = status_get();
     if ($status != 'open') {
         error_print_message("capture_start: error status ($status): status not 'open'");
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array('controller'), $asset);
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -162,23 +208,18 @@ function controller_recording_start() {
 
     $asset_dir = get_asset_dir($asset, "local_processing");
     if (!file_exists($asset_dir)) {
-        $res = mkdir($asset_dir);
-        if ($res == false) {
-            $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Could not start recording because asset dir couln't be created: $asset_dir. Error: $res", array('controller'), $asset);
-            return false;
-        }
+        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
+        return false;
     }
-    chmod($asset_dir, 0777);
-
-    // determines if the slide module is enabled
-    if ($slide_enabled) {
-        $fct_capture_start = 'capture_' . $slide_module . '_start';
-        // ideally, capture_start should return the pid
-        //     $res_slide = $fct_capture_start($slide_pid);
-        $res_slide = $fct_capture_start($asset);
+    
+    $metadata_file = $asset_dir . '/_metadata.xml';
+    $meta_assoc = xml_file2assoc_array($metadata_file);
+    if($meta_assoc == false) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not get session metadata file: $metadata_file", array(__FUNCTION__));
+        return false;
     }
 
-    // determines if the cam module is enabled (doesn't depend on the 
+    //we always start every module enabled, so that we have some backup files in case of problems (doesn't depend on the 
     // recording format chose by user - cam, slide, camslide)
     if ($cam_enabled) {
         $fct_capture_start = 'capture_' . $cam_module . '_start';
@@ -187,19 +228,35 @@ function controller_recording_start() {
         $res_cam = $fct_capture_start($asset);
     }
 
-    //      while(is_process_running($cam_pid) || is_process_running($slide_pid))
-    //          sleep(0.5);
+    if ($slide_enabled) {
+        $fct_capture_start = 'capture_' . $slide_module . '_start';
+        // ideally, capture_start should return the pid
+        //     $res_slide = $fct_capture_start($slide_pid);
+        $res_slide = $fct_capture_start($asset);
+    }
+
+    $requested_record_type = $meta_assoc['record_type'];
+    
     // something went wrong while starting the recording
     if (($cam_enabled && !$res_cam) || ($slide_enabled && !$res_slide)) {
-        error_print_message(capture_last_error());
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Record start failed in capture module", array('controller'), $asset);
-        return false;
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Error in record start in capture module (cam_enabled:$cam_enabled,res_cam:$res_cam/slide_enabled:$slide_enabled,res_slide:$res_slide)", array(__FUNCTION__), $asset);
+        
+        //At this point, if user requested both cam & slide, we continue anyway if at least one started
+        
+        $new_type = '';
+        update_metadata_file_with_allowed_types($metadata_file, $cam_enabled && $res_cam, $slide_enabled && $res_slide, $new_type, $meta_assoc);
+        if($new_type == '') {
+            $logger->log(EventType::RECORDER_START, LogLevel::CRITICAL, "All requested modules failed to start (Requested type: $requested_record_type). Cannot continue.", array(__FUNCTION__), $asset);
+            return false; // nothing we can do
+        } else if($new_type != $meta_assoc['record_type']) {
+            $logger->log(EventType::RECORDER_START, LogLevel::CRITICAL, "One requested module failed to start. Continuing with what's left. (Requested type: $requested_record_type, effective type: $new_type)", array(__FUNCTION__), $asset);
+        }
     }
 
     log_append("recording_start", "started recording by user request");
     $logger->log(EventType::ASSET_CREATED, LogLevel::NOTICE, 
-            "Started recording at user $user request. cam_enabled: $cam_enabled / slide_enabled: $slide_enabled", array('controller'), $asset, 
-            $user, "todo", $_SESSION['recorder_course'], $classroom);
+            "Started recording at user $user request. Requested type: $requested_record_type", array(__FUNCTION__), $asset, 
+            $user, $requested_record_type, $_SESSION['recorder_course'], $classroom);
 
     return true;
 }
@@ -244,20 +301,20 @@ function controller_stop_and_publish() {
     $album = $recstarttime[1];
 
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array('controller'), $asset);
+    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array(__FUNCTION__), $asset);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $meta_assoc = $fct_metadata_get();
     if($meta_assoc == false) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get metadata from session for publishing, stopping now", array('controller'), $asset);
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get metadata from session for publishing, stopping now", array(__FUNCTION__), $asset);
         close_session();
         return false;
     }
 
     $asset_dir = get_local_processing_dir($asset);
     if(!file_exists($asset_dir)) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array('controller'), $asset);
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array(__FUNCTION__), $asset);
         close_session();
         return false;
     }
@@ -272,7 +329,7 @@ function controller_stop_and_publish() {
     $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
     $meta_xml_string = $fct_metadata_xml_get();
     if($meta_xml_string == false) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get XML metadata from session for publishing, stopping now", array('controller'), $asset);
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get XML metadata from session for publishing, stopping now", array(__FUNCTION__), $asset);
         close_session();
         return false;
     }
@@ -284,7 +341,7 @@ function controller_stop_and_publish() {
     $return_val = 0;
     system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array('controller'), $asset);
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array(__FUNCTION__), $asset);
     }
     
     close_session();
@@ -314,9 +371,9 @@ function controller_recording_cancel() {
     $metadata = $fct_metadata_get();
     if($metadata) {
         $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record cancelled at user request", array('controller'), $asset);
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record cancelled at user request", array(__FUNCTION__), $asset);
     } else {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "A record was cancelled at user request, but we could not get asset name. Not a problem in the processing but shouldn't happen.", array('controller'));
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "A record was cancelled at user request, but we could not get asset name. Not a problem in the processing but shouldn't happen.", array(__FUNCTION__));
     }
         
     // stops the timeout monitoring
@@ -336,7 +393,7 @@ function controller_recording_cancel() {
     
     // something wrong happened while cancelling the recording
     if (!$result) {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "Something wrong happened while cancelling record. " . error_last_message(), array('controller'));
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "Something wrong happened while cancelling record. " . error_last_message(), array(__FUNCTION__));
         error_print_message(error_last_message());
         return false;
     }
@@ -942,7 +999,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     $status = status_get();
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
         status_set('launch_failure');
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check _log in asset directory for more info, until we get rid of the bash scripts)", array("init_capture"), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check logs in asset directory for more info, until we get rid of the bash scripts)", array("init_capture"), $asset);
     } else {
         $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array("init_capture"), $asset);
     }
@@ -964,7 +1021,7 @@ function view_record_screen() {
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $metadata = $fct_metadata_get();
     if($metadata == false) {
-        $logger->log(EventType::RECORDER_METADATA, LogLevel::WARNING, 'view_record_screen called but couldnt get metadata. Return to submit form', array('controller'));
+        $logger->log(EventType::RECORDER_METADATA, LogLevel::WARNING, 'view_record_screen called but couldnt get metadata. Return to submit form', array(__FUNCTION__));
         controller_view_record_form();
         return;
     }

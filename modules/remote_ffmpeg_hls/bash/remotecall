@@ -1,11 +1,13 @@
 #!/bin/bash -x
 
-# First 3 args are always the same. LOGS_FILE is a remote path.
-SLIDE_IP=$1
+#This script will print all output to screen
+
+SLAVE_IP=$1
+#LOGS_FILE is a remote path.
 LOGS_FILE=$2
 BASH_SCRIPT=$3
 
 # if there are other more args, we assume these are arguments for the bash script
 all=( ${@} )
 
-ssh -o ConnectTimeout=10 $SLIDE_IP "$BASH_SCRIPT ${all[*]:3} 2>> $LOGS_FILE"
+ssh -o ConnectTimeout=10 $SLAVE_IP "$BASH_SCRIPT ${all[*]:3} 2>> $LOGS_FILE"

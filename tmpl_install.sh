@@ -48,7 +48,7 @@ echo -e "Destination folder: ${G}$dest_folder${N}";
 # echo " ";
 
 # echo "Compiling files ..."
-php $current_dir/cli_template_generate.php $source_folder fr $dest_folder;
-php $current_dir/cli_template_generate.php $source_folder en $dest_folder;
+php $current_dir/cli_template_generate.php $source_folder fr $dest_folder
+php $current_dir/cli_template_generate.php $source_folder en $dest_folder
 echo "Compilation complete. Don't forget to edit global_config.inc to your own needs";
 

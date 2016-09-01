@@ -11,6 +11,8 @@ if ($argc < 3) {
     die;
 }
 
+require_once(__DIR__."/lib_various.php");
+
 $in_install = true; //check usage in global_config.inc, this allow including the global_config_sample without failing
 
 if (file_exists("global_config.inc")) {
@@ -168,11 +170,6 @@ if(!$res) {
     echo $error . PHP_EOL;
 }
 echo "Templates generation done" . PHP_EOL;
-
-function read_line($prompt = '') {
-    echo $prompt;
-    return rtrim(fgets(STDIN), "\n");
-}
 
 //Try to connect on port 80. return 0 on failure, 1 on success
 function test_connect($host, $timeout) {

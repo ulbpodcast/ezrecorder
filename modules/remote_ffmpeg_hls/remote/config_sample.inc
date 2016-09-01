@@ -27,7 +27,6 @@
 // used by cli_monitoring.php when a recording has timed out
 $remoteffmpeg_basedir = __DIR__.'/';
 $remoteffmpeg_recorddir = '~/Movies/';
-$remoteffmpeg_moviesdir = $remoteffmpeg_recorddir.'ffmpeg_hls';
 $remoteffmpeg_movie_name = "ffmpegmovie";
 $remoteffmpeg_monitoring_file = $remoteffmpeg_basedir . 'var/_monitoring_pid';
 $remoteffmpeg_rec_status_file = $remoteffmpeg_basedir . 'var/rec_status';

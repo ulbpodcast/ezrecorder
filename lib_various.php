@@ -95,7 +95,6 @@ function xml_assoc_array2file($assoc_array, $metadata_file) {
     $xml_txt = xml_assoc_array2metadata($assoc_array);
     $result = file_put_contents($metadata_file, $xml_txt);
     if($result == false) {
-        print_r(debug_backtrace());
         $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array("xml_assoc_array2file"));
         return false;
     }
@@ -215,6 +214,8 @@ function get_asset_dir($asset, $step = '') {
         return false;
 
     switch ($step) {
+        case "upload_ok":
+            return get_upload_ok_dir($asset);
         case "upload":
             return get_upload_to_server_dir($asset);
         case "local_processing":
@@ -249,6 +250,12 @@ function get_upload_to_server_dir($asset = '') {
     return $ezrecorder_recorddir . '/upload_to_server/' . $asset . '/';
 }
 
+function get_upload_ok_dir($asset = '') {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/upload_ok/' . $asset . '/';
+}
+
 function create_working_dir($dir) {
     global $logger;
     
@@ -277,7 +284,7 @@ function create_module_working_folders($module_name, $asset) {
 }
 
 
-// record type represented as in integer
+// Various function to handle record types as integer or strings
 class RecordType {
     const CAM      = 0x1;
     const SLIDE    = 0x2;
@@ -316,12 +323,28 @@ class RecordType {
             return false;
     }
 
+    /** Get Record type as an integer for given cam/slide options
+     * 
+     * @param type $cam
+     * @param type $slide
+     * @return integer type 
+     */
+    static function to_int_for_options($cam, $slide) {
+        $type = 0;
+        if($cam)
+            $type |= self::CAM;
+        if($slide)
+            $type |= self::SLIDE;
+
+        return $type;
+    }
+    
     /**
      * Return record type int from string
      * @param string $camslide
      * @return integer
      */
-    static function from_string($camslide) {
+    static function to_int_from_string($camslide) {
         $type = 0;
         if(strpos($camslide,"cam")!==false)
             $type |= self::CAM;
@@ -353,16 +376,16 @@ function get_allowed_record_type() {
  * Example: Giving "camslide" to this function will return "cam" if slide is disabled.
  * 
  * @param string $record_type_str <slide|cam|camslide>
- * @return <slide|cam|camslide> or false or false
+ * @param string $allowed_types types as an integer (RecordType) <1|2|3>
+ * @return <slide|cam|camslide> or false
  */
-function validate_allowed_record_type($record_type_str) {
+function validate_allowed_record_type($record_type_str, $allowed_types) {
     global $logger;
     
     //convert to int record type for operations, then back to string
-    $record_type_int = RecordType::from_string($record_type_str);
-    $allowed_int = get_allowed_record_type();
+    $record_type_int = RecordType::to_int_from_string($record_type_str);
     //get all allowed types from given record type
-    $ok_types_int = $record_type_int & $allowed_int;
+    $ok_types_int = $record_type_int & $allowed_types;
     $ok_type_str = RecordType::to_string($ok_types_int);
      
     /*
@@ -373,14 +396,19 @@ function validate_allowed_record_type($record_type_str) {
     */
     
     if($ok_type_str == false) {
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::ERROR, "No valid given record type in $record_type_str ($record_type_int). Only allowed types are: $allowed_int", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "No valid given record type in $record_type_str ($record_type_int). Only allowed types are: $allowed_types", array('controller'));
         return false;
     }
     
     //user asked for camslide but only part only one of those was valid
     if($record_type_str != $ok_type_str) {
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::ERROR, "Only part of given record type $record_type_str ($record_type_int) was valid. Only allowed types are: $allowed_int", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Only part of given record type $record_type_str ($record_type_int) was valid. Only allowed types are: $allowed_types", array('controller'));
     }
     
     return $ok_type_str;
+}
+
+function read_line($prompt = '') {
+    echo $prompt;
+    return rtrim(fgets(STDIN), "\n");
 }

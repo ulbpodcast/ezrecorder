@@ -32,23 +32,24 @@
 require_once 'etc/config.inc';
 require_once $basedir . '/lib_various.php';
 require_once 'lib_capture.php';
+require_once 'info.php';
 
 // verifies that all required parameters are correctly set
 if ($argc !== 4) {
-    print "Expected 3 parameters (found $argc) " . PHP_EOL;
+    print "Expected 3 parameters (found ".($argc - 1).") " . PHP_EOL;
     print "<course> the mnemonic of the course to be streamed " . PHP_EOL;
-    print "<record_date> the record date of the current recording (YYYY_MM_DD_HHhMM)" . PHP_EOL;
+    print "<asset> Asset name" . PHP_EOL;
     print "<quality> the quality of the stream (high | low) " . PHP_EOL;
-    return;
+    exit(1);
 }
 
-$album = $argv[1];
+$course = $argv[1];
 $asset = $argv[2];
 $quality = $argv[3];
 
 // gets needed information for streaming, from the module
-$meta_assoc = capture_ffmpeg_info_get('streaming', $asset . '_' . $album);
-$post_array['album'] = $album;
+$meta_assoc = capture_ffmpeg_info_get('streaming', $asset);
+$post_array['course'] = $course;
 $post_array['asset'] = $asset;
 $post_array['quality'] = $quality;
 $post_array['record_type'] = $meta_assoc['record_type'];
@@ -68,7 +69,7 @@ while (true) {
 
     // retrieves the next .ts segment (handles server delays)
     // $m3u8_segment is an array containing both the .ts file and usefull information about the segment
-    $m3u8_segment = (get_next());
+    $m3u8_segment = (get_next($asset));
     if ($m3u8_segment !== NULL) { // there is a new segment to send to the server
         $post_array = array_merge($post_array, $m3u8_segment);
         // sends a request to the server with the next .ts segment
@@ -102,18 +103,21 @@ while (true) {
  * @staticvar array $segments_array
  * @return type
  */
-function get_next() {
+function get_next($asset) {
     global $ffmpeg_basedir;
-    global $ffmpeg_moviesdir;
     global $ffmpeg_movie_name;
     global $status;
     global $quality;
+    global $module_name;
+    
     static $file_index = 0;
     static $len = 0;
     static $lastpos = 0;
     static $segments_array = array();
     static $previous_status;
 
+    $ffmpeg_moviesdir = get_asset_module_folder($module_name, $asset);
+    
     // checks if an error occured during the recording 
     if (file_exists("$ffmpeg_moviesdir/${ffmpeg_movie_name}_" . ($file_index + 1) . "/$quality/$ffmpeg_movie_name.m3u8")) {
         $file_index++;
@@ -208,6 +212,3 @@ function get_next() {
     // returns the first segment from the array
     return array_shift($segments_array);
 }
-
-
-?>

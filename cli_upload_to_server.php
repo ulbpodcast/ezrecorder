@@ -29,8 +29,8 @@ if(isset($argv[1]))
     }
     
     $metadata_filepath = $asset_dir . '/metadata.xml';
-    if(!file_exists($asset_dir)) {
-        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Metadata not found: $metadata_filepath", array("cli_upload_to_server"));
+    if(!file_exists($metadata_filepath)) {
+        $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Metadata file not found: $metadata_filepath", array("cli_upload_to_server"));
         exit(1);
     }
     
@@ -52,7 +52,7 @@ if(isset($argv[1]))
 
 $record_date = $meta_assoc['record_date'];
 $course_name = $meta_assoc['course_name'];
-//$record_type = $meta_assoc['record_type'];
+$record_type = $meta_assoc['record_type'];
 
 $asset = get_asset_name($course_name, $record_date);
     
@@ -88,20 +88,28 @@ if ($slide_enabled) {
     }
 }
 
-if(!$cam_enabled && !$slide_enabled) { //we may have errors on both, stop in this case
+//update record type depending on failures above. Note that if a module fail but was not included in requested record type, this won't cause problem from here
+update_metadata_with_allowed_types($meta_assoc, $cam_enabled, $slide_enabled, $new_record_type);
+
+if($new_record_type == false) { //we may have errors on both, stop in this case
     $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Both cam and slides modules are disabled or have errors, nothing to upload.", array("cli_upload_to_server"), $asset);
     exit(3);
+} else if ($new_record_type != $record_type) {
+    $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Cam or slide had error and was disabled (desired type: $record_type, new type: $new_record_type). Trying to continue.", array("cli_upload_to_server"), $asset);
+    
+    $ok = xml_assoc_array2file($meta_assoc, $metadata_file);
+    if(!$ok) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not write new record type to file ($metadata_file).", array(__FUNCTION__), $asset);
+        return false;
+    }
 }
-
-//update record type depending on failures above
-$record_type = RecordType::to_string_for_options($cam_enabled, $slide_enabled);
 
 $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Starting upload to ezcast", array("cli_upload_to_server"), $asset);
 
 //try repeatedly to call EZcast server and send the right post parameters
 $retry_count = 500;
 for($retry = 0; $retry < $retry_count; $retry++) {
-    $error = server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
+    $error = server_start_download($new_record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
     switch($error) {
     case 0: // no error, exit
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Successfully sent upload request to ezcast.", array("cli_upload_to_server"), $asset);

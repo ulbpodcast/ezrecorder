@@ -1,30 +1,5 @@
 <?php
 
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 /**
  *  This CLI script performs various monitoring tasks. It is started when the user starts a recording, and stopped when they stop recording.
  * This script is called by qtbstart and qtbstop.
@@ -41,6 +16,14 @@
 require_once 'etc/config.inc';
 require_once '../../global_config.inc';
 require_once 'lib_capture.php';
+
+if ($argc !== 2) {
+    print "Usage:  " . $argv[0] . " <ffmpeg_working_dir>" . PHP_EOL;
+    print "<ffmpeg_working_dir> Working directory for this module. This directory should contain the 'ffmpegmovie_*' folders." . PHP_EOL;
+    exit(1);
+}
+
+$working_dir = $argv[1];
 
 // Delays, in seconds
 $recovery_threshold = 20; // Threshold before we start worrying about QTB
@@ -62,8 +45,8 @@ while (true) {
 
     clearstatcache();
 
-    $movie_count = trim(system("ls -la $ezrecorder_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
-    $files = glob("$ezrecorder_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
+    $movie_count = trim(system("ls -la $working_dir/ | grep $ffmpeg_movie_name | wc -l"));
+    $files = glob("$working_dir/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
     $status = capture_ffmpeg_recstatus_get();
     if ($status == '')
         capture_ffmpeg_recstatus_set('recording');
@@ -80,13 +63,14 @@ while (true) {
 
     if (($now - $last_modif) > $recovery_threshold) {
         capture_ffmpeg_recstatus_set('stopped');
-
-        system("$ffmpeg_basedir/bash/ffmpeg_relaunch $ffmpeg_input_source; wait");    
+        
+        $log_file = "$working_dir/relaunch.log";
+        system("$ffmpeg_basedir/bash/ffmpeg_relaunch $working_dir $ffmpeg_input_source >> $log_file 2>&1; wait");    
 
         mail($mailto_admins, 'FFMPEG crash', 'FFMPEG crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
 
-        $movie_count = trim(system("ls -la $ezrecorder_recorddir/ffmpeg_hls/ | grep $ffmpeg_movie_name | wc -l"));
-        $files = glob("$ezrecorder_recorddir/ffmpeg_hls/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
+        $movie_count = trim(system("ls -la $working_dir/ | grep $ffmpeg_movie_name | wc -l"));
+        $files = glob("$working_dir/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
         foreach ($files as $file) {
             $last_modif = max($last_modif, filemtime($file));
         }
@@ -100,4 +84,3 @@ while (true) {
 
     sleep($sleep_time);
 }
-?>

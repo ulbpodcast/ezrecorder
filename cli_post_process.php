@@ -93,7 +93,14 @@ while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_runn
     sleep(0.5);
 }
 
-// TODO: module processing currently move files to upload_to_server. (Move this here would be better but then you have to update each modules, do when you can)
+//move asset folder from local_processing to upload_to_server dir
+$upload_dir = get_asset_dir($asset, 'upload');
+$ok = rename($asset_dir, $upload_dir);
+if(!$ok) {
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processind to upload dir.", array("cli_post_process"), $asset);
+    //exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
+}
+$asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
 
 $cam_ok = true;
 $slide_ok = true;
@@ -144,7 +151,6 @@ global $php_cli_cmd;
 
 $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::DEBUG, "Call to $cli_upload", array("cli_post_process"), $asset);
 
-$asset_dir = get_asset_dir($asset, 'upload'); //asset has moved to upload_to_server
 $return_val = 0;
 $cmd = "$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log";
 system($cmd, $return_val);

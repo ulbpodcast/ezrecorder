@@ -5,10 +5,10 @@ require_once dirname(__FILE__).'/../../../global_config.inc';
 $ffmpeg_features = array('recording', 'streaming');
 
 $ffmpeg_basedir = dirname(__DIR__).'/';
-$ffmpeg_moviesdir = $ezrecorder_recorddir.'ffmpeg_hls';
 $ffmpeg_movie_name = 'ffmpegmovie';
 
 $ffmpeg_monitoring_file = $ffmpeg_basedir.'var/_monitoring_pid';
+$ffmpeg_monitoring_asset = $ffmpeg_basedir.'var/_monitoring_asset';
 $ffmpeg_pid_file = $ffmpeg_basedir.'var/ffmpeg_pid';
 // second pid is only used when multiple ffmpeg process are needed (for high and low stream)
 $ffmpeg_pid2_file = $ffmpeg_basedir.'var/ffmpeg_pid2';
@@ -44,7 +44,6 @@ $ffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highl
 $bash_env = array();
 $bash_env['EZCASTDIR']=$ffmpeg_basedir;
 $bash_env['RECORDDIR']=$ezrecorder_recorddir;
-$bash_env['MOVIESDIR']=$ffmpeg_moviesdir;
 $bash_env['COMMON_MOVIE_NAME']=$ffmpeg_movie_name;
 $bash_env['STATUS']=$ffmpeg_status_file;
 $bash_env['STREAMING_INFO']=$ffmpeg_streaming_info;
@@ -55,6 +54,8 @@ $bash_env['FFMPEG_PATH']=$ffmpegpath;
 $bash_env['FFMPEG_MONO']=($ffmpeg_mono ? 1 : 0);
 $bash_env['FFMPEG_PID']=$ffmpeg_pid_file;
 $bash_env['FFMPEG_PID2']=$ffmpeg_pid2_file;
+$bash_env['AVFOUNDATION_VIDEO_INTERFACE']=0;
+$bash_env['AVFOUNDATION_AUDIO_INTERFACE']=1;
 
 $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 

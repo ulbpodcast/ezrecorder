@@ -70,12 +70,15 @@ function streaming_init() {
     }
     $result = unserialize($result);
 
+    $album = $post_array['album'];
+    $asset = get_asset_name($post_array['asset'], $post_array['album']); //album or course name ?
+    
     // executes the command for sending TS segments to EZmanager in background
     // for low and high qualities
     if (strpos($post_array['module_quality'], 'high') !== false)
-        exec("$php_cli_cmd $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " high > /dev/null &", $output, $errno);    
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $album $asset high > /dev/null &");    
     if (strpos($post_array['module_quality'], 'low') !== false)
-        exec("$php_cli_cmd $remoteffmpeg_cli_streaming " . $post_array['album'] . " " . $post_array['asset'] . " low > /dev/null &", $output, $errno);
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $album $asset low > /dev/null &");
 }
 
 function streaming_close() {
@@ -93,5 +96,3 @@ function streaming_close() {
     }
     $result = unserialize($result);
 }
-?>
-

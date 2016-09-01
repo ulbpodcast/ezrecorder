@@ -15,12 +15,15 @@ MAXCALLS=3 	# attemps starting the process $MAXCALLS times before considering it
 EXISTS_VIDEO=0 		# 1 if ${COMMON_MOVIE_NAME}* exists on EZrecorder
 
 #first clean up eventual movie remaining
-if [ -d "$WORKING_DIR" ]; then
-   #to fix: this will also move last trash folder into the new trash folder
+PREVIOUS_RECORDS=$WORKING_DIR/${COMMON_MOVIE_NAME}*
+if [ -d "$PREVIOUS_RECORDS" ]; then
    SDAT=`date +"%Y_%m_%d_%Hh%M"`
    TRASH_DIR=${WORKING_DIR}/trash_${SDAT}/
    mkdir $TRASH_DIR
-   mv $WORKING_DIR/* $TRASH_DIR/
+   mv $PREVIOUS_RECORDS $TRASH_DIR/
+fi
+if [ -f $$THUMBNAIL_PATH ]; then
+    rm $THUMBNAIL_PATH
 fi
 
 TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_0/
@@ -66,13 +69,14 @@ do
             fi 
         ;;   
         "avfoundation" )
+            AV_INPUT=\'${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}\'
             if [ -e $STREAMING_INFO ]
             then 
                 # streaming is enabled. We prepare low and high resolution
-                $FFMPEG_PATH -f avfoundation -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $TARGET_DIR/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                $FFMPEG_PATH -f avfoundation -vcodec rawvideo -pixel_format yuyv422 -r '25' -i $AV_INPUT -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $TARGET_DIR/high/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
             else 
                 # streaming is disabled. We prepare high resolution only
-                $FFMPEG_PATH -f avfoundation -vcodec rawvideo -pixel_format yuyv422 -r '25' -i '0:1' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $TARGET_DIR/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                $FFMPEG_PATH -f avfoundation -vcodec rawvideo -pixel_format yuyv422 -r '25' -i $AV_INPUT -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $TARGET_DIR/high/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
             fi 
         ;;    
         "rtsp" )
@@ -140,7 +144,7 @@ do
 
 
     SDAT=`date +"%s"` 	#start date
-    WAITING_DELAY=20 	#if the file doesn't exist after 10s, we consider FFMPEG has crashed
+    WAITING_DELAY=20 	#if the file doesn't exist after 20s, we consider FFMPEG has crashed
 
     # loop while delay hasn't expired and cam file doesn't exist
     while [ $(( `date +"%s"`- $SDAT )) -le $WAITING_DELAY -a \( $EXISTS_VIDEO -eq 0 \) ]
@@ -159,7 +163,12 @@ do
     [ $CALLS -gt 1 ] && echo "--------------------------------------------" >> $TARGET_DIR/_check_log
     echo `date +"%d/%m/%y - %Hh%Mm%Ss"` : Attempt $CALLS >> $TARGET_DIR/_check_log
     echo "--------------------------------------------" >> $TARGET_DIR/_check_log
-    if [ $EXISTS_VIDEO -eq 1 ]; then echo "CAM (EZrecorder)   : Success" >> $TARGET_DIR/_check_log; else echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log; fi;
+    if [ $EXISTS_VIDEO -eq 1 ]; then 
+        echo "CAM (EZrecorder)   : Success" >> $TARGET_DIR/_check_log; 
+    else 
+        echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log; 
+        kill -9 $FFMPEG_PID
+    fi;
 
     #increments CALLS
     CALLS=$(( $CALLS + 1 ))
@@ -178,7 +187,7 @@ else # currently recording
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list.txt
 
     #start monitoring 
-    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php" | at now
+    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $WORKING_DIR" | at now
 
     echo -n "open" > $EZCASTDIR/var/status
     exit 0

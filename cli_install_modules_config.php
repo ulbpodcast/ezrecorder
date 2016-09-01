@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__."/lib_various.php");
+
 echo PHP_EOL.
      "*******************************************************************".PHP_EOL;
 echo "*        C O N F I G U R A T I O N   O F    M O D U L E S         *".PHP_EOL;

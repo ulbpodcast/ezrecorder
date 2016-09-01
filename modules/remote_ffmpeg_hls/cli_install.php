@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/config_sample.inc';
+require_once(__DIR__."/../../lib_various.php");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
 echo "* Installation of remote_fmle_cutlist module    *" . PHP_EOL;
@@ -41,9 +42,4 @@ system("chmod -R 755 $remoteffmpeg_local_basedir/bash");
 chmod("$remoteffmpeg_local_basedir/setperms.sh", 0755);
 echo "Enter sudo password for executing setperms.sh .";
 system("sudo $remoteffmpeg_local_basedir/setperms.sh");
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    return rtrim(fgets(STDIN), "\n");
-}
 

@@ -1,6 +1,7 @@
 <?php
 
 require_once 'etc/config_sample.inc';
+require_once(__DIR__."/../../lib_various.php");
 
 echo PHP_EOL . 
      "*******************************************" . PHP_EOL;
@@ -15,11 +16,6 @@ preg_replace('/\$ffmpegpath = (.+);/', '\$ffmpegpath = "' . $ffmpegpath . '";', 
 
 file_put_contents("$ffmpeg_basedir/etc/config.inc", $config);
 
-if (!is_dir($ffmpeg_moviesdir)) {
-    mkdir($ffmpeg_moviesdir, 0755, true);
-    chown($ffmpeg_moviesdir, $ezrecorder_username);
-}
-
 $perms_file = file_get_contents("$ffmpeg_basedir/setperms_sample.sh");
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
@@ -29,9 +25,4 @@ system("chmod -R 755 $ffmpeg_basedir/bash");
 chmod("$ffmpeg_basedir/setperms.sh", 0755);
 echo "Enter sudo password for executing setperms.sh .";
 system("sudo $ffmpeg_basedir/setperms.sh");
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    return rtrim(fgets(STDIN), "\n");
-}
 

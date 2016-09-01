@@ -2,7 +2,7 @@
 
 # This script must be sudo authorized for _www to run as podclient
 # return the data contained in the given file
-SLIDE_IP=$1
+SLAVE_IP=$1
 DATA_FILE=$2
 
-echo `ssh -o ConnectTimeout=10 $SLIDE_IP "cat $DATA_FILE"`
+echo `ssh -o ConnectTimeout=10 $SLAVE_IP "cat $DATA_FILE"`

@@ -13,8 +13,8 @@ require_once 'lib_template.php';
 //
 // Inits and sanity checks
 //
-if ($argc != 5) {
-    echo 'Usage: cli_template_generate.php source_folder language output_folder' . PHP_EOL;
+if ($argc != 4) {
+    echo 'Usage: cli_template_generate.php <source_folder> <language> <output_folder>' . PHP_EOL;
     die;
 }
 

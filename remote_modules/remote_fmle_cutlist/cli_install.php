@@ -26,7 +26,8 @@
 
 
 require_once 'config_sample.inc';
-require_once '../../global_config.inc';
+require_once(__DIR__.'/../../global_config.inc');
+require_once(__DIR__."/../../lib_various.php");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
 echo "* Installation of remote_fmle_cutlist remote module    *" . PHP_EOL;
@@ -81,10 +82,4 @@ file_put_contents("$remotefmle_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remotefmle_basedir/bash");
 chmod("$remotefmle_basedir/bin/CoreImageTool", 0755);
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    return rtrim(fgets(STDIN), "\n");
-}
-?>
 

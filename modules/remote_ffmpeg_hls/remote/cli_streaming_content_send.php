@@ -33,22 +33,23 @@ require_once 'config.inc';
 require_once 'lib_tools.php';
 require_once '../../../global_config.inc';
 require_once "$basedir/lib_various.php";
+require_once 'info.php';
 
 if ($argc !== 4) {
-    print "Expected 3 parameters (found $argc) " . PHP_EOL;
+    print "Expected 3 parameters (found ".($argc - 1).") " . PHP_EOL;
     print "<course> the mnemonic of the course to be streamed " . PHP_EOL;
-    print "<record_date> the record date of the current recording (YYYY_MM_DD_HHhMM)" . PHP_EOL;
+    print "<asset> Asset name" . PHP_EOL;
     print "<quality> the quality of the stream (high | low) " . PHP_EOL;
-    return;
+    exit(1);
 }
 
-$album = $argv[1];
+
+$course = $argv[1];
 $asset = $argv[2];
 $quality = $argv[3];
 
-
 $meta_assoc = xml_file2assoc_array($remoteffmpeg_streaming_info);
-$post_array['album'] = $album;
+$post_array['course'] = $course;
 $post_array['asset'] = $asset;
 $post_array['quality'] = $quality;
 $post_array['record_type'] = $meta_assoc['record_type'];
@@ -66,7 +67,7 @@ while (true) {
         die;
     }
 
-    $m3u8_segment = (get_next());
+    $m3u8_segment = (get_next($asset));
     if ($m3u8_segment !== NULL) {
         $post_array = array_merge($post_array, $m3u8_segment);
 
@@ -80,18 +81,21 @@ while (true) {
     sleep(2); // 2 s
 }
 
-function get_next() {
+function get_next($asset) {
     global $remoteffmpeg_basedir;
-    global $remoteffmpeg_moviesdir;
     global $remoteffmpeg_movie_name;
     global $status;
     global $quality;
+    global $module_name;
+    
     static $file_index = 0;
     static $len = 0;
     static $lastpos = 0;
     static $segments_array = array();
     static $previous_status;
 
+    $remoteffmpeg_moviesdir = get_asset_module_folder($module_name, $asset);
+    
     // checks if an error occured during the recording 
     if (file_exists("$remoteffmpeg_moviesdir/${remoteffmpeg_movie_name}_" . ($file_index + 1) . "/$quality/$remoteffmpeg_movie_name.m3u8")) {
         $file_index++;
@@ -164,5 +168,3 @@ function get_next() {
 
     return array_shift($segments_array);
 }
-
-?>
