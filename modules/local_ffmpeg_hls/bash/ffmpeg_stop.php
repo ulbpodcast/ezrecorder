@@ -23,7 +23,7 @@ $asset = $argv[1];
 $video_file_name = $argv[2];
 
 $process_dir = get_asset_module_folder($module_name, $asset);
-$asset_dir = get_asset_dir($asset, "local_processing");
+$asset_dir = get_asset_dir($asset);
 $pid_file = "$process_dir/process_pid";
 $cutlist_file = ffmpeg_get_cutlist_file($module_name, $asset);
 $process_result_file = "$asset_dir/$process_result_filename";
@@ -43,8 +43,10 @@ if(file_exists($ffmpeg_monitoring_file))
 #stop recording 
 stop_ffmpeg($ffmpeg_pid_file);
 stop_ffmpeg($ffmpeg_pid2_file); //low stream if any
-        
+      
 $cmd = "/usr/bin/nice -n 10 $php_cli_cmd $ffmpeg_script_merge_movies $process_dir $ffmpeg_movie_name $video_file_name $cutlist_file $asset >> $process_dir/merge_movies.log 2>&1";
+echo $cmd;
+
 $return_val = 0;
 system($cmd, $return_val);
 if($return_val != 0) {

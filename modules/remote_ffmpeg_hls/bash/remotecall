@@ -10,4 +10,4 @@ BASH_SCRIPT=$3
 # if there are other more args, we assume these are arguments for the bash script
 all=( ${@} )
 
-ssh -o ConnectTimeout=10 $SLAVE_IP "$BASH_SCRIPT ${all[*]:3} 2>> $LOGS_FILE"
+ssh -o ConnectTimeout=10 -o BatchMode=yes $SLAVE_IP "$BASH_SCRIPT ${all[*]:3} 2>> $LOGS_FILE"

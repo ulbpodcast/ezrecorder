@@ -99,7 +99,8 @@ function controller_recording_submit_infos() {
         'author' => $_SESSION['user_full_name'],
         'netid' => $_SESSION['user_login'],
         'record_date' => $datetime,
-        'streaming' => $streaming
+        'streaming' => $streaming,
+        'super_highres' => false
     );
 
 
@@ -933,6 +934,24 @@ function reset_cam_position() {
     }
 }
 
+/* Various environment checks
+ * Returns true if all ok, else returns false and a description of the problem in $problem_str
+*/
+function validate_environment(&$problem_str) {
+    $steps = array('local_processing', 'upload', 'upload_ok');
+    foreach($steps as $step) {
+        $dir = get_asset_dir('', $step);
+        if(!is_writable($dir)) {
+            $problem_str = "Directory for step $step is not writable. ($dir)";
+            return false;
+        }
+    }
+    
+    //what else ?
+    
+    return true;
+}
+
 function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     global $cam_enabled;
     global $cam_module;
@@ -940,10 +959,16 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     global $slide_module;
     global $logger;
     
+    $env_ok = validate_environment($error);
+    if(!$env_ok) {
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ALERT, "Environment validation failed with error: $error", array(__FUNCTION__));
+        return false;
+    }
+    
     //create asset name
     $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
     if($asset == '') {
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Couldn't get asset name from metadata, metadata probably invalid.", array("init_capture"));
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Couldn't get asset name from metadata, metadata probably invalid.", array(__FUNCTION__));
         return false;
     }
     
@@ -955,7 +980,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         if($ok)
             chmod($asset_dir, 0777);
         else {
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $dir", array("init_capture"), $asset);
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $asset_dir", array(__FUNCTION__), $asset);
             return false;
         }
     }
@@ -963,7 +988,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     // saves recording metadata as xml file
     $success = xml_assoc_array2file($metadata, "$asset_dir/_metadata.xml");
     if(!$success) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Can't init because _metadata writing failed", array("init_capture"), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Can't init because _metadata writing failed", array(__FUNCTION__), $asset);
         return false;
     }
     
@@ -977,7 +1002,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         $fct_capture_init = 'capture_' . $cam_module . '_init';
         $cam_ok = $fct_capture_init($cam_pid, $metadata, $asset);
         if ($cam_ok == false) {
-            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array("init_capture"), $asset);
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array(__FUNCTION__), $asset);
             log_append('error', "view_record_screen: Cam capture init failed.");
         }
     }
@@ -986,7 +1011,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         $fct_capture_init = 'capture_' . $slide_module . '_init';
         $slide_ok = $fct_capture_init($slide_pid, $metadata, $asset);
         if ($slide_ok == false) {
-            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array("init_capture"), $asset);
+            $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array(__FUNCTION__), $asset);
             log_append('error', "view_record_screen: Slides capture init failed.");
         }
     }
@@ -999,10 +1024,11 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     $status = status_get();
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
         status_set('launch_failure');
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check logs in asset directory for more info, until we get rid of the bash scripts)", array("init_capture"), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check logs in asset directory for more info, until we get rid of the bash scripts)", array(__FUNCTION__), $asset);
     } else {
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array("init_capture"), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array(__FUNCTION__), $asset);
     }
+    return true;
 }
 
 /**
@@ -1036,8 +1062,16 @@ function view_record_screen() {
     if ($status != 'open' && $status != 'recording') {
         $cam_ok = false;
         $slide_ok = false;
-        init_capture($metadata, $cam_ok, $slide_ok);
-    } 
+        $ok = init_capture($metadata, $cam_ok, $slide_ok);
+        if(!$ok) {
+            $logger->log(EventType::RECORDER_METADATA, LogLevel::CRITICAL, 'init_capture(...) failed', array(__FUNCTION__));
+            header( "refresh:1;url=index.php" );
+            require_once template_getpath('div_error_launch_failure.php');
+            return;
+        }
+    } else {
+        $logger->log(EventType::RECORDER_METADATA, LogLevel::INFO, 'view_record_screen, capture was already initiliazed', array(__FUNCTION__));
+    }
 
     // did something went wrong while initializing the recorders ?
     // if capture module launch failed, reset status and display an error box

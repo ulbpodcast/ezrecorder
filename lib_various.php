@@ -206,13 +206,10 @@ function get_asset_name($course_name, $record_date) {
     return $record_date . '_' . $course_name;
 }
 
-/* step == "upload" or "local_processing" or "" 
+/* step == "upload" or "local_processing" or "upload_ok" or "" 
     Empty step will return first found, or local_processing dir if folder was not found
  *  */
 function get_asset_dir($asset, $step = '') {
-    if ($step != 'upload' && $step != 'local_processing' && $step != '')
-        return false;
-
     switch ($step) {
         case "upload_ok":
             return get_upload_ok_dir($asset);
@@ -220,12 +217,16 @@ function get_asset_dir($asset, $step = '') {
             return get_upload_to_server_dir($asset);
         case "local_processing":
             return get_local_processing_dir($asset);
-        default:
+        case '':
             $dir = get_upload_to_server_dir($asset);
+            if(!file_exists($dir))
+                $dir = get_upload_ok_dir($asset);
             if(!file_exists($dir))
                 $dir = get_local_processing_dir($asset);
             
             return $dir;
+        default:
+            return false;
     }
 }
 
@@ -396,13 +397,13 @@ function validate_allowed_record_type($record_type_str, $allowed_types) {
     */
     
     if($ok_type_str == false) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "No valid given record type in $record_type_str ($record_type_int). Only allowed types are: $allowed_types", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "No valid given record type in $record_type_str ($record_type_int). Only allowed types are: $allowed_types", array(__FUNCTION__));
         return false;
     }
     
     //user asked for camslide but only part only one of those was valid
     if($record_type_str != $ok_type_str) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Only part of given record type $record_type_str ($record_type_int) was valid. Only allowed types are: $allowed_types", array('controller'));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Only part of given record type $record_type_str ($record_type_int) was valid. Only allowed types are: $allowed_types", array(__FUNCTION__));
     }
     
     return $ok_type_str;

@@ -5,4 +5,4 @@
 SLAVE_IP=$1
 DATA_FILE=$2
 
-echo `ssh -o ConnectTimeout=10 $SLAVE_IP "cat $DATA_FILE"`
+echo `ssh -o ConnectTimeout=10 -o BatchMode=yes $SLAVE_IP "cat $DATA_FILE"`

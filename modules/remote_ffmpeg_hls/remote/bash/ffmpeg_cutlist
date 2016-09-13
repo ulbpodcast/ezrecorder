@@ -1,10 +1,11 @@
 #!/bin/bash
-
 #include localdefs
 source $(dirname $0)/localdefs
 
-ASSET=$1
-CUTLIST_FILE=$2
+ACTION=$1
+ASSET=$2
+
+CUTLIST_FILE=$RECORDDIR/local_processing/$ASSET/remoteffmpeg/_cut_list.txt
 
 DATE=`date +%s`
 if [ "$ACTION" == "resume" ] 

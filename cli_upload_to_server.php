@@ -16,6 +16,7 @@ require_once 'lib_various.php';
 require_once 'lib_model.php';
 
 Logger::$print_logs = true;
+
 global $service;
 $service = true;
 
@@ -67,7 +68,7 @@ if (!file_exists($metadata_file)) {
 ////call EZcast server and tell it a recording is ready to download
 
 $cam_download_info = null;
-if ($cam_enabled) {
+if (RecordType::to_int_from_string($record_type) & RecordType::CAM) {
     // get downloading information required by EZcast server
     $fct = 'capture_' . $cam_module . '_info_get';
     $cam_download_info = $fct('download', $asset);
@@ -78,7 +79,7 @@ if ($cam_enabled) {
 }
 
 $slide_download_info = null;
-if ($slide_enabled) {
+if (RecordType::to_int_from_string($record_type) & RecordType::SLIDE) {
     // get downloading information required by EZcast server
     $fct = 'capture_' . $slide_module . '_info_get';
     $slide_download_info = $fct('download', $asset);
@@ -99,25 +100,22 @@ if($new_record_type == false) { //we may have errors on both, stop in this case
     
     $ok = xml_assoc_array2file($meta_assoc, $metadata_file);
     if(!$ok) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not write new record type to file ($metadata_file).", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Could not write new record type to file ($metadata_file).", array("cli_upload_to_server"), $asset);
         return false;
     }
 }
 
-$logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Starting upload to ezcast", array("cli_upload_to_server"), $asset);
+$logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Starting upload to ezcast for asset $asset", array("cli_upload_to_server"), $asset);
 
 //try repeatedly to call EZcast server and send the right post parameters
 $retry_count = 500;
 for($retry = 0; $retry < $retry_count; $retry++) {
-    $error = server_start_download($new_record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
+    $error = server_start_download($asset, $new_record_type, $record_date, $course_name, $cam_download_info, $slide_download_info);
     switch($error) {
     case 0: // no error, exit
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::INFO, "Successfully sent upload request to ezcast.", array("cli_upload_to_server"), $asset);
         //normal exit path
         
-        $fct = "session_" . $session_module . "_metadata_delete";
-        //debug UNCOMMENT THIS //$fct();
-
         exit(0);
     case 1: // error, retry
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Upload (curl) failed, will retry later.", array("cli_upload_to_server"), $asset);
@@ -135,13 +133,26 @@ $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Upload f
 exit(5);
 
 // checks whether we can send this data to the server
-function is_valid_download_info($download_info, &$err_info) {
+function is_valid_cam_download_info($download_info, &$err_info) {
     if(!file_exists($download_info["filename"]))
     {
         $err_info = 'File '. $download_info["filename"]. ' does not exists on recorder.';
         return false;
     }
     
+    return true;
+}
+
+// checks whether we can send this data to the server
+function is_valid_slide_download_info($download_info, &$err_info) {
+    
+    if($download_info["filename"] == "")
+    {
+        $err_info = 'No filename in download info';
+        return false;
+    }
+    //check remote file existence ?
+
     return true;
 }
 
@@ -154,18 +165,18 @@ function is_valid_download_info($download_info, &$err_info) {
  * @param <associative_array> $slide_download_info information relative to the downloading of slide movie. May be null.
  * @return 0 if all okay, 1 if error, 2 if critical error (don't bother retrying)
  */
-function server_start_download($record_type, $record_date, $course_name, $cam_download_info, $slide_download_info) {
+function server_start_download($asset, $record_type, $record_date, $course_name, $cam_download_info, $slide_download_info) {
     global $logger;
     
     $err_info = '';
-    if(isset($cam_download_info) && !is_valid_download_info($cam_download_info, $err_info)) {
-        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Invalid cam download info for ezcast. Cannot continue. Error info: $err_info . Download info: " . json_encode($cam_download_info), array("cli_upload_to_server","server_start_download"));
+    if(isset($cam_download_info) && !is_valid_cam_download_info($cam_download_info, $err_info)) {
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Invalid cam download info for ezcast. Cannot continue. Error info: $err_info . Download info: " . json_encode($cam_download_info), array("cli_upload_to_server",__FUNCTION__), $asset);
         return 2;
     }
     
-    if(isset($slide_download_info) && !is_valid_download_info($slide_download_info, $err_info)) {
-        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Invalid slide download info for ezcast. Cannot continue. Error info: $err_info . Download info: " . json_encode($slide_download_info), array("cli_upload_to_server","server_start_download"));
-        return 2;
+    if(isset($slide_download_info) && !is_valid_slide_download_info($slide_download_info, $err_info)) {
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Invalid slide download info for ezcast. Cannot continue. Error info: $err_info . Download info: " . json_encode($slide_download_info), array("cli_upload_to_server",__FUNCTION__), $asset);
+        return 3;
     }
     
     //tells the server that a recording is ready to be downloaded
@@ -193,9 +204,13 @@ function server_start_download($record_type, $record_date, $course_name, $cam_do
         $post_array['recorder_version'] = $recorder_version;
     }
     
+    $asset_dir = get_asset_dir($asset);
+    file_put_contents("$asset_dir/download_request_dump.txt", var_export($post_array, true) . PHP_EOL, FILE_APPEND);
+    
     $curl_success = strpos(server_request_send($ezcast_submit_url, $post_array), 'Curl error') === false;
     if(!$curl_success)
         return 1;
     
     return 0;
 }
+   

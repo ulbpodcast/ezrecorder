@@ -6,4 +6,4 @@ SLIDE_IP=$1
 DATA=$2
 DATA_FILE=$3
 
-ssh -o ConnectTimeout=10 $SLIDE_IP "echo '$DATA'>$DATA_FILE"
+ssh -o ConnectTimeout=10 -o BatchMode=yes $SLIDE_IP "echo '$DATA'>$DATA_FILE"

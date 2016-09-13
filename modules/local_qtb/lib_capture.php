@@ -262,7 +262,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     global $localqtb_processing_tools;
     global $localqtb_username;
 
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "called", array(__FUNCTION__), $asset);
     
     $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
@@ -287,7 +287,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
         capture_localqtb_status_set('');
     } else {
         error_last_message("capture_stop: can't process recording because current status: $status");
-        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel process because of current status: $status", array(__FUNCTION__), $asset);
+        $logger->log(EventType::TEST, LogLevel::WARNING, "Can't cancel process because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -299,7 +299,7 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Processing successfully started", array(__FUNCTION__), $asset);
+    $logger->log(EventType::TEST, LogLevel::INFO, "Processing successfully started", array(__FUNCTION__), $asset);
     
     return true;
 }

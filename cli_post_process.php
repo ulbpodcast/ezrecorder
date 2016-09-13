@@ -68,6 +68,8 @@ if ($cam_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Cam post processing start failed, disabling camera.", array("cli_post_process"), $asset);
         $cam_enabled = false;
         $cam_pid = 0;
+    } else if ($cam_pid == 0) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Cam process was successfully started but did not provided a pid", array("cli_post_process"), $asset);
     }
 }
 
@@ -80,6 +82,8 @@ if ($slide_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Slide post processed start failed, disabling slides.", array("cli_post_process"), $asset);
         $slide_enabled = false;
         $slide_pid = 0;
+    } else if ($slide_pid == 0) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Slide process was successfully started but did not provided a pid", array("cli_post_process"), $asset);
     }
 }
 
@@ -92,15 +96,6 @@ if(!$cam_pid && !$slide_pid) {
 while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_running($slide_pid)) {
     sleep(0.5);
 }
-
-//move asset folder from local_processing to upload_to_server dir
-$upload_dir = get_asset_dir($asset, 'upload');
-$ok = rename($asset_dir, $upload_dir);
-if(!$ok) {
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processind to upload dir.", array("cli_post_process"), $asset);
-    //exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
-}
-$asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
 
 $cam_ok = true;
 $slide_ok = true;
@@ -143,6 +138,18 @@ if($slide_ok && $cam_ok) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "At least one module failed video post processing (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok). Trying to continue anyway.", array("cli_post_process"), $asset);
 }
 system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
+
+//move asset folder from local_processing to upload_to_server dir
+$upload_dir = get_asset_dir($asset, 'upload');
+if($asset_dir != $upload_dir){
+    $ok = rename($asset_dir, $upload_dir);
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processind to upload dir. ($asset_dir to $upload_dir)", array("cli_post_process"), $asset);
+        // exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
+    }
+    $asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
+}
+
 
 //start upload
 global $cli_upload;

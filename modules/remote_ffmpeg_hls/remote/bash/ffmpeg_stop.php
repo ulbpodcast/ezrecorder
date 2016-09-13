@@ -24,7 +24,7 @@ $asset = $argv[1];
 $video_file_name = $argv[2];
 
 $process_dir = get_asset_module_folder($module_name, $asset);
-$asset_dir = get_asset_dir($asset, "local_processing");
+$asset_dir = get_asset_dir($asset);
 $pid_file = "$process_dir/process_pid";
 $cutlist_file = ffmpeg_get_cutlist_file($module_name, $asset);
 $process_result_file = "$asset_dir/$process_result_filename";
@@ -53,12 +53,15 @@ if($return_val != 0) {
     file_put_contents($process_result_file, $return_val); 
 }
 
-//if merge movies return 2, merge has been successfully but cutting failed. Let's continue with what we got.
-if($return_val == 2) {
+if($return_val != 0) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, 
-            "Parts merge succeeded but cutting failed. This is BAD, but let's continue with what we got.", array($log_context));
-    //at this point, merge movie script should still have produced a slide.mov file
-} else if($return_val != 0) {
+            "Parts merge succeeded but cutting failed. This is BAD, but let's try to continue with what we got.", array($log_context));
+    //at this point, merge movie script can still have produced a slide.mov file (if cut failed but merge succeeded)
+}
+
+if(!file_exists("$process_dir/$video_file_name")) {
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, 
+            "No output $process_dir/$video_file_name file found, aborting", array($log_context));
     exit(1);
 }
 

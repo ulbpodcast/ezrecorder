@@ -3,8 +3,13 @@
 /*
  * This is a CLI script that finalizes the recording process 
  * for the enabled modules.
- * Called directly from ezcast sever.
+ * Called directly from ezcast sever, executed as $recorder_user (ezcast config)
  */
+
+if($argc != 2) {
+    echo "Wrong arg count";
+    exit(1);
+}
 
 require_once 'global_config.inc';
 
@@ -16,6 +21,10 @@ Logger::$print_logs = true;
 global $service;
 $service = true;
 
+if($argc != 2) {
+    echo "Wrong arg count";
+    exit(1);
+}
 $asset = $argv[1];
 
 $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::DEBUG, __FILE__ . " called with args: $asset", array("cli_upload_finished"), $asset);
@@ -41,14 +50,14 @@ if ($slide_enabled) {
 }
 
 if(!$ok)
-    exit(1);
+    exit(2);
 
-$upload_to_server_dir = get_asset_dir($asset, 'upload');
+$upload_to_server_dir = get_asset_dir($asset);
 $upload_ok_dir = get_asset_dir($asset, 'upload_ok');
-$ok = rename("$upload_to_server_dir/$asset", "$upload_ok_dir/$asset");
+$ok = rename("$upload_to_server_dir", "$upload_ok_dir");
 if(!$ok) {
     $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Could not move asset folder to upload_ok dir. ($upload_to_server_dir -> $upload_ok_dir) ", array("cli_upload_finished"), $asset);
-    exit(1);
+    exit(3);
 }
 
 exit(0);

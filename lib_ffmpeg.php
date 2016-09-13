@@ -20,7 +20,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     global $ffmpeg_cli_cmd;
     global $logger;
 
-    $tmpdir = 'joinparts_tmpdir';
+    $tmpdir = "$movies_path/joinparts_tmpdir";
 
     chdir($movies_path);
     $movie_count = trim(system("ls -la $movies_path | grep $commonpart | wc -l"));
@@ -29,8 +29,10 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     if ($movie_count < 1)
         return 'No file(s) found';
 
-    mkdir("./$tmpdir");
-    $concat_file = "$tmpdir/concat.txt";
+    if(!file_exists($tmpdir))
+        mkdir($tmpdir);
+    
+    $concat_file = "$tmpdir/concat2.txt";
 
     $cmd = "";
     for ($i = 0; $i < $movie_count; $i++) {
@@ -53,12 +55,12 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     if (count(glob("$tmpdir/*")) === 1) {
         //only one part, just rename it
         rename("$tmpdir/part0.mov", "$movies_path/$output");
-        exec("rm -rf ./$tmpdir", $cmdoutput, $errno);
+        exec("rm -rf $tmpdir", $cmdoutput, $errno);
         $tmpdir = '';
     } else {
         //several parts, need to concat
         // creates a temporary text file containing all video files to join
-        $cmd = "for f in $movies_path/$tmpdir/part*.mov; do echo \"file '\$f'\" >> $concat_file; done";
+        $cmd = "for f in $tmpdir/part*.mov; do echo \"file '\$f'\" >> $concat_file; done";
         exec($cmd, $cmdoutput, $returncode);
         // uses the temporary text file to concatenate the video files
         // -f concat : option for concatenation
@@ -75,7 +77,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         
         // deletes the temporary text file
         unlink($concat_file);
-        exec("rm -rf ./$tmpdir", $cmdoutput, $errno);
+        exec("rm -rf $tmpdir", $cmdoutput, $errno);
     }
     return 0;
 }
@@ -171,8 +173,8 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     
     chdir($movie_path);
 
-    $tmp_dir = 'cutlist_tmpdir';
-    $ok = mkdir("./$tmp_dir");
+    $tmp_dir = "$movie_path/cutlist_tmpdir";
+    $ok = file_exists($tmp_dir) || mkdir($tmp_dir);
     if(!$ok) {
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not create temporary cut folder: $tmp_dir", array("movie_extract_cutlist"), $asset_name);
         return "/7 Could not create temporary cut folder: $tmp_dir";
@@ -229,11 +231,11 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         }
     }
 
-    $join_file = "$tmp_dir/concat.txt";
+    $join_file = "$tmp_dir/concat1.txt";
     if(file_exists($join_file))
         unlink($join_file); //cleanup before starting
     // creates a temporary text file containing all video files to join
-    $cmd = "for f in $movie_path/$tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
+    $cmd = "for f in $tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
     $return_code = 0;
     $cmdoutput = system($cmd, $return_code);
     if($return_code != 0) {
@@ -243,7 +245,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpeg_cli_cmd -f concat -i $join_file -c copy -y $movie_path/$movie_out";
+    $cmd = "$ffmpeg_cli_cmd -f concat -safe 0 -i $join_file -c copy -y $movie_path/$movie_out";
     print $cmd . PHP_EOL;
     $return_code = 0;
     $cmdoutput = system($cmd, $return_code);
@@ -255,7 +257,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     unlink($join_file);
 
     if ($tmp_dir != '')
-        exec("rm -rf ./$tmp_dir", $cmdoutput, $errno);
+        exec("rm -rf $tmp_dir", $cmdoutput, $errno);
     
     return 0;
 }

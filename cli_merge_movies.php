@@ -55,7 +55,7 @@ if ($output >= 1) {
 $err = movie_extract_cutlist($movies_path, $merge_file, $cutlist_file, $outputfilename, $asset_name);
 if($err != 0) {
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err. Move $merge_file to $outputfilename instead.", array("merge_movies"), $asset_name);
-    rename($movie_path/$merge_file, $movie_path/$outputfilename);
+    rename("$movies_path/$merge_file", "$movies_path/$outputfilename");
     exit(2);
 }
 

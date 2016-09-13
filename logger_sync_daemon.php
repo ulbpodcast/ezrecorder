@@ -10,12 +10,11 @@ class LoggerSyncDaemon {
     const CLI_SYNC = 'cli_sync_logs.php';
     const CLI_SYNC_DAEMON = 'cli_sync_logs_daemon.php';
     const SYNC_BATCH_SIZE = 1000;
-      
+    
     public static function ensure_is_running() {
         global $basedir;
         if(!self::is_running()) {
             system("php -f ". self::CLI_SYNC_DAEMON . " > $basedir/var/log_sync_daemon 2>&1 &");
-            //it seems we sometimes have two sync_daemon running. Can this be because the background process is started only after the next log line has been executed ?
         }
     }
     
@@ -80,7 +79,15 @@ class LoggerSyncDaemon {
         $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Log sync was succesful, $events_count entries were synced. Server response: $result", array("LoggerSyncDaemon"));
     }
     
-    public function run() {
+    public function run($check_if_running = true) {
+        /* it seems we sometimes have several sync_daemon using ensure_is_running. This is because cli_sync_logs is started as a background process
+         * and the PID may not be written yet when ensure_is_running is called. The next check is there to fix this.
+         */
+        if($check_if_running) {
+            if($this->is_running())
+                return;
+        }
+        
         global $logger;
 
         self::write_PID();

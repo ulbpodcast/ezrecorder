@@ -30,5 +30,3 @@ require_once dirname(__FILE__)."/../../common.inc";
 $onvifcam_username = 'root';
 $onvifcam_password = '';
 $onvifcam_ip = '127.0.0.1:1018';
-
-?>

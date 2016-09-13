@@ -71,6 +71,12 @@ function init_streaming($asset) {
     return true;
 }
 
+function capture_ffmpeg_valide_environment(&$error_str) {
+    //todo: check if all bash scripts as executable
+    //is_executable($filename)
+    return true;
+}
+
 /**
  * @implements
  * Initialize the recording settings.
@@ -88,6 +94,12 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $bash_env;
     global $ffmpeg_basedir;
     global $ffmpeg_module_name;
+    
+    $success = capture_ffmpeg_valide_environment($error_str);
+    if(!$success) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not init module because of environment error: $error_str", array(__FUNCTION__), $asset);
+        return false;
+    }
     
     //prepare bash variables
     $success = create_bash_configs($bash_env, $ffmpeg_basedir . "etc/localdefs");
@@ -429,7 +441,7 @@ function capture_ffmpeg_process($asset, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, __FUNCTION__.": Processing successfully started", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "Processing successfully started", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -455,7 +467,7 @@ function capture_ffmpeg_finalize($asset) {
     $return_val = 0;
     $output = system($cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output $output", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output: $output", array(__FUNCTION__), $asset);
         return false;
     }
     

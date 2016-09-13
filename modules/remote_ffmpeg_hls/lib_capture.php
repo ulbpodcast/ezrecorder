@@ -110,7 +110,6 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Could not create remote asset folder. Cmd: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
-
             
     /* remote script call requires:
      * - the remote ip
@@ -214,7 +213,7 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     $return_val = 0;
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
     $remote_log_file = $working_dir . '/cutlist.log';
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remote_log_file $remoteffmpeg_script_cutlist $asset $action";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remote_log_file $remoteffmpeg_script_cutlist $action $asset";
     system($cmd, $return_val);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed. Command: $cmd", array(__FUNCTION__), $asset);
@@ -269,7 +268,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
     $remote_log_file = $working_dir . '/cutlist.log';
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remote_log_file $remoteffmpeg_script_cutlist $asset stop";
+    $cmd = "sudo -u $remoteffmpeg_username $remote_script_call $remoteffmpeg_ip $remote_log_file $remoteffmpeg_script_cutlist stop $asset";
     $return_var = 0;
     system($cmd, $return_var);
     if($return_var != 0) {
@@ -399,7 +398,7 @@ function capture_remoteffmpeg_finalize($asset) {
     $return_val = 0;
     $output = system($cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output $output", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with error code $return_val and output: $output", array(__FUNCTION__), $asset);
         return false;
     }
     
@@ -468,8 +467,16 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     
     switch ($action) {
         case 'download':
-            $filename = $remoteffmpeg_upload_dir . $asset . "/slide.mov";
+            $filename = $remoteffmpeg_upload_dir . '/' . $asset . "/slide.mov";
             
+            $cmd = "ssh -o ConnectTimeout=10 $remoteffmpeg_username@$remoteffmpeg_ip 'test -e $filename'";
+            $return_val = 0;
+            system($cmd, $return_val);
+
+            if($return_val != 0)  {
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. File: $filename. Cmd: $cmd", array(__FUNCTION__), $asset);
+            }
+
             //Todo: check file existence on remote server
             
             // rsync requires ssh protocol is set (key sharing) on the remote server
@@ -513,6 +520,8 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
                 "title" => $meta_assoc['title']);
             return $streaming_info_array;
             break;
+        default:
+            return false;
     }
 }
 

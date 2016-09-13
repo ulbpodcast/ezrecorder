@@ -4,5 +4,5 @@ SLIDE_IP=$1
 IMG_FILE=$2
 IMG_TMP_FILE=$3
 
-scp -o ConnectTimeout=10 $SLIDE_IP:$IMG_FILE $IMG_TMP_FILE
+scp -o ConnectTimeout=10 -o BatchMode=yes $SLIDE_IP:$IMG_FILE $IMG_TMP_FILE
        
