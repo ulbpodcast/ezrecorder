@@ -9,7 +9,8 @@
 require_once 'global_config.inc';
 
 require_once $cam_lib;
-require_once $slide_lib;
+if($slide_enabled)
+    require_once $slide_lib;
 require_once $session_lib;
 require_once 'lib_error.php';
 require_once 'lib_various.php';

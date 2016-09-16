@@ -276,37 +276,6 @@ else
     fi
 fi
 
-
-value=$( networksetup -version)
-# Verify that networksetup is installed
-if [[ "$value" == networksetup* ]]; then
-    echo " "
-    echo "*******************************************************************"
-    echo "*          N E T W O R K   C O N F I G U R A T I O N              *"
-    echo "*******************************************************************"
-    echo ""
-    read -p "Would you like to change your computer IP configuration (IP / DNS / domain) now? [y/N]: " choice
-    if [ "$choice" == "y" ]; 
-    then 
-        echo "Enter now the requested values:"
-        read -p "Computer's name: " COMPUTER_NAME
-        read -p "Static IP address (used by EZcast to communicate with): " COMPUTER_IP
-        read -p "Subnet mask: " COMPUTER_SUBNET
-        read -p "Router: " COMPUTER_ROUTER
-        read -p "Primary DNS Server: " COMPUTER_DNS
-        read -p "Search Domains: " COMPUTER_DOMAINS
-        #change computer's name
-        networksetup -setcomputername "$COMPUTER_NAME"
-        #change network settings
-        networksetup -setmanual "Ethernet" $COMPUTER_IP $COMPUTER_SUBNET $COMPUTER_ROUTER
-        #change DNS
-        networksetup -setdnsservers "Ethernet" $COMPUTER_DNS
-        #change search domains
-        networksetup -setsearchdomains "Ethernet" "$COMPUTER_DOMAINS"
-        echo "Your computer network has been set up"
-    fi
-fi
-
 echo " "
 echo "*******************************************************************"
 echo "*                         C  O  N  F  I  G                        *"

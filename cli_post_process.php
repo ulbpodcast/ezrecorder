@@ -13,7 +13,8 @@ $service = true;
 require_once 'global_config.inc';
 
 require_once $cam_lib;
-require_once $slide_lib;
+if($slide_enabled)
+    require_once $slide_lib;
 require_once $session_lib;
 require_once 'lib_error.php';
 require_once 'lib_various.php';
@@ -130,8 +131,7 @@ if ($slide_enabled) {
 
 if($slide_ok && $cam_ok) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::INFO, "Finished successfully videos post processing.", array("cli_post_process"), $asset);
-
-} else if ((!$slide_enabled || !$slide_ok) && (!$cam_enabled || !$cam_ok)) {
+} else if (!(($slide_enabled && $slide_ok) || ($cam_enabled && $cam_ok))) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Post processing: Both cam and slides are either disabled or failed (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok)", array("cli_post_process"), $asset);
     exit(1);
 } else {

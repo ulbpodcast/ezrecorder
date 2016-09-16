@@ -12,7 +12,8 @@ echo "Creating etc/config.inc" . PHP_EOL;
 
 $config = file_get_contents("$ffmpeg_basedir/etc/config_sample.inc");
 
-preg_replace('/\$ffmpegpath = (.+);/', '\$ffmpegpath = "' . $ffmpegpath . '";', $config);
+echo "No configurable option yet, you must edit config.inc by hand" . PHP_EOL;
+// todo: allow to customise options
 
 file_put_contents("$ffmpeg_basedir/etc/config.inc", $config);
 

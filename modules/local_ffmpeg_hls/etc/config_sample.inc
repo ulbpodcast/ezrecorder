@@ -17,6 +17,7 @@ $ffmpeg_recstatus_file = $ffmpeg_basedir.'var/rec_status'; // Current recording 
 $ffmpeg_recorder_logs = $ffmpeg_basedir.'var/_log'; // Log file
 $ffmpeg_streaming_info = $ffmpeg_basedir.'var/streaming'; // contains server and port number
 $ffmpeg_capture_file = $ffmpeg_basedir.'var/screencapture.jpg'; // Camera screenshot
+$process_result_filename = "process_result.txt";
 
 $ffmpeg_processing_tool = "ffmpeg"; 
 $ffmpeg_processing_tools = array("ffmpeg");
@@ -35,7 +36,7 @@ $ffmpeg_download_protocol = "rsync"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'
 $ffmpeg_streaming_protocol = "http"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'
-$ffmpeg_input_source = "UltraStudioMiniRecorder"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | avfoundation | rstp | ...)
+$ffmpeg_input_source = "rtsp"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | avfoundation | rstp | ...)
 // you might have to adapt the 'bash/ffmpeg_init' script
 $ffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highlow | high | low | none)
 
@@ -50,7 +51,7 @@ $bash_env['STREAMING_INFO']=$ffmpeg_streaming_info;
 $bash_env['CLASSROOM']=$classroom;
 $bash_env['MAIL_TO']=$mailto_admins;
 $bash_env['PHP_PATH']=$php_cli_cmd;
-$bash_env['FFMPEG_PATH']=$ffmpegpath;
+$bash_env['FFMPEG_PATH']=$ffmpeg_cli_cmd;
 $bash_env['FFMPEG_MONO']=($ffmpeg_mono ? 1 : 0);
 $bash_env['FFMPEG_PID']=$ffmpeg_pid_file;
 $bash_env['FFMPEG_PID2']=$ffmpeg_pid2_file;

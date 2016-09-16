@@ -27,6 +27,6 @@
 require_once dirname(__FILE__)."/../../global_config.inc";
 require_once dirname(__FILE__)."/../../common.inc";
 
-$onvifcam_username = 'root';
-$onvifcam_password = '';
-$onvifcam_ip = '127.0.0.1:1018';
+$onvifcam_username = 'admin';
+$onvifcam_password = '9999';
+$onvifcam_ip = '10.0.2.253:8080';

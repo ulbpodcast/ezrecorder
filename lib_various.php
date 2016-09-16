@@ -185,9 +185,12 @@ function is_process_running($pid) {
 }
 
 function get_pid_from_file($filePath) {
+    if(!file_exists($filePath))
+        return false;
+    
     $handle = fopen($filePath, "r");
     if($handle == false)
-        return 0;
+        return false;
     
     $pid = fgets($handle);
     fclose($handle);

@@ -110,14 +110,11 @@ file_put_contents("$basedir/setperms.sh", $perms_file);
 echo "Creation of working directories in $ezrecorder_recorddir" . PHP_EOL;
 
 system("mkdir -p $ezrecorder_recorddir/upload_ok");
-system("chmod -R 777 $ezrecorder_recorddir/upload_ok");
 system("mkdir -p $ezrecorder_recorddir/upload_to_server");
-system("chmod -R 777 $ezrecorder_recorddir/upload_to_server");
 system("mkdir -p $ezrecorder_recorddir/local_processing");
-system("chmod -R 777 $ezrecorder_recorddir/local_processing");
 system("mkdir -p $ezrecorder_recorddir/trash");
 system("chown -R $ezrecorder_username $ezrecorder_recorddir");
-system("chmod -R 755 $ezrecorder_recorddir");
+system("chmod -R 777 $ezrecorder_recorddir");
 
 /*
  * Finaly, we copy htdocs from BASEDIR to WEB_BASEDIR

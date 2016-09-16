@@ -365,7 +365,7 @@ function capture_ffmpeg_process_result($asset) {
     $working_dir = get_asset_dir($asset);
     $process_result_file = "$working_dir/$process_result_filename";
     if(!file_exists($process_result_file)) {
-        $logger->log(EventType::TEST, LogLevel::DEBUG, "Return false because file $process_result_file does not exists", array("capture_ffmpeg_process_result"));
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "Return false because file $process_result_file does not exists", array(__FUNCTION__));
         return false;
     }
     $result = file_get_contents($process_result_file);
@@ -373,7 +373,7 @@ function capture_ffmpeg_process_result($asset) {
         $result = trim($result);
     
     $success = $result !== false && $result == "0";
-    $logger->log(EventType::TEST, LogLevel::DEBUG, "File was found, contain: $result. Returning success: " . ($success ? "true" : "false"), array("capture_ffmpeg_process_result"));
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "File was found ($process_result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
     return $success;
 }
 

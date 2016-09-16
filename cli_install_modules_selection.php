@@ -46,6 +46,7 @@ echo "------------------------------------------------------------" . PHP_EOL;
 echo "               C A M    R E C O R D I N G" . PHP_EOL;
 echo "------------------------------------------------------------" . PHP_EOL;
 
+//todo: change default to false
 $value = read_line("Do you want to enable cam recording ? [Y/n]: ");
 if (strtoupper($value) != 'N' && strtoupper($value) != 'NO') {
     if (count($modules_array['recording']) > 0) {
