@@ -34,7 +34,7 @@ This is the template for the login screen.
             <?php include 'div_main_header.php'; ?>
             <div id="global">
                 <p>
-                    <div style="padding-left: 30px; color: red; font-weight: bold;"></div>
+                    <div style="padding-left: 30px; color: red; font-weight: bold;"><?php if(isset($error)) echo $error; ?></div>
                     <form id="login_form" method="post" action="index.php">
                         <input type="hidden" name="action" value="login" />
                         <div style="color: red; display: none;" id="IEalert">®Navigator_not_compatible®</div>
