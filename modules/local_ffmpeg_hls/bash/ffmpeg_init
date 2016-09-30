@@ -137,6 +137,11 @@ do
                 >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             fi 
         ;;
+        *)
+            #no valid input source specified
+            exit 1
+            ;; 
+
             # -f decklink = force BMD source
             # -i = input source
             # -vcodec = video codec (H264)

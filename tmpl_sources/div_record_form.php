@@ -4,6 +4,8 @@ This div contains the form used to create a new record.
 You should not have to use this template by itself. However, if you do, please
 make sure $courselist is set and is an array of all courses available for the user
 (assoc array: key = course name, value = course description)
+
+Please keep this at second line for automated testing: autotest_record_form
 -->
 <script>
     $(document).ready(function() {
