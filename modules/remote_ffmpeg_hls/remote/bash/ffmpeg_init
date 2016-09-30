@@ -25,6 +25,9 @@ if [ -f $$THUMBNAIL_PATH ]; then
     rm $THUMBNAIL_PATH
 fi
 
+#make sure last ffmpeg is dead
+kill -9 `cat $FFMPEG_PID`
+
 TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_0/
 HIGH_DIR=${TARGET_DIR}/high
 LOW_DIR=${TARGET_DIR}/low

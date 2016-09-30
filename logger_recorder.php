@@ -82,7 +82,7 @@ class RecorderLogger extends Logger {
     */
     private function backup_database() {
         if(file_exists($this->database_file))
-          return rename($this->database_file, $this->database_file . '.backup.' . date("Y-m-d.H-i-s"));
+            return rename($this->database_file, $this->database_file . '.backup.' . date("Y-m-d.H-i-s"));
 
         return true;
     }

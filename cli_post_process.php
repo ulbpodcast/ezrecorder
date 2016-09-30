@@ -86,6 +86,10 @@ if ($slide_enabled) {
     } else if ($slide_pid == 0) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Slide process was successfully started but did not provided a pid", array("cli_post_process"), $asset);
     }
+    
+    if(!is_process_running($slide_pid)) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "!! Slides processing ($slide_pid) NOT running at this point ", array("cli_post_process"), $asset);
+    }
 }
 
 if(!$cam_pid && !$slide_pid) {
@@ -94,7 +98,7 @@ if(!$cam_pid && !$slide_pid) {
 }
 
 // wait for local processing to finish
-while ($cam_pid && is_process_running($cam_pid) || $slide_pid && is_process_running($slide_pid)) {
+while ( ($cam_pid && is_process_running($cam_pid)) || ($slide_pid && is_process_running($slide_pid)) ) {
     sleep(0.5);
 }
 
@@ -144,7 +148,7 @@ $upload_dir = get_asset_dir($asset, 'upload');
 if($asset_dir != $upload_dir){
     $ok = rename($asset_dir, $upload_dir);
     if(!$ok) {
-        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processind to upload dir. ($asset_dir to $upload_dir)", array("cli_post_process"), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processing to upload dir. ($asset_dir to $upload_dir)", array("cli_post_process"), $asset);
         // exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
     }
     $asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script

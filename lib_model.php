@@ -339,11 +339,7 @@ function controller_stop_and_publish() {
     file_put_contents("$asset_dir/metadata.xml", $meta_xml_string);
 
     // launches the video processing in background
-    $return_val = 0;
-    system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
-    if($return_val != 0) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array(__FUNCTION__), $asset);
-    }
+    start_post_process($asset);
     
     close_session();
 
@@ -455,14 +451,14 @@ function start_post_process($asset) {
     
     $asset_dir = get_local_processing_dir($asset);
     if(!file_exists($asset_dir)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Asset directory does not exists: $asset_dir", array('start_post_process'), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Asset directory does not exists: $asset_dir", array(__FUNCTION__), $asset);
         return false;
     }
     
     $return_val = 0;
     system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array('start_post_process'), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array(__FUNCTION__), $asset);
         return false;
     }
     
@@ -1021,12 +1017,15 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         sleep(0.5);
     
     //inits scripts will set at status when they are done, check the result here
-    $status = status_get();
+    $cam_status = '';
+    $slide_status = '';
+    $status = status_get($cam_status, $slide_status);
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
         status_set('launch_failure');
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". (check logs in asset directory for more info, until we get rid of the bash scripts)", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". Cam status: $cam_status. Slide status: $slide_status. (check logs in asset directory for more info, until we get rid of the bash scripts)", array(__FUNCTION__), $asset);
+        return false;
     } else {
-        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\"", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\".", array(__FUNCTION__), $asset);
     }
     return true;
 }
@@ -1258,7 +1257,7 @@ function status_get_slide() {
  * returns an "error" status.
  */
 
-function status_get() {
+function status_get(&$cam_status = '', &$slide_status = '') {
     global $cam_enabled;
     global $slide_enabled;
 

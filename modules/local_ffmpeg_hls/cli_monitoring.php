@@ -38,10 +38,15 @@ while (true) {
 
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
-    // or the status is not set (should be open / recording / paused / stopped)
-    if (!file_exists($ffmpeg_monitoring_file) || $pid != file_get_contents($ffmpeg_monitoring_file) || capture_ffmpeg_status_get() == '') {
+    if (!file_exists($ffmpeg_monitoring_file) 
+            || $pid != file_get_contents($ffmpeg_monitoring_file) ) {
         die;
     }
+    
+    // or the status is not set (should be open / recording / paused / stopped)
+    $status = capture_ffmpeg_status_get();
+    if($status = '' || $status = 'launch_failure')
+        die;
 
     clearstatcache();
 

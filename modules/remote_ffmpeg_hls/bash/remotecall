@@ -1,13 +1,5 @@
-#!/bin/bash -x
+#!/bin/bash
 
-#This script will print all output to screen
+#just execute whatever we're given. Until we remove this bash script system
 
-SLAVE_IP=$1
-#LOGS_FILE is a remote path.
-LOGS_FILE=$2
-BASH_SCRIPT=$3
-
-# if there are other more args, we assume these are arguments for the bash script
-all=( ${@} )
-
-ssh -o ConnectTimeout=10 -o BatchMode=yes $SLAVE_IP "$BASH_SCRIPT ${all[*]:3} 2>> $LOGS_FILE"
+$@

@@ -74,14 +74,6 @@ rename("$process_dir/$video_file_name", "$asset_dir/$video_file_name");
 #all okay, write success
 file_put_contents($process_result_file, "0"); 
 
-//move asset folder to upload_to_server
-$ok = rename($asset_dir, get_upload_to_server_dir($asset));
-if(!$ok) {
-    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, 
-            "ffmpeg_stop could not move asset to upload folder", array($log_context));
-    exit(3);
-}
-
 $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::INFO, 
         "ffmpeg_stop finished successfully", array($log_context));
 

@@ -68,17 +68,16 @@ if (!file_exists($metadata_file)) {
 
 ////call EZcast server and tell it a recording is ready to download
 
-$cam_download_info = null;
 if (RecordType::to_int_from_string($record_type) & RecordType::CAM) {
     // get downloading information required by EZcast server
     $fct = 'capture_' . $cam_module . '_info_get';
     $cam_download_info = $fct('download', $asset);
     if($cam_download_info == false) {
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Couldn't get info from cam module. Camera will be ignored", array("cli_upload_to_server"), $asset);
-        $cam_enabled = false;
     }
 }
 
+$ignore_slides = false;
 $slide_download_info = null;
 if (RecordType::to_int_from_string($record_type) & RecordType::SLIDE) {
     // get downloading information required by EZcast server
@@ -86,12 +85,11 @@ if (RecordType::to_int_from_string($record_type) & RecordType::SLIDE) {
     $slide_download_info = $fct('download', $asset);
     if($slide_download_info == false) {
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Couldn't get info from slide module. Slides will be ignored", array("cli_upload_to_server"), $asset);
-        $slide_enabled = false;
     }
 }
 
 //update record type depending on failures above. Note that if a module fail but was not included in requested record type, this won't cause problem from here
-update_metadata_with_allowed_types($meta_assoc, $cam_enabled, $slide_enabled, $new_record_type);
+update_metadata_with_allowed_types($meta_assoc, $cam_download_info != false, $slide_download_info != false, $new_record_type);
 
 if($new_record_type == false) { //we may have errors on both, stop in this case
     $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Both cam and slides modules are disabled or have errors, nothing to upload.", array("cli_upload_to_server"), $asset);
@@ -152,7 +150,8 @@ function is_valid_slide_download_info($download_info, &$err_info) {
         $err_info = 'No filename in download info';
         return false;
     }
-    //check remote file existence ?
+    
+    // also check remote file existence ? maybe a bit overkill at this point
 
     return true;
 }

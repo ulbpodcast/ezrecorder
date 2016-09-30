@@ -32,13 +32,16 @@ while (true) {
     
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the file containsan other pid
-    // or the status is not set (should be open / recording / paused / stopped)
     if (!file_exists($remoteffmpeg_monitoring_file) 
-            || $pid != file_get_contents($remoteffmpeg_monitoring_file)
-            || status_get() == '') {
+            || $pid != file_get_contents($remoteffmpeg_monitoring_file)) {
         die;
     }
 
+    // or the status is not set (should be open / recording / paused / stopped)
+    $status = status_get();
+    if($status = '' || $status = 'launch_failure')
+        die;
+    
     // FMLE check
     clearstatcache();
     
