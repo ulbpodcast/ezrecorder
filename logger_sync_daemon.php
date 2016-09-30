@@ -42,7 +42,7 @@ class LoggerSyncDaemon {
             $logger->set_autoincrement($last_id_sent + 1);
             $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Dummy log, just to insert one row after resetting auto increment", array("LoggerSyncDaemon"));
 
-            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Server knows of a more recent event than we actually have on this recorder... this should not happen. Reseting our auto increment to this id.", array("LoggerSyncDaemon"));
+            $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Server knows of a more recent event ($last_id_sent) than we actually have ($last_local_id) on this recorder... this should not happen. Reseting our auto increment to this id.", array("LoggerSyncDaemon"));
             return 2;
         }
         
@@ -89,7 +89,7 @@ class LoggerSyncDaemon {
         return 0;
     }
     
-    public function run($check_if_running = true, $show_output = false) {
+    public function run($check_if_running = true) {
         /* it seems we sometimes have several sync_daemon using ensure_is_running. This is because cli_sync_logs is started as a background process
          * and the PID may not be written yet when ensure_is_running is called. The next check is there to fix this.
          */
@@ -98,15 +98,14 @@ class LoggerSyncDaemon {
                 return;
         }
         
-        global $logger;
-
         self::write_PID();
+
+        global $logger;
 
         while (true) {
             $start_time = time();
             
-            if($show_output) 
-                echo "Syncing..." . PHP_EOL;
+            //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Syncing...", array("LoggerSyncDaemon"));
             
             $error = $this->sync_logs();
             if($error) {
@@ -121,8 +120,7 @@ class LoggerSyncDaemon {
             //   if we spent 5 seconds syncing, sleep only 55 seconds.
             $time_to_sleep = $time_spent >= self::UPDATE_INTERVAL ? 0 : self::UPDATE_INTERVAL - $time_spent;
 
-            if($show_output) 
-                echo "Logs synced with return val $error. Sleep for $time_to_sleep" . PHP_EOL;
+            //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Logs synced with return val $error. Sleep for $time_to_sleep", array("LoggerSyncDaemon"));
             
             sleep($time_to_sleep);
         }
