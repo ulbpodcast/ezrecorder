@@ -7,5 +7,5 @@ Logger::$print_logs = true;
 
 echo "Starting sync loop..." . PHP_EOL;
 $daemon = new LoggerSyncDaemon(); 
-$res = $daemon->run();
+$res = $daemon->run(false, true);
 exit($res);

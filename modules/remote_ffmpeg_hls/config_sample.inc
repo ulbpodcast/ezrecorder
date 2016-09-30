@@ -47,7 +47,7 @@ $remoteffmpeg_capture_file = $remoteffmpeg_local_basedir.'var/screencapture.jpg'
 $remoteffmpeg_capture_tmp_file = $remoteffmpeg_local_basedir.'var/tmp_screencapture.jpg'; // Camera screenshot
 $remoteffmpeg_capture_transit_file = $remoteffmpeg_local_basedir.'var/transit_screencapture.jpg'; // Camera screenshot
 
-$remoteffmpeg_processing_tool = "ffmpeg"; // [ffmpeg | pcastaction]
+$remoteffmpeg_processing_tool = "ffmpeg";
 $remoteffmpeg_processing_tools = array("ffmpeg");
 
 //remote path

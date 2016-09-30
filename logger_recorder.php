@@ -60,7 +60,7 @@ class RecorderLogger extends Logger {
         $this->db = new PDO('sqlite:'.$this->database_file);
         if(!$this->database_is_valid()) {
             $this->backup_database();
-            $this->db = null; //close it
+            $this->db = null; //close it. Needed?
             $this->db = new PDO('sqlite:'.$this->database_file);
             $this->create_database();
         }
@@ -195,7 +195,7 @@ class RecorderLogger extends Logger {
         return $server_event;
     }
             
-    //return success of query
+    //Return last log the server knows from us. Return success of query
     public function get_last_log_sent(&$last_id_sent) {        
         $last_id_sent = file_get_contents($this->last_log_sent_get_url);
         if($last_id_sent == false) {
@@ -242,6 +242,24 @@ class RecorderLogger extends Logger {
             
         }
         return $to_send;
+    }
+    
+    //return last event id in local database. return 0 on error.
+    public function get_last_local_event_id() {
+        $statement = $this->db->prepare('SELECT MAX(id) FROM '.RecorderLogger::LOG_TABLE_NAME);
+        $success = $statement->execute();
+        if(!$success) {
+            $this->log(EventType::LOGGER, LogLevel::CRITICAL, __FUNCTION__ . " failed", array("RecorderLogger"));
+            return 0;
+        }
+        $results = $statement->fetch(PDO::FETCH_NUM);
+        $maxId = $results["0"];
+        return $maxId;
+    }
+    
+    public function set_autoincrement($id) {
+        $PDOstatement = $this->db->query("UPDATE SQLITE_SEQUENCE SET seq = $id WHERE name = '" . RecorderLogger::LOG_TABLE_NAME . "'");
+        return $PDOstatement != false;        
     }
 
     public function get_default_asset_for_log() {
@@ -304,7 +322,12 @@ class RecorderLogger extends Logger {
         $statement->bindParam(':type_id', $tempLogData->type_id);
         $statement->bindParam(':message', $message);
 
-        $statement->execute();
+        try {
+            $statement->execute();
+        } catch (Exception $ex) {
+            //something went wrong. How to report this ?
+            return false;
+        }
         
         return $tempLogData;
     }

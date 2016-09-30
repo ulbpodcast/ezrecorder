@@ -12,7 +12,7 @@ if ($argc != 6) {
     echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file> <asset_name>" . PHP_EOL;
     echo "        <root_movies_directory> is the directory containing the movies" . PHP_EOL;
     echo "        <commonpartname> part name that is common to all movies" . PHP_EOL;
-    echo "        <merge_filename> filename to write output to" . PHP_EOL;
+    echo "        <output_movie_filename> filename to write output to" . PHP_EOL;
     echo "        <cutlist_file> the file containing the segments to extract from the recording" . PHP_EOL;
     echo "        <asset_name> asset name of the recording" . PHP_EOL;
     echo PHP_EOL;

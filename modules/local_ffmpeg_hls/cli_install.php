@@ -24,6 +24,6 @@ file_put_contents("$ffmpeg_basedir/setperms.sh", $perms_file);
 
 system("chmod -R 755 $ffmpeg_basedir/bash");
 chmod("$ffmpeg_basedir/setperms.sh", 0755);
-echo "Enter sudo password for executing setperms.sh .";
+echo "Enter sudo password for executing setperms.sh ." . PHP_EOL;
 system("sudo $ffmpeg_basedir/setperms.sh");
 
