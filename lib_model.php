@@ -449,6 +449,9 @@ function start_post_process($asset) {
     global $asset;
     global $logger;
     
+    if(!$asset)
+        return false;
+    
     $asset_dir = get_local_processing_dir($asset);
     if(!file_exists($asset_dir)) {
         $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Asset directory does not exists: $asset_dir", array(__FUNCTION__), $asset);
@@ -536,7 +539,7 @@ function stop_current_record($start_post_process = true) {
 
     //video stopping is done
     if($start_post_process) {
-        $ok = start_post_process();
+        $ok = start_post_process($asset);
         if(!$ok) {
             return false;
         }
