@@ -72,8 +72,28 @@ function init_streaming($asset) {
 }
 
 function capture_ffmpeg_valide_environment(&$error_str) {
-    //todo: check if all bash scripts as executable
-    //is_executable($filename)
+    global $ffmpeg_basedir;
+    
+    // -- Check if bash files are executables
+    /* FIXME: This trigger on actually executable files... why?
+    $dir = "$ffmpeg_basedir/bash/";
+    $dir_content = scandir($dir);
+    
+    foreach($dir_content as $file ) {
+        //ignore . .. and hidden files
+        if($file[0] == '.')
+            continue;
+        
+        if(!is_executable($file)) {
+            $error_str = "$file is not executable ($dir)";
+            return false;
+        }
+    }
+     */
+    // --
+    
+    // What else?
+    
     return true;
 }
 
