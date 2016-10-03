@@ -10,7 +10,7 @@ echo "***************************************" . PHP_EOL;
 echo PHP_EOL . "Creating config.inc" . PHP_EOL;
 
 echo "Please, enter now the requested values :" . PHP_EOL;
-$value = read_line("Static IP address of the remote recorder [default: '$remoteffmpeg_ip']: ");
+$value = read_line("Static IP address of the remote recorder. This address must be reachable by the EZcast server [default: '$remoteffmpeg_ip']: ");
 if ($value != "")
     $remoteffmpeg_ip = $value; unset($value);
 $value = read_line("Path to EZrecorder basedir on the remote recorder [default: '$remoteffmpeg_basedir']: ");
@@ -43,3 +43,6 @@ chmod("$remoteffmpeg_local_basedir/setperms.sh", 0755);
 echo "Enter sudo password for executing setperms.sh .";
 system("sudo $remoteffmpeg_local_basedir/setperms.sh");
 
+
+echo "Double make sure this host can ssh into the remote host, as well as to run the install of the remote module on the remote host" . PHP_EOL;
+echo "Finished." . PHP_EOL;

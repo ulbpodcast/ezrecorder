@@ -1,6 +1,7 @@
 <?php
 
-$config_version = "20160829";
+// Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
+$config_version = "20161003"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name

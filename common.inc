@@ -6,10 +6,12 @@
 require_once('global_config.inc');
 require_once('logger_recorder.php');
 
-
 if($debug_mode) {
     error_reporting(E_ALL); 
 }
+
+if($config_version != "20161003")
+    trigger_error("global_config.inc file is not up to date", E_USER_WARNING);
 
 //Uncomment this to print all log message to screen (may be useful to debug services or such)
 //Logger::$print_logs = true;
