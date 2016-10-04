@@ -288,7 +288,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     }
     
     capture_remoteffmpeg_status_set('stopped');
-    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, __FUNCTION__.": Recording was stopped by user", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, "Recording was stopped by user", array(__FUNCTION__), $asset);
 
     return true;
 }

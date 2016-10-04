@@ -42,13 +42,15 @@ class RecorderLogger extends Logger {
     ];
 
     protected $last_log_sent_get_url;
+    protected $classroom;
+    
     /**
      * Class constructor
      *
      * @param string $database_file      File path to the sqlite database
      * @param string $last_log_sent_get_url Web address to the last log sent service on ezcast
      */
-    public function __construct($database_file, $last_log_sent_get_url) {
+    public function __construct($database_file, $last_log_sent_get_url, $classroom) {
         global $debug_mode;
         
         parent::__construct();
@@ -56,7 +58,8 @@ class RecorderLogger extends Logger {
         
         $this->last_log_sent_get_url = $last_log_sent_get_url;
         $this->database_file = $database_file;
-
+        $this->classroom = $classroom;
+        
         $this->db = new PDO('sqlite:'.$this->database_file);
         if(!$this->database_is_valid()) {
             $this->backup_database();
@@ -301,6 +304,10 @@ class RecorderLogger extends Logger {
         
         $tempLogData = parent::_log($type, $level, $message, $context, $asset, $author, $cam_slide, $course, $classroom);
         
+        //default classroom if none specified
+        if($classroom == null)
+            $classroom = $this->classroom;
+        
         LoggerSyncDaemon::ensure_is_running();
         
         $statement = $this->db->prepare(
@@ -325,6 +332,7 @@ class RecorderLogger extends Logger {
         try {
             $statement->execute();
         } catch (Exception $ex) {
+            trigger_error("LoggerRecorder exception: ". $ex->getMessage());
             //something went wrong. How to report this ?
             return false;
         }

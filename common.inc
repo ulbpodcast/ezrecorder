@@ -39,6 +39,6 @@ $log_database_file = "$basedir/var/logs.sqlite";
 $cam_file_name = "cam.mov";
 $slide_file_name = "slide.mov";
 
-$logger = new RecorderLogger($log_database_file, $last_log_sent_get_url);
+$logger = new RecorderLogger($log_database_file, $last_log_sent_get_url, $classroom);
 
 require_once("custom_error_handling.php");

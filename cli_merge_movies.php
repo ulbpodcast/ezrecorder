@@ -17,8 +17,8 @@ if ($argc != 6) {
     echo "        <asset_name> asset name of the recording" . PHP_EOL;
     echo PHP_EOL;
     echo "Example: php merge_movies.php /Users/podclient/Movies/local_processing/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam.mov /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list 2016_02_20_10h06_PHYS-S201" . PHP_EOL;
-    $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "ffmpeg merge_movies called with wrong arguments", array("merge_movies"));
-    die;
+    //$logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "ffmpeg merge_movies called with wrong arguments", array("merge_movies"));
+    exit(1);
 }
 
 $movies_path    = $argv[1]; //basedir containing movies (typically /Users/podclient/Movies/local_processing/date_course)
