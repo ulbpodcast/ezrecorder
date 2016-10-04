@@ -173,7 +173,7 @@ class RecorderLogger extends Logger {
           $this->db->query("REPLACE INTO SQLITE_SEQUENCE (name, seq) VALUES ('".self::LOG_TABLE_NAME."',$starting_id)");
       }
 
-      $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database with starting id $starting_id" . $this->database_file);
+      $this->log(EventType::RECORDER_DB, LogLevel::INFO, "Created database with starting id $starting_id - " . $this->database_file);
     }
     
     // @param $recorder_event an entry as given by pdo when fetched from recorder db

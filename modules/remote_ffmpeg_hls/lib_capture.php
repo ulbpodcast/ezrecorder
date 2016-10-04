@@ -23,17 +23,26 @@ $remoteffmpeg_module_name = $module_name;
  * set process pid in $pid if background.
  * Return system call return value. (so, 0 is ok)
  */
-function remote_call($cmd, $remote_log_file, $background = false, &$pid = 0) {
+function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, &$pid = 0) {
     global $remoteffmpeg_username;
     global $remoteffmpeg_ip;
     global $logger;
     global $remote_script_call;
     
-    $pid_file = "/var/tmp/pid_file";
+    
+    $pid_file = "/var/tmp/" . uniqid();
+    
+        
     $remote_cmd = "$cmd 2>&1 >> $remote_log_file";
     $local_cmd = "ssh -o ConnectTimeout=10 -o BatchMode=yes $remoteffmpeg_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
-    if($background)
+    if($background) {
+        if(!is_writable("/tmp")) {
+            $logger->log(EventType::RECORDER_REMOTE_CALL, LogLevel::CRITICAL, "Cannot write pid file $pid_file", array(__FUNCTION__));
+            return 999;
+        }
+        
         $local_cmd .= " & echo $! > $pid_file";
+    }
         
     //$logger->log(EventType::TEST, LogLevel::EMERGENCY, "$local_cmd", array(__FUNCTION__));
     
@@ -43,10 +52,12 @@ function remote_call($cmd, $remote_log_file, $background = false, &$pid = 0) {
     if($return_val == 0 && $background) {
         $pid = trim(file_get_contents($pid_file));
         if($pid == false) {
-            $logger->log(EventType::TEST, LogLevel::ERROR, "No pid file found at $pid_file", array(__FUNCTION__));
+            $logger->log(EventType::RECORDER_REMOTE_CALL, LogLevel::ERROR, "No pid file found at $pid_file", array(__FUNCTION__));
         }
     }
     
+    if(file_exists($pid_file))
+        unlink($pid_file);
     
     return $return_val;
 }
