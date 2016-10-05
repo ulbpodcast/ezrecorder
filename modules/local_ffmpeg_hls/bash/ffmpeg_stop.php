@@ -26,7 +26,7 @@ $process_dir = get_asset_module_folder($module_name, $asset);
 $asset_dir = get_asset_dir($asset);
 $pid_file = "$process_dir/process_pid";
 $cutlist_file = ffmpeg_get_cutlist_file($module_name, $asset);
-$process_result_file = "$asset_dir/$process_result_filename";
+$process_result_file = "$process_dir/$process_result_filename";
 
 if(!file_exists($asset_dir)) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, 

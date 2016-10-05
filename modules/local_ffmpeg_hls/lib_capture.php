@@ -381,8 +381,9 @@ function capture_ffmpeg_cancel($asset) {
 function capture_ffmpeg_process_result($asset) {
     global $logger;
     global $process_result_filename;
+    global $ffmpeg_module_name;
     
-    $working_dir = get_asset_dir($asset);
+    $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $process_result_file = "$working_dir/$process_result_filename";
     if(!file_exists($process_result_file)) {
         $logger->log(EventType::TEST, LogLevel::DEBUG, "Return false because file $process_result_file does not exists", array(__FUNCTION__));
