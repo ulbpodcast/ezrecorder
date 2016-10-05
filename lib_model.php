@@ -976,9 +976,15 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     //create asset dir
     if(!file_exists($asset_dir)) {
         $ok = mkdir($asset_dir, 0777, true); //mode is not set ??
-        if($ok)
+        if($ok) {
             chmod($asset_dir, 0777);
-        else {
+            //set default permissions for this dir
+            $return_val = 0;
+            system("chmod +a \"group:everyone allow list,add_file,search,add_subdirectory,delete_child,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit\" $asset_dir", $return_val);
+            if($return_val != 0) {
+                $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Failed to set folder permissions for $asset_dir", array(__FUNCTION__), $asset);
+            }
+        }  else {
             $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $asset_dir", array(__FUNCTION__), $asset);
             return false;
         }

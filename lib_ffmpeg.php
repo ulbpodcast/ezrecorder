@@ -48,7 +48,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         $cmd_output = "";
         exec($cmd, $cmd_output, $return_val);
         if($return_val != 0) {
-            return "Join command failed, last command: $cmd. " .PHP_EOL."Result: $cmd_output";
+            return "Join command failed, last command: $cmd " .PHP_EOL."Result: " . print_r($cmd_output, true);
         }
     }
 
