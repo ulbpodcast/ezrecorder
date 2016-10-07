@@ -462,7 +462,7 @@ function capture_ffmpeg_process($asset, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
-    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "Processing successfully started", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "Processing successfully started. Cmd: $cmd", array(__FUNCTION__), $asset);
     return true;
 }
 

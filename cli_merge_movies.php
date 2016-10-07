@@ -41,14 +41,14 @@ if ($output >= 1) {
     $error = movie_join_parts($movies_path, $commonpart, $merge_file); //movie span on multiple files
     if ($error) {
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movies join failed with result: $error", array("merge_movies"), $asset_name);
-        exit(1);
+        exit(2);
     }
 } else if ($output == 0) {
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "No video files found (command: $search_command)", array("merge_movies"), $asset_name);
-    exit(1);
+    exit(3);
 } else {
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Couldn't get video files because run search command failed: $search_command", array("merge_movies"), $asset_name);
-    exit(1);
+    exit(4);
 }
 
 //We will now extract the parts user wants to keep according to the cutlist
@@ -56,7 +56,7 @@ $err = movie_extract_cutlist($movies_path, $merge_file, $cutlist_file, $outputfi
 if($err != 0) {
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err. Move $merge_file to $outputfilename instead.", array("merge_movies"), $asset_name);
     rename("$movies_path/$merge_file", "$movies_path/$outputfilename");
-    exit(2);
+    exit(5);
 }
 
 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"), $asset_name);

@@ -49,7 +49,7 @@ $return_val = 0;
 system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, 
-            "Call to merge movies failed, error code: $return_val. Check merge_movies.log", array($log_context));
+            "Call to merge movies failed, error code: $return_val. Check merge_movies.log. Cmd: $cmd", array($log_context));
     file_put_contents($process_result_file, $return_val); 
 }
 
