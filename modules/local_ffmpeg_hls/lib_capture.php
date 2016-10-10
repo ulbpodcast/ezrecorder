@@ -303,7 +303,7 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     if ($status != 'recording' && $status != "paused") {
         error_last_message("capture_stop: can't stop recording because current status: $status");
         $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, "Can't stop recording because current status: $status", array(__FUNCTION__), $asset);
-        return false;
+        return true; //not really an error, we're trying to stop when already stopped
     }
     
     // pauses the current recording (while user chooses the way to publish the record)

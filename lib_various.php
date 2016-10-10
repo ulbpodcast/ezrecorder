@@ -421,3 +421,9 @@ function read_line($prompt = '') {
     echo $prompt;
     return rtrim(fgets(STDIN), "\n");
 }
+
+function get_asset_from_dir($dir) {
+    $basename = basename($dir);
+    $asset = substr($basename, 0, 16); //example of dir name : 2016_10_10_16h42_PODC-I-00...
+    return $asset;
+}

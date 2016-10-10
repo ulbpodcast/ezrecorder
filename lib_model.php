@@ -279,10 +279,7 @@ function close_session() {
 function controller_stop_and_publish() {
     global $logger;
     global $input;
-    global $php_cli_cmd;
-    global $cli_post_process;
     global $session_module;
-    global $basedir;
     global $recorder_monitoring_pid;
 
     $asset = $_SESSION['asset'];
@@ -306,7 +303,7 @@ function controller_stop_and_publish() {
     $album = $recstarttime[1];
 
     log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Recording published at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Publishing recording at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array(__FUNCTION__), $asset);
 
     //get the start time and course from metadata
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
@@ -450,11 +447,10 @@ function cancel_current_record($asset, $reset_cam_position = true) {
 function start_post_process($asset) {
     global $php_cli_cmd;
     global $cli_post_process;
-    global $asset;
     global $logger;
     
     if(!$asset) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset given " . print_r(debug_backtrace(), true), array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset given " . PHP_EOL . print_r(debug_backtrace(), true), array(__FUNCTION__), $asset);
         return false;
     }
     
@@ -503,10 +499,12 @@ function stop_current_record($start_post_process = true) {
     }
     
     $asset = $session[0];
-    if(!$asset || $asset = "") {
+    //$asset = get_asset_from_dir($asset_dir_name);
+    if(!$asset) {
         $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session. Session file containted $recorder_session_file", array(__FUNCTION__));
         return false;
     }
+    
     
     $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!$asset_dir) {

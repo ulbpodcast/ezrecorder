@@ -286,7 +286,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     if ($status != 'recording' && $status != "paused") {
         error_last_message("capture_stop: can't stop recording because current status: $status");
         $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, "Can't stop recording because current status: $status", array(__FUNCTION__), $asset);
-        return false;
+        return true; //not really an error, we're trying to stop when already stopped
     }
     
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
@@ -299,7 +299,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     }
     
     capture_remoteffmpeg_status_set('');
-    capture_remoteffmpeg_recstatus_set('');
+    capture_remoteffmpeg_rec_status_set('');
     
     $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, "Recording was stopped by user", array(__FUNCTION__), $asset);
 

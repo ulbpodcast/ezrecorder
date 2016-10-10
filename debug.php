@@ -1,10 +1,12 @@
 <?php 
 
 
-require "global_config.inc";
-require "modules/remote_ffmpeg_hls/lib_capture.php";
+require_once "global_config.inc";
+require_once "modules/remote_ffmpeg_hls/lib_capture.php";
+require_once "lib_model.php";
 
 Logger::$print_logs = true;
+$debug_mode = true;
 
 if($argc == 1)
 {
@@ -27,6 +29,9 @@ case "slide_status_get":
 	$res = capture_remoteffmpeg_status_get();
 	echo "Result: $res" . PHP_EOL;
 	break;	
+case "stop_current_record":
+        stop_current_record(false);
+        break;
 default:
 	echo "Invalid test" .PHP_EOL;
 	break;
