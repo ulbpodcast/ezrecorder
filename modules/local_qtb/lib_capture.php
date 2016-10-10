@@ -167,7 +167,7 @@ function capture_localqtb_resume($asset) {
     
     // get status of the current recording
     $status = capture_localqtb_status_get();
-    if ($status == 'paused' || $status == 'stopped') {
+    if ($status == 'paused') {
         // qtbresume resumes the current recording
         system("sudo -u $localqtb_username $localqtb_script_qtbresume >> $localqtb_recorder_logs 2>&1 &");
         // sets the new status of the current recording

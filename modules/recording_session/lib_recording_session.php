@@ -191,7 +191,9 @@ function session_xml_lock($username) {
 function session_xml_unlock() {
     global $lock_file;
 
-    unlink($lock_file);
+    if(file_exists($lock_file))
+        unlink($lock_file); 
+    
     return true;
 }
 

@@ -46,15 +46,21 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         }
         $return_val = 0;
         $cmd_output = "";
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array("merge_movies"));
         exec($cmd, $cmd_output, $return_val);
         if($return_val != 0) {
             return "Join command failed, last command: $cmd " .PHP_EOL."Result: " . print_r($cmd_output, true);
         }
     }
 
+    //if we got more than one movie (means there were relaunches), merge them, else we're done
     if (count(glob("$tmpdir/*")) === 1) {
         //only one part, just rename it
-        rename("$tmpdir/part0.mov", "$movies_path/$output");
+        $ok = rename("$tmpdir/part0.mov", "$movies_path/$output");
+        if(!$ok) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not move resulting files from $tmpdir to $movies_path", array(__FUNCTION__));
+            return 1;
+        }
         exec("rm -rf $tmpdir", $cmdoutput, $errno);
         $tmpdir = '';
     } else {
@@ -69,9 +75,12 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         $output_file = "$movies_path/$output";
         $cmd = "$ffmpeg_cli_cmd -f -y concat -i $concat_file $output_file";
         print $cmd . PHP_EOL;
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (2) with cmd: $cmd", array(__FUNCTION__));
         exec($cmd, $cmdoutput, $returncode);
         //check returncode
         if ($returncode != 0) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Merge movies (2) failed with output $cmdoutput. Cmd: $cmd", array(__FUNCTION__));
+
             return join("\n", $cmdoutput);
         }
         
@@ -91,6 +100,7 @@ function movie_cutlist_afterfixes(&$ffmpeg_params) {
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not get parts from custlist, using the whole video file instead", array("movie_extract_cutlist"));
         $ffmpeg_params[] = array(0, 9999999999);
     }
+    
     // what else could we check ?
     // Check if there was one whole hour between pause and stop ?
 }
@@ -113,7 +123,7 @@ function movie_cutlist_afterfixes(&$ffmpeg_params) {
  */
 function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
     $init = 0;
-    $startime = 0;
+    $startime = 0; //current segment start
     $duration = 0;
     // prepares parameters for ffmpeg 
     foreach ($cutlist_array as $value) {

@@ -286,7 +286,11 @@ function controller_stop_and_publish() {
     global $recorder_monitoring_pid;
 
     $asset = $_SESSION['asset'];
-
+    if(!$asset) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "controller_stop_and_publish called without asset in session", array(__FUNCTION__), $asset);
+        return false;
+    }
+    
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
@@ -313,7 +317,7 @@ function controller_stop_and_publish() {
         return false;
     }
 
-    $asset_dir = get_local_processing_dir($asset);
+    $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!file_exists($asset_dir)) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array(__FUNCTION__), $asset);
         close_session();
@@ -449,8 +453,10 @@ function start_post_process($asset) {
     global $asset;
     global $logger;
     
-    if(!$asset)
+    if(!$asset) {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset given " . print_r(debug_backtrace(), true), array(__FUNCTION__), $asset);
         return false;
+    }
     
     $asset_dir = get_local_processing_dir($asset);
     if(!file_exists($asset_dir)) {
@@ -477,6 +483,8 @@ function stop_current_record($start_post_process = true) {
     global $slide_enabled;
     global $slide_module;
     
+    $logger->log(EventType::RECORDER_STOP, LogLevel::DEBUG, "stop_current_record called with post process: $start_post_process.", array(__FUNCTION__));
+
     if(!file_exists($recorder_session)) {
         $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called but no current recorder session file found", array(__FUNCTION__));
         return false;
@@ -495,8 +503,16 @@ function stop_current_record($start_post_process = true) {
     }
     
     $asset = $session[0];
+    if(!$asset || $asset = "") {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session. Session file containted $recorder_session_file", array(__FUNCTION__));
+        return false;
+    }
     
     $asset_dir = get_asset_dir($asset, 'local_processing');
+    if(!$asset_dir) {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not find asset dir for asset $asset. Session file containted $recorder_session_file. exploded array: " . print_r($session, true), array(__FUNCTION__), $asset);
+        return false;
+    }
 
     $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
     $meta_xml_string = $fct_metadata_xml_get();
@@ -541,6 +557,7 @@ function stop_current_record($start_post_process = true) {
     if($start_post_process) {
         $ok = start_post_process($asset);
         if(!$ok) {
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, 'Start post processing failed', array(__FUNCTION__), $asset);
             return false;
         }
     }
@@ -902,10 +919,12 @@ function user_login($login, $passwd) {
             die;
         }
     }
+    $user = $res['user_login'];
     $fct_session_lock = "session_" . $session_module . "_lock";
-    $res = $fct_session_lock($res['user_login']);
+    $res = $fct_session_lock($user);
 
     if (!$res) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user", array('auth'));
         error_print_message('Could not lock recorder: ' . error_last_message());
         die;
     }
@@ -937,9 +956,9 @@ function reset_cam_position() {
  * Returns true if all ok, else returns false and a description of the problem in $problem_str
 */
 function validate_environment(&$problem_str) {
-    $steps = array('local_processing', 'upload', 'upload_ok');
+    $steps = array('get_upload_ok_dir', 'get_upload_to_server_dir', 'get_local_processing_dir');
     foreach($steps as $step) {
-        $dir = get_asset_dir('', $step);
+        $dir = call_user_func($step);
         if(!is_writable($dir)) {
             $problem_str = "Directory for step $step is not writable. ($dir)";
             return false;
@@ -1141,11 +1160,8 @@ function controller_stop_and_view_record_submit() {
 
     //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
 
-    if ($cam_management_enabled) {
-        //cam management enabled so try to put camera back in initial pos
-        $fct_cam_move = "cam_" . $cam_management_module . "_move";
-        $fct_cam_move($GLOBALS['cam_default_scene']); //set ptz to the initial position
-    }
+    reset_cam_position();
+    
     // And displaying the submit form
     require_once template_getpath('record_submit.php');
 }

@@ -76,6 +76,8 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         case "pending":
             $img_status = imagecreatefrompng($img_path['pending']);
             break;
+        default:
+            return; //invalid cam status
     }
     imagecopymerge($newimg, $img_status, 5, 130, 0, 0, 225, 25, 75);
 
@@ -213,6 +215,9 @@ function get_asset_name($course_name, $record_date) {
     Empty step will return first found, or local_processing dir if folder was not found
  *  */
 function get_asset_dir($asset, $step = '') {
+    if(!$asset)
+        return false;
+    
     switch ($step) {
         case "upload_ok":
             return get_upload_ok_dir($asset);
