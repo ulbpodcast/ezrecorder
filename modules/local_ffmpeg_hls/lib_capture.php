@@ -363,11 +363,17 @@ function capture_ffmpeg_cancel($asset) {
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $log_file = $working_dir . '/cancel.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel $asset >> $log_file 2>&1";
+    $return_val = 0;
     system($cmd, $return_val);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Record cancel script start failed: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
+    
+    //Create a "CANCELLED file in asset dir just to make it more clear"
+    $asset_dir = get_asset_dir($asset);
+    $cancelled_file = "$asset_dir/CANCELED";
+    file_put_contents($cancelled_file, "");
     
     stop_streaming($asset);
     
