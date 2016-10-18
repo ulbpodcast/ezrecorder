@@ -310,15 +310,21 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
  * @implements
  * Ends the current recording and saves it as an archive
  */
-function capture_remoteffmpeg_cancel($asset) {
+function capture_remoteffmpeg_cancel($asset = null) {
     global $remoteffmpeg_script_cancel;
     global $logger;
     global $remoteffmpeg_module_name;
 
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
-    $remote_log_file = $working_dir . '/cancel.log';
-    $cmd = "$remoteffmpeg_script_cancel $asset";
+    if($asset != null) {
+        $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
+        $remote_log_file = $working_dir . '/cancel.log';
+        $cmd = "$remoteffmpeg_script_cancel $asset";
+    } else {
+        $cmd = $remoteffmpeg_script_cancel;
+        $remote_log_file = "/dev/null";
+    }
+    
     $return_val = remote_call($cmd, $remote_log_file);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Record cancel script start failed with return val $return_val and cmd: $cmd", array(__FUNCTION__), $asset);
@@ -327,7 +333,8 @@ function capture_remoteffmpeg_cancel($asset) {
     
     //update (clear) status
     capture_remoteffmpeg_rec_status_set('');
-    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, "Recording was cancelled", array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, "Cancel backtrace: " . print_r(debug_backtrace(),true), array(__FUNCTION__));
 
     return true;
 }
@@ -448,8 +455,8 @@ function capture_remoteffmpeg_thumbnail() {
             if ($status == 'recording') {
                 $status = capture_remoteffmpeg_rec_status_get();
             }
-            image_resize("$remoteffmpeg_capture_tmp_file", "$remoteffmpeg_capture_transit_file", 235, 157, $status, false);
-            rename("$remoteffmpeg_capture_transit_file", "$remoteffmpeg_capture_file");
+            image_resize($remoteffmpeg_capture_tmp_file, $remoteffmpeg_capture_transit_file, 235, 157, $status, false);
+            rename($remoteffmpeg_capture_transit_file, $remoteffmpeg_capture_file);
         }
     }
     return file_get_contents($remoteffmpeg_capture_file);

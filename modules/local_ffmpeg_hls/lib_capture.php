@@ -353,16 +353,20 @@ function stop_streaming($asset) {
  * @implements
  * Ends the current recording and saves it as an archive
  */
-function capture_ffmpeg_cancel($asset) {
+function capture_ffmpeg_cancel($asset = null) {
     global $logger;
     global $ffmpeg_script_cancel;
     global $ezrecorder_username;
     global $ffmpeg_module_name;
 
     // cancels the current recording, saves it in archive dir and stops the monitoring
-    $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
-    $log_file = $working_dir . '/cancel.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel $asset >> $log_file 2>&1";
+    if($asset != null) {
+        $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
+        $log_file = $working_dir . '/cancel.log';
+        $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel $asset >> $log_file 2>&1";
+    } else {
+        $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cancel";
+    }
     $return_val = 0;
     system($cmd, $return_val);
     if($return_val != 0) {
@@ -370,16 +374,21 @@ function capture_ffmpeg_cancel($asset) {
         return false;
     }
     
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, "Recording was cancelled. ", array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, "Cancel backtrace: " . print_r(debug_backtrace(),true), array(__FUNCTION__));
+    
+    capture_ffmpeg_recstatus_set('');
+    
+    if($asset == null)
+        return true;
+    
+    stop_streaming($asset);
+    
     //Create a "CANCELLED file in asset dir just to make it more clear"
     $asset_dir = get_asset_dir($asset);
     $cancelled_file = "$asset_dir/CANCELED";
     file_put_contents($cancelled_file, "");
     
-    stop_streaming($asset);
-    
-    capture_ffmpeg_recstatus_set('');
-    $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__));
-
     return true;
 }
 

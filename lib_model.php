@@ -364,14 +364,14 @@ function controller_recording_cancel() {
     global $session_module;
     global $recorder_monitoring_pid;
 
-    
+    $asset = null;
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $metadata = $fct_metadata_get();
     if($metadata) {
         $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
         $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record cancelled at user request", array(__FUNCTION__), $asset);
     } else {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "A record was cancelled at user request, but we could not get asset name. Not a problem in the processing but shouldn't happen.", array(__FUNCTION__));
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Cancelling current record, but we could not get asset name. It may be that there is no current recording.", array(__FUNCTION__));
     }
         
     // stops the timeout monitoring
