@@ -1089,13 +1089,13 @@ function view_record_screen() {
         $slide_ok = false;
         $ok = init_capture($metadata, $cam_ok, $slide_ok);
         if(!$ok) {
-            $logger->log(EventType::RECORDER_METADATA, LogLevel::CRITICAL, 'init_capture(...) failed', array(__FUNCTION__));
+            $logger->log(EventType::TEST, LogLevel::CRITICAL, 'init_capture(...) failed', array(__FUNCTION__));
             header( "refresh:1;url=index.php" );
             require_once template_getpath('div_error_launch_failure.php');
             return;
         }
     } else {
-        $logger->log(EventType::RECORDER_METADATA, LogLevel::INFO, 'view_record_screen, capture was already initiliazed', array(__FUNCTION__));
+        $logger->log(EventType::TEST, LogLevel::INFO, 'view_record_screen, capture was already initiliazed', array(__FUNCTION__));
     }
 
     // did something went wrong while initializing the recorders ?
@@ -1114,7 +1114,12 @@ function view_record_screen() {
     }
     
     // launches the timeout monitoring process in background
-    exec("$php_cli_cmd $cli_timeout_monitoring > /dev/null &", $output, $errno);
+    $errno = 0;
+    $cmd = "$php_cli_cmd $cli_timeout_monitoring > /dev/null &";
+    exec($cmd, $output, $errno);
+    if($errno != 0) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Failed to start timeout monitoring. Return val: $errno. Cmd was $cmd", array(__FUNCTION__));
+    }
 
     log_append("recording_init", "initiated recording by request (record_type: " .
             $metadata['record_type'] . " - cam module enabled : $cam_enabled - slide module enabled : $slide_enabled");

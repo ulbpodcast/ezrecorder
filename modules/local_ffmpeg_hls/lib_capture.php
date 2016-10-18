@@ -462,7 +462,7 @@ function capture_ffmpeg_process($asset, &$pid) {
     $return_val = 0;
     system($cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "FFMPEG stop script launch failed with return code $return_val", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::CRITICAL, "FFMPEG stop script launch failed with return code $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
         $pid = 0;
         return false;
     }
