@@ -438,7 +438,6 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_script_thumbnail_create;
     global $remoteffmpeg_username;
 
-
     $minperiod = 5;
 
     // Slide screenshot
@@ -455,6 +454,7 @@ function capture_remoteffmpeg_thumbnail() {
             if ($status == 'recording') {
                 $status = capture_remoteffmpeg_rec_status_get();
             }
+            
             image_resize($remoteffmpeg_capture_tmp_file, $remoteffmpeg_capture_transit_file, 235, 157, $status, false);
             rename($remoteffmpeg_capture_transit_file, $remoteffmpeg_capture_file);
         }

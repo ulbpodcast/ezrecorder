@@ -21,6 +21,10 @@ require_once $session_lib;
 global $service;
 $service = true;
 
+Logger::$print_logs = true;
+
+$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring started", array(__FILE__));
+
 // Saves the time when the recording has been init
 $init_time = time();
 $fct_initstarttime_set = "session_" . $session_module . "_initstarttime_set";
@@ -43,10 +47,11 @@ while (true) {
 
     $fct_is_locked = "session_" . $session_module . "_is_locked";
 
-    // We stop if the file does not exist anymore ("kill -9" simulation)
+    // We stop if the pid file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
     // or the recorder is not locked anymore
     if (!file_exists($recorder_monitoring_pid) || $pid != file_get_contents($recorder_monitoring_pid) || !$fct_is_locked()) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped", array(__FILE__));
         die;
     }
 
@@ -60,14 +65,20 @@ while (true) {
     // if record was started at least $threshold_timeout seconds ago
     // and if no request received in the last $timeout seconds 
     // force stop the recorder
-    if ($now - $init_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
+    $diff_lastmod = $now - $lastmod_time;
+    $diff_init = $now - $init_time;
+    
+    if ($diff_init > $threshold_timeout && $diff_lastmod > $timeout) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Timeout triggered after $diff_lastmod seconds. Init: $init_time / Last request: $lastmod_time.", array(__FILE__));
         mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 
              . ' was stopped and published in private album because there has been no user activity since ' 
-             . ($now - $lastmod_time) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s",$lastmod_time)
+             . ($diff_lastmod) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s", $lastmod_time)
              . ' Start time: ' . date("y-m-d_H:s",$init_time) . '');
 
         controller_recording_force_quit();
     }
+    
+    $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(__FILE__));
 
     sleep($sleep_time);
 }
