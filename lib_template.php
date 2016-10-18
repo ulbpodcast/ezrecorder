@@ -52,26 +52,26 @@ $accepted_file_extensions = array('.html', '.xhtml', '.xml', '.htm', '.php'); //
  * @param string $path Path to the folder containing parsed templates
  * @return string|false Either the path to the templates repository, or an error status 
  */
-function template_repository_path($path="") {
-    static  $tmpl_repository_path=false;
+function template_repository_path($path = "") {
+    static $tmpl_repository_path = false;
 
-      if($path==""){
-        if($tmpl_repository_path===false){
+    if($path == "") {
+        if($tmpl_repository_path === false) {
           echo ("1 Error: repository path not defined");
           return false;
-         }
-        else{
+        } else {
           return $tmpl_repository_path;
-         }//if $repository_path
-       }//if $ath
+        }
+     }
 
-      //if path exists then store it
-      $res=is_dir($path);
-      if($res)
+    //if path exists then store it
+    $res=is_dir($path);
+    if($res)
         $tmpl_repository_path=$path;
-       else
+     else
         echo ("2 Error: repository path not found: $path");
-      return $res;
+     
+    return $res;
 }
 
 /**

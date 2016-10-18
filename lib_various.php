@@ -76,6 +76,8 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         case "pending":
             $img_status = imagecreatefrompng($img_path['pending']);
             break;
+        case "open":
+            break;
         default:
             return; //invalid cam status
     }
