@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # This script must be sudo authorized for _www to run as podclient
 # return the data contained in the given file
