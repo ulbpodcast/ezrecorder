@@ -167,7 +167,8 @@ function session_xml_is_locked() {
  */
 function session_xml_lock($username) {
     global $lock_file;
-
+    global $logger;
+    
     if (session_xml_is_locked()) {
         //  TODO 
         //        capture_last_error('Recorder is already in use');
@@ -180,6 +181,11 @@ function session_xml_lock($username) {
     }
 
     $res = file_put_contents($lock_file, $username);
+    if($res == false) {
+        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not write lock file $lock_file", array(__FUNCTION__));
+        return false;
+    }
+    
     return true;
 }
 

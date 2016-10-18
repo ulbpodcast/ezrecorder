@@ -33,7 +33,6 @@ $fct_initstarttime_set($init_time);
 // Delays, in seconds
 $threshold_timeout = 7200; // Threshold before we start worrying about the user
 //$threshold_timeout = 120; // Threshold before we start worrying about the user
-$recovery_threshold = 20; // Threshold before we start worrying about QTB
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
 //$timeout = 30;
 $sleep_time = 60; // Duration of the sleep between two checks
@@ -78,7 +77,7 @@ while (true) {
         controller_recording_force_quit();
     }
     
-    $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(__FILE__));
+    //$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(__FILE__));
 
     sleep($sleep_time);
 }

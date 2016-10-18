@@ -187,8 +187,8 @@ function controller_recording_start() {
     $asset = $_SESSION['asset'];
 
     if ($user != $_SESSION['user_login']) {
-        error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module');
-        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on current_user file in session module', array(__FUNCTION__), $asset);
+        error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on _current_user file in session module');
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on _current_user file in session module', array(__FUNCTION__), $asset);
         return false;
     }
 
