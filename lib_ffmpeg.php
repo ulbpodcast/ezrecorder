@@ -73,7 +73,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         // -i file : input is the list of files
         // -c copy : copy the existing codecs (no reencoding)
         $output_file = "$movies_path/$output";
-        $cmd = "$ffmpeg_cli_cmd -f -y concat -i $concat_file $output_file";
+        $cmd = "$ffmpeg_cli_cmd -safe 0 -f -y concat -i $concat_file $output_file";
         print $cmd . PHP_EOL;
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (2) with cmd: $cmd", array(__FUNCTION__));
         exec($cmd, $cmdoutput, $returncode);

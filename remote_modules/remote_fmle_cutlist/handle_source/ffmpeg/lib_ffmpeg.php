@@ -91,7 +91,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpegpath -f concat -i $movies_path/tmp.txt $avcodecs $movies_path/$output";
+    $cmd = "$ffmpegpath -safe 0 -f concat -i $movies_path/tmp.txt $avcodecs $movies_path/$output";
     print $cmd . PHP_EOL;
     exec($cmd, $cmdoutput, $returncode);
     // deletes the temporary text file
@@ -198,7 +198,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     // -f concat : option for concatenation
     // -i file : input is the list of files
     // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpegpath -f concat -i $movie_path/tmp.txt -c copy -y $movie_path/$movie_out";
+    $cmd = "$ffmpegpath -safe 0 -f concat -i $movie_path/tmp.txt -c copy -y $movie_path/$movie_out";
     print $cmd . PHP_EOL;
     exec($cmd, $cmdoutput, $returncode);
     // deletes the temporary text file
