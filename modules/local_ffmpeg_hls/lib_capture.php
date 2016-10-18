@@ -245,7 +245,7 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     // get status of the current recording
     $status = capture_ffmpeg_status_get();
     if(   ($pause  && $status != 'recording')
-       || ($resume && $status != 'paused')  ) {
+       || ($resume && $status != 'paused' && $status != 'stopped')  ) {
         error_last_message("capture_pause: can't $action recording because current status: $status");
         $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::WARNING, "Can't $action recording because current status: $status", array(__FUNCTION__), $asset);
         return false;
@@ -319,7 +319,7 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     }
 
     // set the new status for the current recording
-    capture_ffmpeg_status_set('');
+    capture_ffmpeg_status_set('stopped');
     capture_ffmpeg_recstatus_set('');
     
     $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, "Recording was stopped by user", array(__FUNCTION__), $asset);
@@ -600,7 +600,7 @@ function capture_ffmpeg_thumbnail() {
 /**
  * @implements
  * Returns the current status of the recording
- * Status may be "open", "recording", "paused", "error"
+ * Status may be "open", "recording", "paused", "stopped", "error"
  */
 function capture_ffmpeg_status_get() {
     global $ffmpeg_status_file;
