@@ -1,4 +1,9 @@
 
+<!-- 
+[autotest_record_submitted] !! Please keep this this line for automated testing 
+-->
+
+
 <div >
 <?php
 if($moderation == 'true') {

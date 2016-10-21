@@ -417,7 +417,7 @@ function capture_remoteffmpeg_finalize($asset) {
     $cmd = "$remoteffmpeg_script_finalize $asset";
     $return_val = remote_call($cmd, $remote_log_file);
     if($return_val != 0) {
-        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with return val $return_val", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FINALIZE, LogLevel::ERROR, "Finalisation failed with return val $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
     

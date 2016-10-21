@@ -1,6 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- Please keep this at second line for automated testing: autotest_login_screen
+<!-- 
 This is the template for the login screen.
+
+[autotest_login_screen] !! Please keep this this line for automated testing 
 -->
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>

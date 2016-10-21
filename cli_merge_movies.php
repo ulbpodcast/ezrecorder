@@ -16,7 +16,7 @@ if ($argc != 6) {
     echo "        <cutlist_file> the file containing the segments to extract from the recording" . PHP_EOL;
     echo "        <asset_name> asset name of the recording" . PHP_EOL;
     echo PHP_EOL;
-    echo "Example: php merge_movies.php /Users/podclient/Movies/local_processing/2016_02_20_10h06_PHYS-S201/ ffmpegmovie cam.mov /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/_cut_list 2016_02_20_10h06_PHYS-S201" . PHP_EOL;
+    echo "Example: php merge_movies.php /Users/podclient/Movies/local_processing/2016_02_20_10h06_PHYS-S201/ffmpeg/ ffmpegmovie cam.mov /Users/podclient/Movies/upload_ok/2016_02_20_10h06_PHYS-S201/ffmpeg/_cut_list.txt 2016_02_20_10h06_PHYS-S201" . PHP_EOL;
     //$logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "ffmpeg merge_movies called with wrong arguments", array("merge_movies"));
     exit(1);
 }

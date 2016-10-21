@@ -17,6 +17,7 @@ date_default_timezone_set("Europe/Brussels");
 $date = date("Y_m_d_H\hi\ms\s");
 
 $logs_file = __DIR__ . "/var/_recorder_test_" . $date;
+$last_page_file = __DIR__ . "/last_page_returned";
 $usage = "You can either run this script in interactive mode or call it with arguments." . PHP_EOL .
          "Usage: php ".__FILE__." <classroom_address> <username> <password> <album> [<camslide> <recording_count> <pause_count> <part_duration> <pause_duration> <moderation(y/n)>]";
        
@@ -39,24 +40,6 @@ if($argc == 1) {
     echo "$usage" . PHP_EOL;
     echo "-------------------------------------------------------------------" . PHP_EOL . PHP_EOL;
     echo "Enter the classroom address/ip on which you want to perform the test. " . PHP_EOL;
-    /*
-    echo " - S-V (Recorder dev)  [1]" . PHP_EOL;
-    echo " - S-R42-4-502         [2]" . PHP_EOL;
-    echo " - S-R42-5-503         [3]" . PHP_EOL;
-    echo " - S-R42-5-110         [4]" . PHP_EOL;
-    echo " - S-UB2-147           [5]" . PHP_EOL;
-    echo " - S-UB5-230           [6]" . PHP_EOL;
-    echo " - S-UD2-120           [7]" . PHP_EOL;
-    echo " - S-UD2-218           [8]" . PHP_EOL;
-    echo " - S-K                 [9]" . PHP_EOL;
-    echo " - S-H2215             [10]" . PHP_EOL;
-    echo " - S-AY2-112           [11]" . PHP_EOL;
-    echo " - P-FORUM-B           [12]" . PHP_EOL;
-    echo " - E-J                 [13]" . PHP_EOL;
-    echo " - E-BREMER            [14]" . PHP_EOL;
-    echo " - E-F2-303            [15]" . PHP_EOL;
-    echo " - E-SAND              [16]" . PHP_EOL;
-    */
     $classroom = readline("Address: ");
     if(!$classroom) {
         echo "No classroom provided" .PHP_EOL;
@@ -129,7 +112,7 @@ if($argc == 1) {
     $password = $argv[3];
     $album = $argv[4];
     
-    $count = 4;
+    $count = 5;
     if($argc > $count)
         $camslide = $argv[$count++];
 
@@ -165,29 +148,105 @@ file_put_contents($logs_file, "  Delay between records : $delay_between_records 
 file_put_contents($logs_file, "***********************************************************" . PHP_EOL, FILE_APPEND);
 file_put_contents($logs_file, PHP_EOL, FILE_APPEND);
 
-// TEST START
-do {
-    // Login the user
-    test_log("Logins the user [$username]");
-    $response = curl_read_url("$curl_url?action=login&login=$username&passwd=$password");
-    $response = explode("\n", $response);
-    //print_r($response);
-    //test_log($response[1]);
-    if (strpos($response[1], 'autotest_login_screen') !== false) {
-        test_log('Authentication failure');
-        die;
+function get_autotest_page($curl_response) {
+    
+    //print_r($curl_response);
+    $known_pages = array("autotest_record_form", "autotest_login_screen", "autotest_record_screen", "autotest_record_submit", "submitted");
+    foreach($known_pages as $page) {
+        //echo "Checking for $page" . PHP_EOL;
+        if (strpos($curl_response, $page) != false) {
+            //echo "OK, found page $page" . PHP_EOL;
+            return $page;
+        }
     }
+    
+    return "unknown";
+}
 
-    // Submit values for recording
-    test_log("Submits form values for the recording");
+function logout() {
+   global $curl_url;
+    
+   curl_read_url("$curl_url?action=recording_force_quit"); 
+   curl_read_url("$curl_url?action=logout"); 
+}
 
+function login() {
+    global $curl_url;
+    global $username;
+    global $password;
+    
+    $response = curl_read_url("$curl_url?action=login&login=$username&passwd=$password");
+    $page = get_autotest_page($response);
+    if($page != "autotest_record_form") {
+        test_log("Authentication failure or wrong page returned. Desired page was autotest_record_form, recorder returned $page");
+        exit(1);
+    }
+}
+
+function submit_init_form() {
+    global $curl_url;
+    global $album;
+    global $default_records;
+    global $recording_count;
+    global $default_pause;
+    global $pause_delay;
+    global $part_duration;
+    global $camslide;
+    global $classroom;
+    global $date;
+    
     $response = curl_read_url("$curl_url?" .
             "action=submit_record_infos" .
             "&course=$album" .
             "&title=${classroom}%0A-%0A${date}%0A-%0A" . (($default_records+1) - $recording_count) .
             "&description=Record%3A+$default_records%0D%0APause%3A+$default_pause%0D%0APause+duration%3A+$pause_delay%0D%0APart+duration%3A+$part_duration%0D%0AType%3A+$camslide" .
             "&record_type=$camslide");
+            
+    $page = get_autotest_page($response);
+    if($page != "autotest_record_screen") {
+        test_log("Init failure or wrong page returned. Desired page was autotest_record_screen, recorder returned $page");
+        exit(2);
+    }
 
+}
+
+function stop() {
+    global $curl_url;
+    
+    $response = curl_read_url("$curl_url?action=view_press_stop");
+    $page = get_autotest_page($response);
+    if($page != "autotest_record_submit") {
+        test_log("Stop failure or wrong page returned. Desired page was autotest_record_submit, recorder returned $page");
+        exit(5);
+    }
+}
+
+function publish() {
+    global $curl_url;
+    global $moderation;
+    
+    $response = curl_read_url("$curl_url?action=stop_and_publish" .
+            "&moderation=$moderation");
+    $page = get_autotest_page($response);
+    if($page != "autotest_record_submitted") {
+        test_log("Stop failure or wrong page returned. Desired page was autotest_record_submitted, recorder returned $page");
+        exit(6);
+    }
+}
+
+// TEST START
+do {
+    // logout the user just to be sure, else we may endup on the wrong page on connexion
+    logout();
+    
+    // Login the user
+    test_log("Login");
+    login();
+
+    // Submit values for recording
+    test_log("Submits form values for the recording");
+    submit_init_form();
+    
     $action = "recording_start";
 
     do {
@@ -195,7 +254,7 @@ do {
         test_log((($action == "recording_start") ? "Starts" : "Resumes") . " the recording [" . (($default_records+1) - $recording_count) ."]");
         $response = curl_read_url("$curl_url?" .
                 "action=$action");
-
+            
         // Records for N seconds
         sleep($part_duration);
 
@@ -203,7 +262,8 @@ do {
         if ($pause_count > 0) {
             test_log("Pauses the recording");
             $response = curl_read_url("$curl_url?action=recording_pause");
-
+            $page = get_autotest_page($response);
+            
             // Wait for the pause
             sleep($pause_delay);
             $action = "recording_resume";
@@ -213,13 +273,12 @@ do {
 
     // Recording stop
     test_log("Stops the recording");
-    $response = curl_read_url("$curl_url?action=view_press_stop");
-
-    // Publish in private album
+    stop();
+    
+    // Publish in public/private album
     test_log("Publishes recording in album [moderation : $moderation]");
-    $response = curl_read_url("$curl_url?action=stop_and_publish" .
-            "&moderation=$moderation");
-
+    publish();
+    
     $recording_count--;
     unlink(COOKIE_FILE);
     sleep($delay_between_records);
@@ -228,6 +287,8 @@ do {
 test_log("Finished");
 
 function curl_read_url($url) {
+    global $last_page_file;
+    
     // create curl resource 
     $ch = curl_init($url);
 
@@ -246,9 +307,9 @@ function curl_read_url($url) {
     // close curl resource to free up system resources 
     curl_close($ch);
 
-  //  file_put_contents($logs_file, PHP_EOL . "**********************************************" . PHP_EOL, FILE_APPEND);
-  //  file_put_contents($logs_file, $retValue, FILE_APPEND);
-  //  file_put_contents($logs_file, PHP_EOL . "**********************************************" . PHP_EOL, FILE_APPEND);
+    unlink($last_page_file);
+    file_put_contents($last_page_file, "URL: $url" . PHP_EOL . PHP_EOL, FILE_APPEND);
+    file_put_contents($last_page_file, $retValue, FILE_APPEND);
     return ($errno != 0) ? false : $retValue;
 }
 

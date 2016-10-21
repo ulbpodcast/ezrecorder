@@ -5,7 +5,7 @@ You should not have to use this template by itself. However, if you do, please
 make sure $courselist is set and is an array of all courses available for the user
 (assoc array: key = course name, value = course description)
 
-Please keep this at second line for automated testing: autotest_record_form
+[autotest_record_form] !! Please keep this this line for automated testing 
 -->
 <script>
     $(document).ready(function() {
