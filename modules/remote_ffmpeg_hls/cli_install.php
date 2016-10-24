@@ -3,8 +3,9 @@
 require_once dirname(__FILE__) . '/config_sample.inc';
 require_once(__DIR__."/../../lib_various.php");
 
-echo PHP_EOL . "***************************************" . PHP_EOL;
-echo "* Installation of remote_fmle_cutlist module    *" . PHP_EOL;
+echo PHP_EOL;
+echo "***************************************" . PHP_EOL;
+echo "* Installation of remote_ffmpeg_hls module    *" . PHP_EOL;
 echo "***************************************" . PHP_EOL;
 
 echo PHP_EOL . "Creating config.inc" . PHP_EOL;

@@ -66,10 +66,3 @@ system("chmod -R 755 $remotefmle_local_basedir/bash");
 chmod("$remotefmle_local_basedir/setperms.sh", 0755);
 echo "Enter sudo password for executing setperms.sh .";
 system("sudo $remotefmle_local_basedir/setperms.sh");
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    return rtrim(fgets(STDIN), "\n");
-}
-?>
-

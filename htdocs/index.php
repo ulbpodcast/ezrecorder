@@ -26,5 +26,3 @@
 
 chdir("!PATH/");
 include "web_index.php";
-?>
- 

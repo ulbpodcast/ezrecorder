@@ -1,7 +1,7 @@
 #!/bin/sh
 
-touch ./var/status
 cd $(dirname $0)
+touch ./var/status
 chown !USER *
 chgrp !WEB_USER *
 chown -R !WEB_USER ./var
