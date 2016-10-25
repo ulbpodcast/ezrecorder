@@ -77,7 +77,7 @@ if (strtoupper($choice) != 'N') {
     $config = preg_replace('/\$basedir = (.+);/', '\$basedir = "' . $basedir . '/";', $config);
     $config = preg_replace('/\$web_basedir = (.+);/', '\$web_basedir = "' . $web_basedir . '";', $config);
     $config = preg_replace('/\$ezrecorder_web_user = (.+);/', '\$ezrecorder_web_user = "' . $ezrecorder_web_user . '";', $config);
-    $config = preg_replace('/\$ezcast_submit_url = (.+);/', '\$ezcast_manager_url = "' . $ezcast_manager_url . '";', $config);
+    $config = preg_replace('/\$ezcast_manager_url = (.+);/', '\$ezcast_manager_url = "' . $ezcast_manager_url . '";', $config);
     $config = preg_replace('/\$mailto_admins = (.+);/', '\$mailto_admins = "' . $mailto_admins . '";', $config);
     $config = preg_replace('/\$php_cli_cmd = (.+);/', '\$php_cli_cmd = "' . $php_cli_cmd . '";', $config);
     $config = preg_replace('/\$ffmpeg_cli_cmd = (.+);/', '\$ffmpeg_cli_cmd = "' . $ffmpeg_cli_cmd . '";', $config);

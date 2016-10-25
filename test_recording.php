@@ -16,7 +16,7 @@ $web_path = "ezrecorder/";
 date_default_timezone_set("Europe/Brussels");
 $date = date("Y_m_d_H\hi\ms\s");
 
-$logs_file = __DIR__ . "/var/_recorder_test_" . $date;
+$logs_file = __DIR__ . "/var/_test_" . $date;
 $last_page_file = __DIR__ . "/last_page_returned";
 $usage = "You can either run this script in interactive mode or call it with arguments." . PHP_EOL .
          "Usage: php ".__FILE__." <classroom_address> <username> <password> <album> [<camslide> <recording_count> <pause_count> <part_duration> <pause_duration> <moderation(y/n)>]";
