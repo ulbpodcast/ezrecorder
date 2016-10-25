@@ -1,28 +1,4 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 /**
  * Every var name should be preceded by the 'remoteffmpeg' prefix to avoid conflict 
@@ -31,10 +7,8 @@
 require_once __DIR__."/../../global_config.inc";
 
 $remoteffmpeg_features = array('recording', 'streaming');
-$remoteffmpeg_ip = "127.0.0.1"; // ip address of the remote recorder
 $remoteffmpeg_download_protocol = "rsync";
 $remoteffmpeg_streaming_protocol = "http";
-$remoteffmpeg_username = "podclient"; // username on the local recorder
 $remoteffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highlow | high | low | none) 
 
 $remote_basedir = "/path/to/ezrecorder"; // basedir on the remote recorder

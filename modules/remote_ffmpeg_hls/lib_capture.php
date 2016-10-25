@@ -24,8 +24,8 @@ $remoteffmpeg_module_name = $module_name;
  * Return system call return value. (so, 0 is ok)
  */
 function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, &$pid = 0) {
-    global $remoteffmpeg_username;
-    global $remoteffmpeg_ip;
+    global $remote_recorder_username;
+    global $remote_recorder_ip;
     global $logger;
     global $remote_script_call;
     
@@ -34,7 +34,7 @@ function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, 
     
         
     $remote_cmd = "$cmd 2>&1 >> $remote_log_file";
-    $local_cmd = "ssh -o ConnectTimeout=10 -o BatchMode=yes $remoteffmpeg_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
+    $local_cmd = "ssh -o ConnectTimeout=10 -o BatchMode=yes $remote_recorder_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
     if($background) {
         if(!is_writable("/tmp")) {
             $logger->log(EventType::RECORDER_REMOTE_CALL, LogLevel::CRITICAL, "Cannot write pid file $pid_file", array(__FUNCTION__));
@@ -47,7 +47,7 @@ function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, 
     //$logger->log(EventType::TEST, LogLevel::EMERGENCY, "$local_cmd", array(__FUNCTION__));
     
     $return_val = 0;
-    system("sudo -u $remoteffmpeg_username $remote_script_call $local_cmd", $return_val);
+    system("sudo -u $remote_recorder_username $remote_script_call $local_cmd", $return_val); //FIXME: $remote_recorder_username is used as a local username... This is the case in several place in this file
     
     if($return_val == 0 && $background) {
         $pid = trim(file_get_contents($pid_file));
@@ -98,8 +98,8 @@ function validate_remote_install(&$return_val) {
  */
 function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $remoteffmpeg_script_init;
-    global $remoteffmpeg_ip;
-    global $remoteffmpeg_username;
+    global $remote_recorder_ip;
+    global $remote_recorder_username;
     global $remoteffmpeg_streaming_info;
     global $remote_script_datafile_set;
     global $logger;
@@ -134,7 +134,7 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
         
         $xml = xml_assoc_array2metadata($streaming_info);
         // put the xml string in a metadata file on the remote mac mini
-        system("sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip " . escapeshellarg($xml) . " $remoteffmpeg_streaming_info &");
+        system("sudo -u $remote_recorder_username $remote_script_datafile_set $remote_recorder_ip " . escapeshellarg($xml) . " $remoteffmpeg_streaming_info &");
     }
     
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
@@ -177,8 +177,6 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
  */
 function capture_remoteffmpeg_start($asset) {
     global $remoteffmpeg_script_start;
-    global $remoteffmpeg_ip;
-    global $remoteffmpeg_username;
     global $logger;
     global $remoteffmpeg_module_name;
     
@@ -402,9 +400,6 @@ function capture_remoteffmpeg_process($asset, &$pid) {
  * Finalizes the recording after it has been uploaded to the server.
  * The finalization consists in archiving video files in a specific dir
  * and removing all temp files used during the session.
- * @global type $remoteffmpeg_ip
- * @global type $remoteffmpeg_script_qtbfinalize
- * @global type $remote_script_datafile_get
  */
 function capture_remoteffmpeg_finalize($asset) {
     global $remoteffmpeg_script_finalize;
@@ -434,16 +429,16 @@ function capture_remoteffmpeg_thumbnail() {
     global $remoteffmpeg_capture_file;
     global $remoteffmpeg_capture_tmp_file;
     global $remoteffmpeg_capture_transit_file;
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remote_script_thumbnail_create;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
 
     $minperiod = 5;
 
     // Slide screenshot
     if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 3)) {
         //if no image or image is old get a new screencapture
-        $cmd = "sudo -u $remoteffmpeg_username $remote_script_thumbnail_create $remoteffmpeg_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
+        $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
         $res = exec($cmd, $output_array, $return_code);
         if ((time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
             //print "could not take a screencapture";
@@ -465,18 +460,14 @@ function capture_remoteffmpeg_thumbnail() {
 /**
  * @implements
  * Returns an associative array containing information required for given action
- * @global type $remoteffmpeg_ip
- * @global type $remoteffmpeg_download_protocol
- * @global type $remoteffmpeg_username
  * @return type
  */
 function capture_remoteffmpeg_info_get($action, $asset = '') {
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remoteffmpeg_download_protocol;
     global $remoteffmpeg_streaming_protocol;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
     global $remoteffmpeg_upload_dir;
-    global $remoteffmpeg_username;
     global $remoteffmpeg_streaming_quality;
     global $ezcast_submit_url;
     global $classroom;
@@ -488,7 +479,7 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
         case 'download':
             $filename = $remoteffmpeg_upload_dir . '/' . $asset . "/slide.mov";
             
-            $cmd = "ssh -o ConnectTimeout=10 $remoteffmpeg_username@$remoteffmpeg_ip 'test -e $filename'";
+            $cmd = "ssh -o ConnectTimeout=5 $remote_recorder_username@$remote_recorder_ip 'test -e $filename'";
             $return_val = 0;
             system($cmd, $return_val);
 
@@ -499,9 +490,9 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
             //Todo: check file existence on remote server
             
             // rsync requires ssh protocol is set (key sharing) on the remote server
-            $download_info_array = array("ip" => $remoteffmpeg_ip,
+            $download_info_array = array("ip" => $remote_recorder_ip,
                 "protocol" => $remoteffmpeg_download_protocol,
-                "username" => $remoteffmpeg_username,
+                "username" => $remote_recorder_username,
                 "filename" => $filename);
             return $download_info_array;
         case 'streaming':
@@ -525,7 +516,7 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
                 return false;
             
             $streaming_info_array = array(
-                "ip" => $remoteffmpeg_ip, 
+                "ip" => $remote_recorder_ip, 
                 "submit_url" => $ezcast_submit_url,
                 "protocol" => $remoteffmpeg_streaming_protocol,
                 "course" => $meta_assoc['course_name'],
@@ -550,12 +541,12 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
  * Status may be "open", "recording", "paused", "stopped", "error"
  */
 function capture_remoteffmpeg_status_get() {
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remoteffmpeg_status_file;
     global $remote_script_datafile_get;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
 
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_get $remoteffmpeg_ip $remoteffmpeg_status_file";
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_get $remote_recorder_ip $remoteffmpeg_status_file";
     $res = exec($cmd, $output, $errorcode);
     if ($errorcode) {
         return '';
@@ -569,14 +560,14 @@ function capture_remoteffmpeg_status_get() {
  * Defines the status of the current video
  */
 function capture_remoteffmpeg_status_set($status) {
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remoteffmpeg_status_file;
     global $remote_script_datafile_set;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
     global $logger;
     
     $return_val = 0;
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip '$status' $remoteffmpeg_status_file";
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_set $remote_recorder_ip '$status' $remoteffmpeg_status_file";
     system($cmd, $return_val);
     if($return_val == 0) {
         $logger->log(EventType::RECORDER_SET_STATUS, LogLevel::DEBUG, "Status set to ".$status, array(__FUNCTION__));
@@ -604,12 +595,12 @@ function capture_remoteffmpeg_features_get() {
 }
 
 function capture_remoteffmpeg_rec_status_get() {
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_get;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
 
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_get $remoteffmpeg_ip $remoteffmpeg_rec_status_file";
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_get $remote_recorder_ip $remoteffmpeg_rec_status_file";
     $res = exec($cmd, $output, $errorcode);
     if ($errorcode) {
         return '';
@@ -619,15 +610,15 @@ function capture_remoteffmpeg_rec_status_get() {
 }
 
 function capture_remoteffmpeg_rec_status_set($status) {
-    global $remoteffmpeg_ip;
+    global $remote_recorder_ip;
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_set;
-    global $remoteffmpeg_username;
+    global $remote_recorder_username;
     global $logger;
     
     $status = "'$status'";
     
-    $cmd = "sudo -u $remoteffmpeg_username $remote_script_datafile_set $remoteffmpeg_ip $status $remoteffmpeg_rec_status_file";
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_set $remote_recorder_ip $status $remoteffmpeg_rec_status_file";
     system($cmd, $return_val);
     if($return_val == 0) {
         $logger->log(EventType::RECORDER_SET_STATUS, LogLevel::DEBUG, "REC Status set to ".$status, array(__FUNCTION__));

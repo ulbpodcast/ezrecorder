@@ -11,25 +11,17 @@ echo "***************************************" . PHP_EOL;
 echo PHP_EOL . "Creating config.inc" . PHP_EOL;
 
 echo "Please, enter now the requested values :" . PHP_EOL;
-$value = read_line("Static IP address of the remote recorder. This address must be reachable by the EZcast server [default: '$remoteffmpeg_ip']: ");
-if ($value != "")
-    $remoteffmpeg_ip = $value; unset($value);
 $value = read_line("Path to EZrecorder basedir on the remote recorder [default: '$remoteffmpeg_basedir']: ");
 if ($value != "")
     $remoteffmpeg_basedir = $value; unset($value);
-$value = read_line("Username on the remote recorder [default: '$remoteffmpeg_username']: ");
-if ($value != "")
-    $remoteffmpeg_username = $value; unset($value);
-$value = read_line("Path to EZrecorder repository basedir on the remote recorder [default: '$remoteffmpeg_recorddir']: ");
+$value = read_line("Path to EZrecorder repository basedir on the remote recorder [default: '$remoteffmpeg_recorddir']: "); //should be removed if possible
 if ($value != "")
     $remoteffmpeg_recorddir = $value; unset($value);
 
 $config = file_get_contents("$remoteffmpeg_local_basedir/config_sample.inc");
 
-$config = preg_replace('/\$remoteffmpeg_ip = (.+);/', '\$remoteffmpeg_ip = "' . $remoteffmpeg_ip . '";', $config);
 $config = preg_replace('/\$remoteffmpeg_basedir = (.+);/', '\$remoteffmpeg_basedir = "' . $remoteffmpeg_basedir . '";', $config);
 $config = preg_replace('/\$remoteffmpeg_recorddir = (.+);/', '\$remoteffmpeg_recorddir = "' . $remoteffmpeg_recorddir . '";', $config);
-$config = preg_replace('/\$remoteffmpeg_username = (.+);/', '\$remoteffmpeg_username = "' . $remoteffmpeg_username . '";', $config);
 file_put_contents("$remoteffmpeg_local_basedir/config.inc", $config);
 
 echo PHP_EOL . "Changing values in setperms.sh" . PHP_EOL;

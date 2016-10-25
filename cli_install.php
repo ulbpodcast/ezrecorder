@@ -27,7 +27,12 @@ if (file_exists("global_config.inc")) {
 }
 $basedir = __DIR__;
 
+echo "Is this recorder a [M]aster or a [R]emote recorder ?" . PHP_EOL;
+while($choice != "M" && $choice != "R")
+    $choice = strtoupper(read_line("[M/R]: "));
 
+$master = $choice == "M";
+   
 /*
  * First, we add user's configuration in global-config.inc
  */
@@ -68,6 +73,16 @@ if (strtoupper($choice) != 'N') {
     if ($value != "")
         $ezrecorder_web_user = $value;
 
+    if(!$master) {
+        $value = read_line("Remote recorder IP [" .$remote_recorder_ip. "]: ");
+        if ($value != "")
+            $remote_recorder_ip = $value;
+        
+        $value = read_line("Remote recorder username [" .$remote_recorder_username. "]: ");
+        if ($value != "")
+            $remote_recorder_username = $value;
+    }
+    
     $config = file_get_contents($basedir . "/global_config_sample.inc");
 
     $config = preg_replace('/\$classroom = (.+);/', '\$classroom = "' . $classroom . '";', $config);
@@ -138,12 +153,6 @@ $web_file = file_get_contents($web_basedir . "/index.php");
 $web_file = str_replace("!PATH", $basedir, $web_file);
 file_put_contents($web_basedir . "/index.php", $web_file);
 
-echo "Is this recorder a [M]aster or a [R]emote recorder ?" . PHP_EOL;
-while($choice != "M" && $choice != "R")
-    $choice = strtoupper(read_line("[M/R]: "));
-
-$master = $choice == "M";
-   
 if($master) {
     require("cli_install_modules_selection.php");
     require("cli_install_modules_config.php");

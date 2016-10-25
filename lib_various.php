@@ -217,6 +217,7 @@ function get_asset_name($course_name, $record_date) {
 
 /* step == "upload" or "local_processing" or "upload_ok" or "" 
     Empty step will return first found, or local_processing dir if folder was not found
+ * This function does not check folder existence
  *  */
 function get_asset_dir($asset, $step = '') {
     if(!$asset)
@@ -226,6 +227,7 @@ function get_asset_dir($asset, $step = '') {
         case "upload_ok":
             return get_upload_ok_dir($asset);
         case "upload":
+        case "upload_to_server":
             return get_upload_to_server_dir($asset);
         case "local_processing":
             return get_local_processing_dir($asset);
@@ -430,4 +432,61 @@ function get_asset_from_dir($dir) {
     $basename = basename($dir);
     $asset = substr($basename, 0, 16); //example of dir name : 2016_10_10_16h42_PODC-I-00...
     return $asset;
+}
+
+/* Valid targets are local_processing", "upload_to_server", "upload_ok"
+ * 
+ */
+function move_asset($asset, $target, $move_on_remote = false) {
+    global $logger;
+    global $slide_enabled;
+    
+    $valid_targets = array("local_processing", "upload_to_server", "upload_ok");
+    if(!in_array($target, $valid_targets)) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, 'Invalid target folder give', array(__FILE__), $asset);
+        return false;
+    }
+
+    $current_dir = get_asset_dir($asset);
+    if(!file_exists($current_dir)) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not find asset dir for asset $asset", array(__FILE__), $asset);
+        return false;
+    }
+
+    $target_dir = get_asset_dir($asset, $target);
+    if($current_dir == $target_dir) {
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "Asset is already in target directory $target, nothing to do", array(__FILE__), $asset);
+        return true;
+    }
+
+    $ok = rename($current_dir, $target_dir);
+    if(!$ok) {
+        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not move asset folder from $current_dir to $target_dir dir", array(__FILE__), $asset);
+        return false;
+    }
+
+    $logger->log(EventType::TEST, LogLevel::INFO, "Local asset moved from $current_dir to $target_dir dir", array(__FILE__), $asset);
+    
+    if($slide_enabled && $move_on_remote) { //move only if remote exists
+        return move_remote_asset($asset, $target);
+    } else {
+        return true;
+    }
+}
+
+function move_remote_asset($asset, $target) {
+    global $remote_recorder_ip;
+    global $remote_recorder_username;
+    global $move_asset_script;
+    global $logger;
+    
+    $remote_cmd = "$move_asset_script $asset $target";
+    $local_cmd = "ssh -o ConnectTimeout=5 -o BatchMode=yes $remote_recorder_username@$remote_recorder_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
+    $return_val = system($local_cmd);
+    if($return_val != 0) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target", array(__FILE__), $asset);
+        return false;
+    }
+    $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FILE__), $asset);
+    return true;
 }

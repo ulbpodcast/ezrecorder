@@ -157,15 +157,12 @@ if($slide_ok && $cam_ok) {
 system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
 
 //move asset folder from local_processing to upload_to_server dir
-$upload_dir = get_asset_dir($asset, 'upload');
-if($asset_dir != $upload_dir){
-    $ok = rename($asset_dir, $upload_dir);
-    if(!$ok) {
-        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processing to upload dir. ($asset_dir to $upload_dir)", array(__FILE__), $asset);
-        // exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
-    }
-    $asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
+$ok = move_asset($asset, "upload_to_server", true);
+if(!$ok) {
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not move asset folder from local_processing to upload dir (failed on local or on remote)", array(__FILE__), $asset);
+    // exit(1); //Commented for now: Before last ffmpeg modules updates, modules moved the asset themselves at the processing end, so this move may fail if we use older modules.
 }
+$asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
 
 
 //start upload

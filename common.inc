@@ -21,6 +21,7 @@ $last_log_sent_get_url = "$ezcast_logs_url?action=last_log_sent&source=$classroo
 $log_push_url = "$ezcast_logs_url?action=push_logs"; //followed by json array
 $ezcast_submit_url = "$ezcast_manager_url/recorder/index.php"; // URL to EZmanager server
 $ffmpeg_script_merge_movies = "$basedir/cli_merge_movies.php";
+$move_asset_script = "$basedir/cli_move_asset.php";
 $recorder_logs = "$basedir/var/_log"; // Log file
 $recorder_session = "$basedir/var/session";
 $recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";

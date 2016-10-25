@@ -10,6 +10,8 @@ $recorder_version = "2.0"; //used as communication with server protocol version
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
 $ezrecorder_recorddir = "/Users/".$ezrecorder_username."/Movies/"; // basedir for the local video storage
+$remote_recorder_ip = "";
+$remote_recorder_username = "";
 
 //list of supported timezones: http://php.net/manual/en/timezones.europe.php
 $recorder_timezone = "Europe/Brussels";
