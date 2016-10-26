@@ -1,5 +1,7 @@
 <?php
 
+require "global_config.inc";
+
 /**
  * Resizes an image and adds a status on it
  * @param type $input source image
@@ -475,14 +477,16 @@ function move_asset($asset, $target, $move_on_remote = false) {
 }
 
 function move_remote_asset($asset, $target) {
+    global $ezrecorder_username;
     global $remote_recorder_ip;
     global $remote_recorder_username;
     global $move_asset_script;
     global $logger;
     
-    $remote_cmd = "$move_asset_script $asset $target";
-    $local_cmd = "ssh -o ConnectTimeout=5 -o BatchMode=yes $remote_recorder_username@$remote_recorder_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
-    $return_val = system($local_cmd);
+    $remote_cmd = "php $move_asset_script $asset $target";
+    $local_cmd = "sudo -u $ezrecorder_username ssh -o ConnectTimeout=5 -o BatchMode=yes $remote_recorder_username@$remote_recorder_ip \"$remote_cmd\" 2>&1 > /dev/null"; //we don't want any local printing
+    $return_val = 0;
+    system($local_cmd, $return_val);
     if($return_val != 0) {
         $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target", array(__FILE__), $asset);
         return false;

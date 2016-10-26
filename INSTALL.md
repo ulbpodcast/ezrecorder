@@ -154,7 +154,7 @@ sudo visudo
 # (Replace the path by the location of your ezrecorder directory)
 Cmnd_Alias EZCAST = /Library/ezrecorder/modules/*/bash/* 
 # and this at the end : (replace podclient by your username and _www by apache’s username)
-_www 	ALL=(podclient) NOPASSWD: EZCAST
+_www 	ALL=(podclient) NOPASSWD: ALL
 ```
 
 7. Add the recorder to EZadmin

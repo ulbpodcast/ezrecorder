@@ -8,6 +8,32 @@
 require_once("global_config.inc");
 require_once("lib_various.php");
 
+function create_parts_list($dir, $list_file) {
+    global $logger;
+    
+    $video_files = array();
+    $count = 1;
+    $video_file = getcwd()."/$dir/ffmpegmovie".$count.".ts";
+    while(file_exists($video_file)) {
+        array_push($video_files, $video_file);
+        $count++;
+        $video_file = getcwd()."/$dir/ffmpegmovie".$count.".ts";
+    }
+
+    if(empty($video_files)) {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "No video (.ts) file found in $dir", array(__FUNCTION__));
+        return false;
+    }
+
+    if(file_exists($list_file))
+        unlink($list_file);
+
+    foreach($video_files as $video_file) {
+        file_put_contents($list_file, "file '$video_file'" . PHP_EOL, FILE_APPEND);
+    }
+    return true;
+}
+
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)
  * @global string $ffmpeg_cli_cmd 
@@ -37,24 +63,48 @@ function movie_join_parts($movies_path, $commonpart, $output) {
     $cmd = "";
     for ($i = 0; $i < $movie_count; $i++) {
         // high resolution exists
-        if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
-            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/high/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+        $quality = "";
+         if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
+            $quality = "high";
         } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
-            $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/low/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+            $quality = "low";
         } else {
             return "no .m3u8 file found at i = $i";
         }
+        
+        // -- Create list file for ffmpeg concat - cant use scandir else we get wrong parts order, such as 1 10 100 2 ...
+        $dir = "${commonpart}_$i/$quality/";
+        $list_file = "$tmpdir/filelist.txt";
+        $ok = create_parts_list($dir, $list_file);
+        if(!$ok) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "File listing failed", array(__FUNCTION__));
+            return false;
+        }
+        // --
+        
+        $cmd = "$ffmpeg_cli_cmd -safe 0 -f concat -i $list_file -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+        /*
+        if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
+            $quality = "high";
+        } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
+            $quality = "low";
+        } else {
+            return "no .m3u8 file found at i = $i";
+        }
+        $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/$quality/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
+         * 
+         */
         $return_val = 0;
         $cmd_output = "";
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array("merge_movies"));
-        exec($cmd, $cmd_output, $return_val);
+        system($cmd, $return_val);
         if($return_val != 0) {
             return "Join command failed, last command: $cmd " .PHP_EOL."Result: " . print_r($cmd_output, true);
         }
     }
 
     //if we got more than one movie (means there were relaunches), merge them, else we're done
-    if (count(glob("$tmpdir/*")) === 1) {
+    if (count(glob("$tmpdir/*.mov")) === 1) {
         //only one part, just rename it
         $ok = rename("$tmpdir/part0.mov", "$movies_path/$output");
         if(!$ok) {

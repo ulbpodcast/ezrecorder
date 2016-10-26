@@ -77,6 +77,11 @@ function check_remote_file_existence($remote_file, &$return_val) {
 function validate_remote_install(&$return_val) {
    global $remoteffmpeg_config1;
    global $remoteffmpeg_config2;
+   global $remote_recorder_username;
+   global $remote_recorder_ip;
+   
+   if($remote_recorder_username == "" | $remote_recorder_ip == "")
+       return false;
    
    $return_val = 0;
    
