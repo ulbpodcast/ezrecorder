@@ -16,6 +16,8 @@ $web_path = "ezrecorder/";
 date_default_timezone_set("Europe/Brussels");
 $date = date("Y_m_d_H\hi\ms\s");
 
+if(!file_exists(__DIR__."/var"))
+    mkdir(__DIR__."/var");
 $logs_file = __DIR__ . "/var/_test_" . $date;
 $last_page_file = __DIR__ . "/last_page_returned";
 $usage = "You can either run this script in interactive mode or call it with arguments." . PHP_EOL .
@@ -151,7 +153,7 @@ file_put_contents($logs_file, PHP_EOL, FILE_APPEND);
 function get_autotest_page($curl_response) {
     
     //print_r($curl_response);
-    $known_pages = array("autotest_record_form", "autotest_login_screen", "autotest_record_screen", "autotest_record_submit", "submitted");
+    $known_pages = array("autotest_record_form", "autotest_login_screen", "autotest_record_screen", "autotest_record_submit", "autotest_submitted");
     foreach($known_pages as $page) {
         //echo "Checking for $page" . PHP_EOL;
         if (strpos($curl_response, $page) != false) {
