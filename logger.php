@@ -194,8 +194,7 @@ abstract class Logger {
         
         // okay, all data ready
         
-
-        $print_str = "log| [$level] / context: $tempLogData->context / type: $type / " . htmlspecialchars($message);
+        $print_str = "log| [$level] / context: $tempLogData->context / type: $type / " . $message;
         if(Logger::$print_logs)
             echo $print_str . PHP_EOL;
         
@@ -203,7 +202,7 @@ abstract class Logger {
                 && $type != EventType::PHP //PHP events are already printed in custom_error_handling.php
                 && (!isset($service) || $service == false) //some services will try to parse the response, and our <script> may interfere in this case
                 && php_sapi_name() != "cli") //don't print in CLI
-            echo("<script>console.log('$print_str');</script>");
+            echo("<script>console.log(\"".htmlspecialchars($print_str)."\");</script>");
         
         //idea: if level is critical or below, add strack trace to message
         
