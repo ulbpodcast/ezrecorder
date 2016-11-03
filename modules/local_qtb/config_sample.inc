@@ -38,6 +38,7 @@ $localqtb_monitoring_file = $localqtb_basedir.'var/_monitoring_pid';
 $localqtb_status_file = $localqtb_basedir.'var/status'; // Current recorder status (paused, recording, stopped,...)
 $localqtb_recorder_logs = $localqtb_basedir.'var/_log'; // Log file
 $localqtb_capture_file = $localqtb_basedir.'var/screencapture.jpg'; // Camera screenshot
+$localqtb_last_request_file = $localqtb_basedir.'var/last_request'; 
 
 $localqtb_processing_tool = "ffmpeg"; // [ffmpeg | pcastaction]
 $localqtb_processing_tools = array("ffmpeg", "pcastaction");

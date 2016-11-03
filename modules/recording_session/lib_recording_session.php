@@ -39,7 +39,7 @@ function session_xml_metadata_save($metadata_assoc_array) {
         //file is owned by podclient. Any solution ?
         $logger->log(EventType::TEST, LogLevel::WARNING, "Could not chmod file $metadata_file. Current user: $name", array("lib_recording_session"));
     }
-    return true;
+    return $xml;
 }
 
 /**

@@ -107,7 +107,7 @@ function controller_recording_submit_infos() {
     $fct_metadata_save = "session_" . $session_module . "_metadata_save";
     $res = $fct_metadata_save($record_meta_assoc);
 
-    if (!$res) {
+    if ($res == false) {
         error_print_message('submit_record_infos: something went wrong while saving metadata');
         die;
     }
@@ -321,22 +321,22 @@ function controller_stop_and_publish() {
         return false;
     }
     
-    //update metadata with moderation
-    if ($moderation == 'true' || $moderation == 'false') {
-        $meta_assoc['moderation'] = $moderation;
-        $fct_metadata_save = "session_" . $session_module . "_metadata_save";
-        $fct_metadata_save($meta_assoc);
+    if($moderation != 'true' && $moderation != 'false') {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "Invalid moderation type given: '$moderation'. Defaulting to true.", array(__FUNCTION__), $asset);
+        $moderation = true;
     }
-
-    $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
-    $meta_xml_string = $fct_metadata_xml_get();
+    
+    //update session metadata with moderation
+    $meta_assoc['moderation'] = $moderation;
+    $fct_metadata_save = "session_" . $session_module . "_metadata_save";
+    $meta_xml_string = $fct_metadata_save($meta_assoc);
     if($meta_xml_string == false) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get XML metadata from session for publishing, stopping now", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not write metadata to session.", array(__FUNCTION__), $asset);
         close_session();
         return false;
     }
     
-    // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
+    //also update metadata file in asset dir
     file_put_contents("$asset_dir/metadata.xml", $meta_xml_string);
 
     // launches the video processing in background
@@ -512,18 +512,21 @@ function stop_current_record($start_post_process = true) {
         return false;
     }
 
-    $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
-    $meta_xml_string = $fct_metadata_xml_get();
-    if($meta_xml_string == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Current metadata from session was invalid, cannot continue.", array(__FUNCTION__), $asset);
-        return false;
-    }
-    
-    // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
-    $res = file_put_contents($asset_dir . "/metadata.xml", $meta_xml_string);
-    if($res == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not write metadata to asset dir ($asset_dir)", array(__FUNCTION__), $asset);
-        return false;
+    //write almost final metadata here a first time in asset folder. Note that it may still be overwritten when choosing a moderation type later
+    {
+        $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
+        $meta_xml_string = $fct_metadata_xml_get();
+        if($meta_xml_string == false) {
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Current metadata from session was invalid, cannot continue.", array(__FUNCTION__), $asset);
+            return false;
+        }
+
+        // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
+        $res = file_put_contents($asset_dir . "/metadata.xml", $meta_xml_string);
+        if($res == false) {
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not write metadata to asset dir ($asset_dir)", array(__FUNCTION__), $asset);
+            return false;
+        }
     }
     
     // Stopping the recording
@@ -605,8 +608,8 @@ function controller_recording_force_quit() {
         if(!$result) {
             $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Previous record stopping returned an error. Trying to continue anyway.", array('controller_recording_force_quit'), $asset);
         }
-    }
-
+    } 
+    
     // reinits the recording status
     status_set('');
 
@@ -798,7 +801,7 @@ function controller_view_record_form() {
         $slide_features = $fct_capture_features_get();
     }
 
-    if ($cam_enabled && in_array('streaming', $cam_features) || $slide_enabled && in_array('streaming', $slide_features)) {
+    if ($cam_enabled && in_array('streaming', $cam_features) && $slide_enabled && in_array('streaming', $slide_features)) {
         $streaming_available = true;
     }
 
@@ -940,7 +943,7 @@ function reset_cam_position() {
     
     if ($cam_management_enabled) {
        //cam management enabled so try to put camera back in place
-       if ($_SESSION['recorder_type'] == 'slide') {
+       if (isset($_SESSION['recorder_type']) && $_SESSION['recorder_type'] == 'slide') {
            $fct_cam_move = "cam_" . $cam_management_module . "_move";
            $fct_cam_move($GLOBALS['cam_screen_scene']); //if slide only, record screen as a backup
        } else {
@@ -1143,8 +1146,6 @@ function view_record_screen() {
  */
 
 function controller_stop_and_view_record_submit() {
-    global $cam_management_enabled;
-    global $cam_management_module;
     global $logger;
 
     $asset = $_SESSION['asset'];

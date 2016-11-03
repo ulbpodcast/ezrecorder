@@ -64,19 +64,18 @@ function capture_localqtb_init(&$pid, $meta_assoc, $asset) {
 
     // status of the current recording
     $status = capture_localqtb_status_get();
-    if ($status == '') { // no status yet
+    if ($status == '' || $status == 'launch_failure') { // no status yet
         // qtbnew initializes QuickTime Broadcaster and runs a recording test
         // launched in background to save time (pid is returned to be handled by web_index.php)
-        system("sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
-        $pid = file_get_contents("$tmp_dir/pid");
-        // error occured while launching QTB
-        if (capture_localqtb_status_get() == 'launch_failure') {
-            error_last_message("can't open because QTB failed to launch");
-            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because QTB failed to launch", array(__FUNCTION__), $asset);
+        $return_val = 0;
+        system("sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid", $return_val);
+        if($return_val != 0) {
+            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Init script failed to start. Return val: $return_val", array(__FUNCTION__), $asset);
             return false;
         }
-        // the recording is now 'open'
-        capture_localqtb_status_set('open');
+        $pid = file_get_contents("$tmp_dir/pid");
+        
+        //init script will set status uppon completion
     } else {
         error_last_message("capture_init: can't open because current status: $status");
         $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because current of status: $status", array(__FUNCTION__), $asset);
@@ -182,7 +181,6 @@ function capture_localqtb_resume($asset) {
  */
 function capture_localqtb_stop(&$pid, $asset) {
     global $logger;
-    global $module_name;
     global $localqtb_script_qtbpause;
     global $localqtb_recorder_logs;
     global $localqtb_username;
@@ -201,6 +199,7 @@ function capture_localqtb_stop(&$pid, $asset) {
         // set the new status for the current recording
         capture_localqtb_status_set('stopped');
     } else if ($status == 'paused') {
+        //record already stopped, nothing to do
         capture_localqtb_status_set('stopped');
     } else {
         error_last_message("capture_stop: can't pause recording because current status: $status");
@@ -323,34 +322,31 @@ function capture_localqtb_finalize($asset) {
 /**
  * @implements
  * Returns an associative array containing information required for given action
- * @global type $localqtb_ip
  * @global type $localqtb_download_protocol
- * @global type $localqtb_username
  * @return type
  */
 function capture_localqtb_info_get($action, $asset = '') {
-    global $logger;
-    global $localqtb_ip;
+    global $ezrecorder_ip;
     global $localqtb_download_protocol;
-    global $localqtb_username;
-    global $localqtb_upload_dir;
+    global $ezrecorder_username;
+    global $logger;
 
-    switch ($action) {
-        case 'download':
-            $filename = $localqtb_upload_dir . $asset . "/cam.mov";
-            if(!file_exists($filename)) {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
-                return false; //invalid file
-            }
-            
-            // rsync requires ssh protocol is set (key sharing) on the remote server
-            $download_info_array = array("ip" => $localqtb_ip,
-                "protocol" => $localqtb_download_protocol,
-                "username" => $localqtb_username,
-                "filename" => $filename);
-            return $download_info_array;
-            break;
+    //only download supported
+    if($action != "download")
+        return false;
+    
+    $filename = get_asset_dir($asset, 'upload') . "/cam.mov";
+    if(!file_exists($filename)) {
+        $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
+        return false; //invalid file
     }
+
+    // rsync requires ssh protocol is set (key sharing) on the remote server
+    $download_info_array = array("ip" => $ezrecorder_ip,
+        "protocol" => $localqtb_download_protocol,
+        "username" => $ezrecorder_username,
+        "filename" => $filename);
+    return $download_info_array;
 }
 
 /**
@@ -409,7 +405,7 @@ function capture_localqtb_status_set($status) {
     file_put_contents($localqtb_status_file, $status);
     file_put_contents($localqtb_last_request_file, time());
     
-    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__), $asset);
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__));
 }
 
 /**
@@ -448,10 +444,8 @@ function capture_localqtb_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $localqtb_basedir . '/var/' . $asset;
-    if (!file_exists($tmp_dir) && !dir($tmp_dir))
+    if (!file_exists($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;
 }
-
-?>
