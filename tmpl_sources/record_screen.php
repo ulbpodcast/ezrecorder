@@ -33,17 +33,17 @@
                     type: 'GET',
                     url: "index.php?action=recording_start",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) { // Everything went fine
                             document.getElementById('BoutonCancel').style.display = 'none';
                             MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');
                             window.location = 'index.php';
                         }
                         else {
                             offline_alert();
+                            location.reload();
                         }
                     }
                 }
@@ -56,15 +56,15 @@
                     type: 'GET',
                     url: "index.php?action=recording_pause",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) {  // Everything went fine
                             MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');
                         }
                         else {
                             offline_alert();
+                            location.reload();
                         }
                     }
                 }
@@ -77,15 +77,15 @@
                     type: 'GET',
                     url: "index.php?action=recording_resume",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) { // Everything went fine
                             MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');
                         }
                         else {
                             offline_alert()
+                            location.reload();
                         }
                     }
                 }
@@ -99,15 +99,15 @@
                         type: 'GET',
                         url: "index.php?action=view_press_stop",
                         cache: false,
-                        timeout: 10000, // 10 seconds
+                        timeout: 15000,
                         error: offline_alert,
                         success: function (html) {
-                            if (html) {
-                                // Everything went fine
+                            if (html) {  // Everything went fine
                                 $('html').html(html);
                             }
                             else {
                                 offline_alert()
+                                location.reload();
                             }
                         }
                     }
