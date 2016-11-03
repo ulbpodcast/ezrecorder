@@ -51,8 +51,8 @@
                 }
             }
 
-            function loading_popup() {
-                $.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
+           function loading_popup() {
+                //$.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
             }
         </script>
     </head>
