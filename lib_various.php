@@ -59,14 +59,14 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
 
     if ($status_file) {
         if (file_exists($status)) {
-            $cam_status = file_get_contents($status_file);
+            $module_status = file_get_contents($status_file);
         }
     } else {
-        $cam_status = $status;
+        $module_status = $status;
     }
 
     $img_status = null;
-    switch ($cam_status) {
+    switch ($module_status) {
         case "recording":
             $img_status = imagecreatefrompng($img_path['broadcasting']);
             break;
@@ -79,16 +79,17 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         case "pending":
             $img_status = imagecreatefrompng($img_path['pending']);
             break;
+        default: 
+            trigger_error("Invalid status '$module_status' to ".__FUNCTION__, E_USER_WARNING);
         case "open":
             break;
-        default:
-            return; //invalid cam status
     }
     if($img_status != null)
         imagecopymerge($newimg, $img_status, 5, 130, 0, 0, 225, 25, 75);
 
     imagejpeg($newimg, $output); //$output file is the path/filename where you wish to save the file.  
 //Have to figure that one out yourself using whatever rules you want.  Can use imagegif() or imagepng() or whatever.
+    return true;
 }
 
 /**
