@@ -41,6 +41,8 @@ set_time_limit(0);
 $pid = getmypid();
 fwrite(fopen($recorder_monitoring_pid, 'w'), $pid);
 
+//get asset name ?
+
 // This is the main loop. Runs until the lock file disappears
 while (true) {
 

@@ -169,7 +169,6 @@ $asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the re
 global $cli_upload;
 global $php_cli_cmd;
 
-
 $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::DEBUG, "Call to $cli_upload", array(__FILE__), $asset);
 
 $return_val = 0;
