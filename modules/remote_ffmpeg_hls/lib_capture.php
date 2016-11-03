@@ -437,15 +437,15 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_recorder_ip;
     global $remote_script_thumbnail_create;
     global $remote_recorder_username;
-
-    $minperiod = 5;
-
-    // Slide screenshot
+    global $logger;
+        
+    //if no image or image is old get a new screencapture
     if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 3)) {
-        //if no image or image is old get a new screencapture
         $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
-        $res = exec($cmd, $output_array, $return_code);
-        if ((time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
+        $return_val = 0;
+        system($cmd, $return_val);
+        //if command failed or remote script did not actually create image file
+        if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
             //print "could not take a screencapture";
             copy("./nopic.jpg", "$remoteffmpeg_capture_file");
         } else {
@@ -455,8 +455,17 @@ function capture_remoteffmpeg_thumbnail() {
                 $status = capture_remoteffmpeg_rec_status_get();
             }
             
-            image_resize($remoteffmpeg_capture_tmp_file, $remoteffmpeg_capture_transit_file, 235, 157, $status, false);
-            rename($remoteffmpeg_capture_transit_file, $remoteffmpeg_capture_file);
+            //invalid statis in rec_status ?
+            if($status == '') {
+                $status = 'open';
+            }
+            
+            $ok = image_resize($remoteffmpeg_capture_tmp_file, $remoteffmpeg_capture_transit_file, 235, 157, $status, false);
+            if($ok) 
+                rename($remoteffmpeg_capture_transit_file, $remoteffmpeg_capture_file);
+            else {
+                copy("./nopic.jpg", "$remoteffmpeg_capture_file");
+            }
         }
     }
     return file_get_contents($remoteffmpeg_capture_file);
@@ -534,7 +543,6 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
                 "author" => $meta_assoc['author'],
                 "title" => $meta_assoc['title']);
             return $streaming_info_array;
-            break;
         default:
             return false;
     }
@@ -604,10 +612,12 @@ function capture_remoteffmpeg_rec_status_get() {
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_get;
     global $remote_recorder_username;
-
+    global $logger;
+    
     $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_get $remote_recorder_ip $remoteffmpeg_rec_status_file";
     $res = exec($cmd, $output, $errorcode);
     if ($errorcode) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to fetch status file from remote recorder", array(__FUNCTION__));
         return '';
     }
 

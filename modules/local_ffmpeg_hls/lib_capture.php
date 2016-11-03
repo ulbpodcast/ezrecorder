@@ -575,6 +575,8 @@ function capture_ffmpeg_info_get($action, $asset = '') {
                 "title" => $meta_assoc['title']);
             
             return $streaming_info_array;
+        default:
+            return false;
     }
 }
 
