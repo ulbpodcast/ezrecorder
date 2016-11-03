@@ -45,7 +45,7 @@ if($argc == 1) {
     $classroom = readline("Address: ");
     if(!$classroom) {
         echo "No classroom provided" .PHP_EOL;
-        die();
+        exit(1);
     }
     
     $username = readline("Enter username for recorder [default: $default_user]: ");
@@ -55,13 +55,13 @@ if($argc == 1) {
     $password = readline("Enter password for user: ");
     if(!$password) {
         echo "No password provided" .PHP_EOL;
-        die();
+        exit(1);
     }
     
     $album = readline("Enter album mnemonic: ");
     if(!$album) {
         echo "No album provided" .PHP_EOL;
-        die();
+        exit(1);
     }
     
     echo "Select the recording format: " . PHP_EOL;
@@ -82,7 +82,7 @@ if($argc == 1) {
             break;
         default: 
             echo "Invalid type provided" .PHP_EOL;
-            die();
+            exit(1);
     }
     //fixme: invalid input will silently set the default value, this is not really user friendly
     $choice = readline("Enter number of recordings [default: $default_records]: ");
@@ -106,7 +106,7 @@ if($argc == 1) {
 } else { 
     if($argc < 5) {
         echo $usage . PHP_EOL;
-        return 1;
+        exit(1);
     }
     
     $classroom = $argv[1];
@@ -179,8 +179,9 @@ function login() {
     
     $response = curl_read_url("$curl_url?action=login&login=$username&passwd=$password");
     $page = get_autotest_page($response);
-    if($page != "autotest_record_form") {
-        test_log("Authentication failure or wrong page returned. Desired page was autotest_record_form, recorder returned $page");
+    $desired_page = "autotest_record_form";
+    if($page != $desired_page) {
+        test_log("Authentication failure or wrong page returned. Desired page was $desired_page, recorder returned $page");
         exit(1);
     }
 }
@@ -205,8 +206,9 @@ function submit_init_form() {
             "&record_type=$camslide");
             
     $page = get_autotest_page($response);
-    if($page != "autotest_record_screen") {
-        test_log("Init failure or wrong page returned. Desired page was autotest_record_screen, recorder returned $page");
+    $desired_page = "autotest_record_screen";
+    if($page != $desired_page) {
+        test_log("Init failure or wrong page returned. Desired page was $desired_page, recorder returned $page");
         exit(2);
     }
 
@@ -217,8 +219,9 @@ function stop() {
     
     $response = curl_read_url("$curl_url?action=view_press_stop");
     $page = get_autotest_page($response);
-    if($page != "autotest_record_submit") {
-        test_log("Stop failure or wrong page returned. Desired page was autotest_record_submit, recorder returned $page");
+    $desired_page = "autotest_record_submit";
+    if($page != $desired_page) {
+        test_log("Stop failure or wrong page returned. Desired page was $desired_page, recorder returned $page");
         exit(5);
     }
 }
@@ -230,8 +233,9 @@ function publish() {
     $response = curl_read_url("$curl_url?action=stop_and_publish" .
             "&moderation=$moderation");
     $page = get_autotest_page($response);
-    if($page != "autotest_record_submitted") {
-        test_log("Stop failure or wrong page returned. Desired page was autotest_record_submitted, recorder returned $page");
+    $desired_page = "autotest_submitted";
+    if($page != $desired_page) {
+        test_log("Stop failure or wrong page returned. Desired page was $desired_page, recorder returned $page");
         exit(6);
     }
 }
