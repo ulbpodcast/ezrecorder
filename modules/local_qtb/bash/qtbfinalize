@@ -33,8 +33,3 @@ STORDIR=$RECORDDIR/upload_ok/${SDAT}_$COURSE
 
 # removes all temp files used for the recording
 rm -rf $EZCASTDIR/var/${SDAT}_$COURSE
-
-# transfers files from upload_to_server to upload_ok
-echo "podcv: transfers files to upload_ok directory"
-mv $UPLOADDIR $STORDIR
-

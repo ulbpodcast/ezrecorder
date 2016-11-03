@@ -49,22 +49,18 @@ $module_name = "capture_localqtb";
  * @param associative_array $meta_assoc Metadata related to the record (used in cli_monitoring.php)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_localqtb_init(&$pid, $meta_assoc) {
+function capture_localqtb_init(&$pid, $meta_assoc, $asset) {
     global $logger;
-    global $module_name;
     global $localqtb_script_qtbnew;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
     $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
-
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
     xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
-
 
     // status of the current recording
     $status = capture_localqtb_status_get();
@@ -97,9 +93,7 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
  */
 function capture_localqtb_start($asset) {
     global $logger;
-    global $module_name;
     global $localqtb_script_qtbrec;
-    global $localqtb_last_request_file;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
@@ -253,7 +247,7 @@ function capture_localqtb_cancel($asset) {
  * Processes the record before sending it to the server
  * @param assoc_array $metadata_assoc metadata relative to current recording
  */
-function capture_localqtb_process($meta_assoc, &$pid) {
+function capture_localqtb_process($asset, &$pid) {
     global $logger;
     global $module_name;
     global $localqtb_script_qtbstop;
@@ -264,20 +258,16 @@ function capture_localqtb_process($meta_assoc, &$pid) {
 
     $logger->log(EventType::TEST, LogLevel::DEBUG, "called", array(__FUNCTION__), $asset);
     
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     if (!in_array($localqtb_processing_tool, $localqtb_processing_tools))
         $localqtb_processing_tool = $localqtb_processing_tools[0];
 
-    // saves recording metadata in xml file
-    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
-
     $status = capture_localqtb_status_get();
     if ($status != 'recording' && $status != 'open') {
         // saves recording in processing dir and processes it
         // launched in background to save time 
-        $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbstop . ' ' . $meta_assoc['course_name'] . ' ' . $meta_assoc['record_date'] . ' ' . $localqtb_processing_tool . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $! > ' . $tmp_dir . '/pid';
+        $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbstop . ' ' . $asset . ' ' . $localqtb_processing_tool . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $! > ' . $tmp_dir . '/pid';
         log_append('recording', "launching command: $cmd");
         // returns the process id of the background task
         system($cmd);
@@ -322,13 +312,8 @@ function capture_localqtb_finalize($asset) {
 
     $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
     
-    $tmp_dir = capture_localqtb_tmpdir_get($asset);
-
-    // retrieves course_name and record_date
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
-
     // launches finalization bash script
-    $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
+    $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
     exec($cmd);
     $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Finished finalization", array(__FUNCTION__), $asset);
@@ -345,7 +330,6 @@ function capture_localqtb_finalize($asset) {
  */
 function capture_localqtb_info_get($action, $asset = '') {
     global $logger;
-    global $module_name;
     global $localqtb_ip;
     global $localqtb_download_protocol;
     global $localqtb_username;
@@ -353,15 +337,17 @@ function capture_localqtb_info_get($action, $asset = '') {
 
     switch ($action) {
         case 'download':
-            $tmp_dir = capture_localqtb_tmpdir_get($asset);
-
-            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
-
+            $filename = $localqtb_upload_dir . $asset . "/cam.mov";
+            if(!file_exists($filename)) {
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
+                return false; //invalid file
+            }
+            
             // rsync requires ssh protocol is set (key sharing) on the remote server
             $download_info_array = array("ip" => $localqtb_ip,
                 "protocol" => $localqtb_download_protocol,
                 "username" => $localqtb_username,
-                "filename" => $localqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov");
+                "filename" => $filename);
             return $download_info_array;
             break;
     }
@@ -374,7 +360,6 @@ function capture_localqtb_info_get($action, $asset = '') {
  */
 function capture_localqtb_thumbnail() {
     global $logger;
-    global $module_name;
     global $localqtb_basedir;
     global $localqtb_script_qtbthumbnail;
     global $localqtb_capture_file;

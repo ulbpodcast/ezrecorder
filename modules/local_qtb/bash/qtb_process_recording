@@ -40,12 +40,3 @@ echo "command: qtb_process_recording $COURSE $SDAT"
 #merge movies 
 echo "local merge_qtb_movies.php<br>";
 $PHP_PATH $HANDLE_SOURCE_DIR/merge_qtb_movies.php $STORDIR ${COMMON_MOVIE_NAME} cam.mov
-
-#now that processing has been done,
-#move the directories in the upload_to_server section
-if [ -d $TOSERVERDIR ]; then
-    mv $STORDIR/* $TOSERVERDIR/.
-    rm -rf $STORDIR
-else 
-    mv $STORDIR $TOSERVERDIR
-fi
