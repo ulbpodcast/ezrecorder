@@ -5,7 +5,6 @@
 </head>
 <body style="overflow:hidden">
     <img id="<?php echo $source; ?>_frame" src="" height="160px" border="0" alt="video preview" >
-    <!-- "index.php?action=view_screenshot_image&amp;source=<?php echo $source; ?>" > -->
 </body>
 <script>
     function refresh_preview() {
