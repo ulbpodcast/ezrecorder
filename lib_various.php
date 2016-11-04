@@ -1,6 +1,7 @@
 <?php
 
-require "global_config.inc";
+//FIXME: install need this file too, global_config does not exists yet. We should probably move the used function(s) out of here
+include_once "global_config.inc";
 
 /**
  * Resizes an image and adds a status on it
