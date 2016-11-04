@@ -1,35 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!-- 
+[autotest_record_screen] !! Please keep this this line for automated testing 
+-->
+
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=8" />
         <meta name="viewport" content="width=device-width" />
-        <?php
-        /*
-         * EZCAST EZrecorder
-         *
-         * Copyright (C) 2014 Université libre de Bruxelles
-         *
-         * Written by Michel Jansens <mjansens@ulb.ac.be>
-         * 	      Arnaud Wijns <awijns@ulb.ac.be>
-         *            Antoine Dewilde
-         * UI Design by Julien Di Pietrantonio
-         *
-         * This software is free software; you can redistribute it and/or
-         * modify it under the terms of the GNU Lesser General Public
-         * License as published by the Free Software Foundation; either
-         * version 3 of the License, or (at your option) any later version.
-         *
-         * This software is distributed in the hope that it will be useful,
-         * but WITHOUT ANY WARRANTY; without even the implied warranty of
-         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-         * Lesser General Public License for more details.
-         *
-         * You should have received a copy of the GNU Lesser General Public
-         * License along with this software; if not, write to the Free Software
-         * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-         */
-        ?>
         <title>®Page_title®</title>
         <link rel="shortcut icon" type="image/ico" href="images/Generale/favicon.ico" />
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
@@ -37,13 +16,14 @@
         <script type="text/javascript" src="js/AppearDissapear.js"></script>
         <script type="text/javascript" src="js/Selectbox-checkbox.js"></script>
         <script type="text/javascript" src="js/hover.js"></script>
-        <script type="text/javascript" src="js/jQuery/jquery-1.3.2.min.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.serialScroll-min.js"></script>
         <script type="text/javascript" src="js/jQuery/function.js"></script>
         <script type="text/javascript" src="js/httpRequest.js"></script>
-        <script src="js/jquery.colorbox.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
+        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             function offline_alert() {
                 window.alert("®offline_from_podc®");
@@ -53,17 +33,17 @@
                     type: 'GET',
                     url: "index.php?action=recording_start",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) { // Everything went fine
                             document.getElementById('BoutonCancel').style.display = 'none';
                             MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');
                             window.location = 'index.php';
                         }
                         else {
                             offline_alert();
+                            location.reload();
                         }
                     }
                 }
@@ -76,15 +56,15 @@
                     type: 'GET',
                     url: "index.php?action=recording_pause",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) {  // Everything went fine
                             MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');
                         }
                         else {
                             offline_alert();
+                            location.reload();
                         }
                     }
                 }
@@ -97,15 +77,15 @@
                     type: 'GET',
                     url: "index.php?action=recording_resume",
                     cache: false,
-                    timeout: 10000, // 10 seconds
+                    timeout: 10000,
                     error: offline_alert,
                     success: function (html) {
-                        if (html) {
-                            // Everything went fine
+                        if (html) { // Everything went fine
                             MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');
                         }
                         else {
                             offline_alert()
+                            location.reload();
                         }
                     }
                 }
@@ -114,27 +94,25 @@
             }
 
             function recording_stop() {
-                var res = window.confirm('®Stop_recording®');
-                if (!res)
-                    return false;
-                $.ajax({
-                    type: 'GET',
-                    url: "index.php?action=view_record_submit",
-                    cache: false,
-                    timeout: 10000, // 10 seconds
-                    error: offline_alert,
-                    success: function (html) {
-                        if (html) {
-                            // Everything went fine
-                            $('html').html(html);
-                        }
-                        else {
-                            offline_alert()
+                if(window.confirm('®Stop_recording®')) {
+                    $.ajax({
+                        type: 'GET',
+                        url: "index.php?action=view_press_stop",
+                        cache: false,
+                        timeout: 15000,
+                        error: offline_alert,
+                        success: function (html) {
+                            if (html) {  // Everything went fine
+                                $('html').html(html);
+                            }
+                            else {
+                                offline_alert()
+                                location.reload();
+                            }
                         }
                     }
+                    );
                 }
-                );
-                //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
             }
 
             function move_camera(posname) {
@@ -157,25 +135,15 @@
                     <div style="text-align: center; height: 180px;">
                         <?php if ($has_camera) {
                             ?>
-                            <iframe src="index.php?action=view_screenshot_iframe&amp;source=cam" width="255px" height="178px" scrolling="false" frameborder="0"><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
+                            <iframe id ="cam_frame" src="index.php?action=view_screenshot_iframe&amp;source=cam" width="255px" height="178px" scrolling="false" frameborder="0"><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
                             <?php
                         }
-                        /* else {
-                          ?>
-                          <img src="images/disabled.jpg" alt="®Disabled®" style="display: block; position: absolute; top: 90px; left: 95px;" />
-                          <?php
-                          } */
 
                         if ($has_slides) {
                             ?>
-                            <iframe src="index.php?action=view_screenshot_iframe&amp;source=slides" width="255px" height="178px" scrolling="false" style="overflow:hidden;" frameborder="0"q><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
+                            <iframe id ="slide_frame" src="index.php?action=view_screenshot_iframe&amp;source=slides" width="255px" height="178px" scrolling="false" style="overflow:hidden;" frameborder="0"q><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
                             <?php
                         }
-                        /* else {
-                          ?>
-                          <img src="images/disabled.jpg" alt="®Disabled®" style="display: block; position: absolute; top: 90px; left: 430px;" />
-                          <?php
-                          } */
                         ?>
                     </div>
                     <!-- <div id="camera">
@@ -190,7 +158,7 @@
                         <!-- RECORD BUTTON PLAY / PAUSE / STOP [END] -->
 
                         <!-- CAMERA BUTTON + PLAN -->
-                        <?php if ($cam_management_enabled && $_SESSION['recorder_type'] != 'slide') {
+                        <?php if ($cam_management_enabled && (!isset($_SESSION['recorder_type']) || $_SESSION['recorder_type'] != 'slide')) {
                             ?>
                             <div id='btnScenes' class="PlanCamera">
                                 <a href="javascript:visibilite('divid5');" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image5', '', 'images/page2/BCamPlan.png', 0)"><img src="images/page2/ACamPlan.png" name="Image5" width="128" border="0" title="®Scenes®" id="Image5" />®Scenes®</a>

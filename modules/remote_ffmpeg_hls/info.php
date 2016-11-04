@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -25,9 +25,8 @@
  */
 
 $module_title = "remote_ffmpeg_hls";
-$module_description = "This module is designed to record videos using FFMPEG on a remote recorder. It allows the user to both record and live stream the video.";
+$module_description = "Record videos using FFMPEG on a remote recorder. It allows the user to both record and live stream the video.";
 $module_name = "remoteffmpeg";
 $module_path = dirname(__FILE__);
 $module_type = "recording";
 $module_lib = "$module_path/lib_capture.php";
-?>

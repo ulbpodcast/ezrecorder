@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -49,7 +49,7 @@ require 'config.inc';
          $meta['record_date'] : YYYY_MM_DD_HH\hmm (i.e 2014_01_01_00h00)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_modulename_init(&$pid, $meta_assoc) {};
+function capture_modulename_init(&$pid, $meta_assoc, $asset) {};
 
 /**
  * @implements
@@ -94,6 +94,13 @@ function capture_modulename_stop(&$pid, $asset) {};
  */
 function capture_modulename_cancel($asset) {};
 
+/** 
+ * @implements
+ * @param type $asset
+ * @return true on process success, false on failure or result not found
+ */
+function capture_modulename_process_result($asset) {}
+
 /**
  * @implements
  * Processes the record before sending it to the server
@@ -110,7 +117,7 @@ function capture_modulename_cancel($asset) {};
          $meta['record_date'] : YYYY_MM_DD_HH\hmm (i.e 2014_01_01_00h00)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_modulename_process($meta_assoc, &$pid) {};
+function capture_modulename_process($asset, &$pid) {};
 
 /**
  * @implements
@@ -166,4 +173,3 @@ function capture_modulename_status_set($status) {};
  * Returns the features offered by the module
  */
 function capture_modulename_features_get(){};
-?>

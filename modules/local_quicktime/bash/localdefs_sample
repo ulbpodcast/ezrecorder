@@ -1,7 +1,0 @@
-EZCASTDIR=!PATH/modules/local_quicktime/
-RECORDDIR=!RECORD_PATH/
-COMMON_MOVIE_NAME=qtmovie
-RECORD_TYPE=screen # [cam | screen] the source used for the recording
-MAIL_TO="!MAIL_TO"
-CLASSROOM="!CLASSROOM"
-PHP_PATH=!PHP_PATH

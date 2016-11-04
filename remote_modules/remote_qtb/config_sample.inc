@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -25,10 +25,6 @@
  */
 
 // used by cli_monitoring.php when a recording has timed out
-$classroom = 'Classroom name';
-$ezrecorder_url = "http://recorder.domain";
-$remoteqtb_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit";
-$mailto_admins = 'ezrecorder@your.domain';
 $remoteqtb_basedir = dirname(__FILE__).'/';
 $remoteqtb_recorddir = '~/Movies/';
 $remoteqtb_movie_name = "qtbmovie";
@@ -46,5 +42,4 @@ $remoteqtb_script_qtbpause = $remoteqtb_basedir . 'bash/qtbpause';
 $remoteqtb_script_qtbstop = $remoteqtb_basedir . 'bash/qtbstop';
 $remoteqtb_mono = true; // determines whether the input audio source is mono or stereo
 $ffmpegpath = "/usr/local/bin/ffmpeg";
-$php_path = "/usr/bin/php";
 ?>

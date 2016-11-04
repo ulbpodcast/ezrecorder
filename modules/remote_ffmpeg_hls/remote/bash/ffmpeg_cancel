@@ -1,0 +1,21 @@
+#!/bin/bash -x
+
+#include localdefs
+source $(dirname $0)/localdefs
+
+#asset not used yet
+ASSET=$1
+
+unlink $EZCASTDIR/var/_monitoring_pid
+
+#stop recording 
+PID=`cat $FFMPEG_PID`
+# ends FFMPEG
+kill -9 $PID
+while ps -p $PID > /dev/null; do sleep 1; done
+unlink $FFMPEG_PID
+
+if [ -e $STREAMING_INFO ]
+then
+    $PHP_PATH $CLI_STREAMING "close"
+fi

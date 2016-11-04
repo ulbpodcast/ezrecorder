@@ -1,32 +1,10 @@
 #!/bin/bash -x
 
-# EZCAST EZrecorder
-#
-# Copyright (C) 2014 Université libre de Bruxelles
-#
-# Written by Michel Jansens <mjansens@ulb.ac.be>
-# 	     Arnaud Wijns <awijns@ulb.ac.be>
-#            Antoine Dewilde
-# UI Design by Julien Di Pietrantonio
-#
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 3 of the License, or (at your option) any later version.
-#
-# This software is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this software; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 #include localdefs
 source $(dirname $0)/localdefs
 
 CALLS=$1
+
 MAXCALLS=3 	# sends a mail after 3 fails
 
 #first clean up eventual movie remaining
@@ -66,13 +44,22 @@ wait
 [ $CALLS -gt 1 ] && echo "--------------------------------------------" >> $EZCASTDIR/var/_dualqtbcheck_log
 echo `date +"%d/%m/%y - %Hh%Mm%Ss"` : Attempt $CALLS >> $EZCASTDIR/var/_dualqtbcheck_log
 echo "--------------------------------------------" >> $EZCASTDIR/var/_dualqtbcheck_log
-if [ $EXISTS_CAM -eq 1 ]; then echo "CAM (podcv)   : Success" >> $EZCASTDIR/var/_dualqtbcheck_log; else echo "CAM (podcv)   : Failure" >> $EZCASTDIR/var/_dualqtbcheck_log; fi;
 
-# the file has not been found
+if [ $EXISTS_CAM -eq 1 ]
+then 
+    echo "CAM (podcv)   : Success" >> $EZCASTDIR/var/_dualqtbcheck_log
+    echo -n "open" > $EZCASTDIR/var/status
+else 
+    echo "CAM (podcv)   : Failure" >> $EZCASTDIR/var/_dualqtbcheck_log 
+    echo -n "launch_failure" > $EZCASTDIR/var/status    
+fi
+
+# trigger retries
 if [ $EXISTS_CAM -eq 0 ]
 then 
 	if [ $CALLS -lt $MAXCALLS ]
 	then
+                # Retry
 		# Quit QTB
 		osascript $EZCASTDIR/applescript/qtbquit.scpt&
 		wait
@@ -83,8 +70,8 @@ then
 
 		$EZCASTDIR/bash/qtbnew $(( $CALLS + 1 ))
 	else
+                #abandon
 		echo "FAILURE QTB"
 		echo "QTB Launch Failure in $CLASSROOM" | mail -s "QTB Failure $CLASSROOM" $MAIL_TO
-		echo -n "launch_failure" > $EZCASTDIR/var/status
 	fi
 fi

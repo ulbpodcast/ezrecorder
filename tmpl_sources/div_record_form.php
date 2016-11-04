@@ -1,33 +1,11 @@
-<!--
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--->
 
 <!--
 This div contains the form used to create a new record.
 You should not have to use this template by itself. However, if you do, please
 make sure $courselist is set and is an array of all courses available for the user
 (assoc array: key = course name, value = course description)
+
+[autotest_record_form] !! Please keep this this line for automated testing 
 -->
 <script>
     $(document).ready(function() {
@@ -35,6 +13,7 @@ make sure $courselist is set and is an array of all courses available for the us
             e.preventDefault();
             if (check_form()) {
                 loading_popup();
+                //submit immediately. The next page won't be loaded before recording is initialized so the popup will stay for the duration.
                 setTimeout(function() {
                     document.forms['form1'].submit();
                 }, 1);
@@ -46,7 +25,7 @@ make sure $courselist is set and is an array of all courses available for the us
     <div class="ensembleUn">
 
         <input type="hidden" name="action" value="submit_record_infos" />
-        <!-- SELECT BOX - CHOIX DES COURS -->
+        <!-- SELECT BOX - COURSE CHOICE -->
         <div class="cours">
             <label>®Course®:</label>
             <p>
@@ -73,38 +52,55 @@ make sure $courselist is set and is an array of all courses available for the us
                 ?>
             </p>
         </div>
-        <!-- SELECT BOX - CHOIX DES COURS [FIN] -->
+        <!-- SELECT BOX - COURSE CHOICE [END] -->
 
-        <!-- CHAMPS TEXTE - CHOIX TITRE -->
+        <!-- TEXT FIELDS - TITLE INPUT -->
         <label>®Title®:</label>
         <input type="text" name="title" id="title" maxlength="70" value="<?php echo $_SESSION['title']; ?>"/>
-        <!-- CHAMPS TEXTE - CHOIX TITRE [FIN] -->
+        <!-- TEXT FIELDS - TITLE INPUT [END] -->
 
-        <!-- CHAMPS TEXTE - DESCRIPTION DU PODCAST -->
+        <!-- TEXT FIELDS - DESCRIPTION -->
         <label>®Description®:</label>
         <textarea  name="description" rows="4" id="description"><?php echo $_SESSION['description']; ?></textarea>
-        <!-- CHAMPS TEXTE - DESCRIPTION DU PODCAST [FIN] -->
+        <!-- TEXT FIELDS - DESCRIPTION [END] -->
         <div class="spacer"></div>
     </div>
 
-    <!-- CHECKBOX / BOUTON RADIO / CHOIX -->
+    <!-- CHECKBOX / RADIO BUTTON / CHOICE -->
     <p class="typechoice">®Record_type®:</p>
     <div id="WrapRadio">
         <?php if ($cam_enabled && $slide_enabled) { ?><div class="radioOne" onclick="set_record_type('camslide');" ><input id="radiocamslide" type="radio" name="record_type" value="camslide" class="styled" onclick="set_record_type('camslide');" /></div> <?php } ?>
         <?php if ($cam_enabled) { ?><div class="radioTwo" onclick="set_record_type('cam');" ><input id="radiocam" type="radio" name="record_type" value="cam" class="styled" onclick="set_record_type('cam');"/></div><?php } ?>
         <?php if ($slide_enabled) { ?><div class="radioThree" onclick="set_record_type('slide');" ><input id="radioslide" type="radio" name="record_type" value="slide" class="styled" onclick="set_record_type('slide');"/></div><?php } ?>
     </div>
+    
+    <?php
+        //default record type if not any already defined
+        if(!isset($_SESSION['recorder_type'])) {
+            $default_type = "";
+            if ($cam_enabled && $slide_enabled)
+                $default_type = 'camslide';
+            elseif ($cam_enabled)
+                $default_type = 'cam';
+            else if($slide_enabled)
+                $default_type = 'slide';
+            
+            $_SESSION['recorder_type'] = $default_type;
+        }
+    ?>
+    
     <script type="text/javascript"  language="JavaScript">
     //select the record type if it is already known
-    document.getElementById("radio<?php echo $_SESSION['recorder_type']; ?>").click();
+    $radioButton = document.getElementById("radio<?php echo $_SESSION['recorder_type']; ?>");
+    if($radioButton)
+        $radioButton.click();
     </script>
-    <!-- CHECKBOX / BOUTON RADIO / CHOIX [FIN] -->
+    <!-- CHECKBOX / RADIO BUTTON / CHOICE [END] -->
 
-    <!-- BOUTON ANNULER / CONTINUER -->
+    <!-- CANCEL BUTTON / CONTINUE -->
     <div id="btn">   
         <label class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>><input type="checkbox" name="streaming" value="enabled"> Streaming LIVE</label>
         <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
         <a class="continuer" id="submit_button" href="#">®Continue®</a></div>
-    <!--a class="continuer" id="submit_button" onclick="if(check_form()) loading_popup(); else return false;" href="javascript:document.forms['form1'].submit();">®Continue®</a></div-->
 </form>
-<!-- BOUTON ANNULER / CONTINUER [FIN] -->
+<!-- CANCEL BUTTON / CONTINUE [END] -->

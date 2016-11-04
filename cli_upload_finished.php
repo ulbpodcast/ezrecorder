@@ -1,52 +1,64 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 
 /*
  * This is a CLI script that finalizes the recording process 
  * for the enabled modules.
- * 
+ * Called directly from ezcast sever, executed as $recorder_user (ezcast config)
  */
 
+if($argc != 2) {
+    echo "Wrong arg count";
+    exit(1);
+}
+
 require_once 'global_config.inc';
+require_once 'lib_various.php';
 
-require_once $cam_lib;
-require_once $slide_lib;
+include_once $cam_lib;
+include_once $slide_lib;
 
+Logger::$print_logs = true;
+
+global $service;
+$service = true;
+
+if($argc != 2) {
+    echo "Wrong arg count";
+    exit(1);
+}
 $asset = $argv[1];
 
-system("rm -rf " . "$basedir/var/$asset");
+$logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::DEBUG, __FILE__ . " called with args: $asset", array(__FILE__), $asset);
 
-if ($slide_enabled) {
-    $fct = 'capture_' . $slide_module . '_finalize';
-    $res_slide = $fct($asset);
-}
+$ok = true;
 
 if ($cam_enabled) {
     $fct = 'capture_' . $cam_module . '_finalize';
     $res_cam = $fct($asset);
+    if(!$res_cam) {
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Cam finalization for module $cam_module failed", array(__FILE__), $asset);
+        $ok = false;
+    }
 }
-?>
+
+if ($slide_enabled) {
+    $fct = 'capture_' . $slide_module . '_finalize';
+    $res_slide = $fct($asset);
+    if(!$res_slide) {
+        $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Slide finalization for module $slide_module failed", array(__FILE__), $asset);
+        $ok = false;
+    }
+}
+
+if(!$ok)
+    exit(2);
+
+//move asset folder from upload_to_server to upload_ok dir
+$ok = move_asset($asset, "upload_ok", true);
+if(!$ok) {
+    $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Could not move asset folder from upload_to_server to upload_ok dir (failed on local or on remote)", array(__FILE__), $asset);
+    exit(3);
+}
+$asset_dir = get_asset_dir($asset, 'upload'); //update asset location for the remaining of the script
+
+exit(0);

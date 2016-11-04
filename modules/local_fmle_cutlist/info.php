@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_fmle_cutlist";
-$module_description = "This module is designed to record videos using Adobe Flash Media Live Encoder. It records as soon as the recording form has been submitted and uses cutlist to deliver the final video file.";
+$module_description = "Record videos using Adobe Flash Media Live Encoder. It records as soon as the recording form has been submitted and uses cutlist to deliver the final video file.";
 $module_name = "localfmle";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

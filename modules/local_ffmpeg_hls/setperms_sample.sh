@@ -2,7 +2,7 @@
 
 # EZCAST EZrecorder
 #
-# Copyright (C) 2014 Université libre de Bruxelles
+# Copyright (C) 2016 Université libre de Bruxelles
 #
 # Written by Michel Jansens <mjansens@ulb.ac.be>
 # 	     Arnaud Wijns <awijns@ulb.ac.be>
@@ -29,5 +29,8 @@ chgrp !WEB_USER *
 chown -R !WEB_USER ./var
 chmod +a "!USER allow list,add_file,search,add_subdirectory,delete_child,file_inherit,directory_inherit" ./var
 chmod +a "!WEB_USER allow list,add_file,search,add_subdirectory,delete_child,file_inherit,directory_inherit" ./var
+touch ./var/status
 chmod +a "!USER allow read,write,execute,append" ./var/status
 chmod +a "!WEB_USER allow read,write,execute,append" ./var/status
+
+chmod +a "!WEB_USER allow list,add_file,search,add_subdirectory,delete_child,file_inherit,directory_inherit" ./etc

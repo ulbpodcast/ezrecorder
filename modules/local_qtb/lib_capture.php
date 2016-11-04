@@ -3,7 +3,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -26,8 +26,11 @@
  */
 
 require 'config.inc';
-include_once $basedir . '/lib_various.php';
-include_once $basedir . '/lib_error.php';
+require_once $basedir . '/lib_various.php';
+require_once $basedir . '/lib_error.php';
+require_once $basedir . '/common.inc';
+
+$module_name = "capture_localqtb";
 
 /*
  * This file contains all functions related to the video capture from an analog camera.
@@ -46,38 +49,40 @@ include_once $basedir . '/lib_error.php';
  * @param associative_array $meta_assoc Metadata related to the record (used in cli_monitoring.php)
  * @return boolean true if everything went well; false otherwise
  */
-function capture_localqtb_init(&$pid, $meta_assoc) {
+function capture_localqtb_init(&$pid, $meta_assoc, $asset) {
+    global $logger;
     global $localqtb_script_qtbnew;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
-
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
-
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     // status of the current recording
     $status = capture_localqtb_status_get();
-    if ($status == '') { // no status yet
+    if ($status == '' || $status == 'launch_failure') { // no status yet
         // qtbnew initializes QuickTime Broadcaster and runs a recording test
         // launched in background to save time (pid is returned to be handled by web_index.php)
-        system("sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
-        $pid = file_get_contents("$tmp_dir/pid");
-        // error occured while launching QTB
-        if (capture_localqtb_status_get() == 'launch_failure') {
-            error_last_message("can't open because QTB failed to launch");
+        $return_val = 0;
+        system("sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid", $return_val);
+        if($return_val != 0) {
+            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Init script failed to start. Return val: $return_val", array(__FUNCTION__), $asset);
             return false;
         }
-        // the recording is now 'open'
-        capture_localqtb_status_set('open');
+        $pid = file_get_contents("$tmp_dir/pid");
+        
+        //init script will set status uppon completion
     } else {
         error_last_message("capture_init: can't open because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because current of status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Successfully initialized module", array("module:capture_localqtb_init"));
     return true;
 }
 
@@ -86,11 +91,13 @@ function capture_localqtb_init(&$pid, $meta_assoc) {
  * Launches the recording process 
  */
 function capture_localqtb_start($asset) {
+    global $logger;
     global $localqtb_script_qtbrec;
-    global $localqtb_last_request_file;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     // qtbrec starts the recording in QTB
     // $pid is used in web_index.php
     system("sudo -u $localqtb_username $localqtb_script_qtbrec >> $localqtb_recorder_logs 2>&1 &");
@@ -102,6 +109,7 @@ function capture_localqtb_start($asset) {
     } else {
         capture_localqtb_status_set("error");
         error_last_message("capture_start: can't start recording because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't start recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -113,18 +121,24 @@ function capture_localqtb_start($asset) {
  * Pauses the current recording
  */
 function capture_localqtb_pause($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbpause;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'recording') {
         // qtbpause pauses the recording in QTB
         system("sudo -u $localqtb_username $localqtb_script_qtbpause >> $localqtb_recorder_logs 2>&1 &");
         capture_localqtb_status_set('paused');
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was paused", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_pause: can't pause recording because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't pause recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -136,10 +150,14 @@ function capture_localqtb_pause($asset) {
  * Resumes the current paused recording
  */
 function capture_localqtb_resume($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbresume;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'paused' || $status == 'stopped') {
@@ -147,8 +165,10 @@ function capture_localqtb_resume($asset) {
         system("sudo -u $localqtb_username $localqtb_script_qtbresume >> $localqtb_recorder_logs 2>&1 &");
         // sets the new status of the current recording
         capture_localqtb_status_set('recording');
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was resumed", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_resume: can't resume recording because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't resume recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -160,14 +180,18 @@ function capture_localqtb_resume($asset) {
  * Stops the current recording
  */
 function capture_localqtb_stop(&$pid, $asset) {
+    global $logger;
     global $localqtb_script_qtbpause;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     // get status of the current recording
     $status = capture_localqtb_status_get();
+    $last_status = $status;
     if ($status == 'recording') {
         // pauses the current recording (while user chooses the way to publish the record)
         system("sudo -u $localqtb_username $localqtb_script_qtbpause >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid");
@@ -175,12 +199,15 @@ function capture_localqtb_stop(&$pid, $asset) {
         // set the new status for the current recording
         capture_localqtb_status_set('stopped');
     } else if ($status == 'paused') {
+        //record already stopped, nothing to do
         capture_localqtb_status_set('stopped');
     } else {
         error_last_message("capture_stop: can't pause recording because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't stop recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was stopped. Last status was: $last_status", array(__FUNCTION__), $asset);
     return true;
 }
 
@@ -189,11 +216,14 @@ function capture_localqtb_stop(&$pid, $asset) {
  * Ends the current recording and saves it as an archive
  */
 function capture_localqtb_cancel($asset) {
-
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbcancel;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     // get status of the current recording
     $status = capture_localqtb_status_get();
     if ($status == 'recording' || $status == 'stopped' || $status == 'paused' || $status == 'open' || $status == '') {
@@ -201,8 +231,10 @@ function capture_localqtb_cancel($asset) {
         $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbcancel . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1';
         log_append('recording', "launching command: $cmd");
         $fpart = exec($cmd, $outputarray, $errorcode);
+        $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Recording was cancelled", array(__FUNCTION__), $asset);
     } else {
         error_last_message("capture_cancel: can't cancel recording because current status: " . $status);
+        $logger->log(EventType::TEST, LogLevel::WARNING, __FUNCTION__.": Can't cancel recording because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -214,27 +246,27 @@ function capture_localqtb_cancel($asset) {
  * Processes the record before sending it to the server
  * @param assoc_array $metadata_assoc metadata relative to current recording
  */
-function capture_localqtb_process($meta_assoc, &$pid) {
+function capture_localqtb_process($asset, &$pid) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbstop;
     global $localqtb_recorder_logs;
     global $localqtb_processing_tool;
     global $localqtb_processing_tools;
     global $localqtb_username;
 
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "called", array(__FUNCTION__), $asset);
+    
     $tmp_dir = capture_localqtb_tmpdir_get($asset);
 
     if (!in_array($localqtb_processing_tool, $localqtb_processing_tools))
         $localqtb_processing_tool = $localqtb_processing_tools[0];
 
-    // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
-
     $status = capture_localqtb_status_get();
     if ($status != 'recording' && $status != 'open') {
         // saves recording in processing dir and processes it
         // launched in background to save time 
-        $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbstop . ' ' . $meta_assoc['course_name'] . ' ' . $meta_assoc['record_date'] . ' ' . $localqtb_processing_tool . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $! > ' . $tmp_dir . '/pid';
+        $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbstop . ' ' . $asset . ' ' . $localqtb_processing_tool . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $! > ' . $tmp_dir . '/pid';
         log_append('recording', "launching command: $cmd");
         // returns the process id of the background task
         system($cmd);
@@ -243,7 +275,8 @@ function capture_localqtb_process($meta_assoc, &$pid) {
         //update (clear) status
         capture_localqtb_status_set('');
     } else {
-        error_last_message("capture_stop: can't stop recording because current status: $status");
+        error_last_message("capture_stop: can't process recording because current status: $status");
+        $logger->log(EventType::TEST, LogLevel::WARNING, "Can't cancel process because of current status: $status", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -255,6 +288,8 @@ function capture_localqtb_process($meta_assoc, &$pid) {
     //   	launchctl unload -F /System/Library/LaunchDaemons/com.apple.atrun.plist
     //  	launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist
 
+    $logger->log(EventType::TEST, LogLevel::INFO, "Processing successfully started", array(__FUNCTION__), $asset);
+    
     return true;
 }
 
@@ -268,49 +303,50 @@ function capture_localqtb_process($meta_assoc, &$pid) {
  * @global type $dir_date_format
  */
 function capture_localqtb_finalize($asset) {
+    global $logger;
+    global $module_name;
     global $localqtb_script_qtbfinalize;
     global $localqtb_recorder_logs;
     global $localqtb_username;
 
-    $tmp_dir = capture_localqtb_tmpdir_get($asset);
-
-    // retrieves course_name and record_date
-    $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
-
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": called", array(__FUNCTION__), $asset);
+    
     // launches finalization bash script
-    $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $meta_assoc['course_name'] . " " . $meta_assoc['record_date'] . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
+    $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    $res = exec($cmd, $output, $errorcode);
+    exec($cmd);
+    $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Finished finalization", array(__FUNCTION__), $asset);
 }
+
 
 /**
  * @implements
  * Returns an associative array containing information required for given action
- * @global type $localqtb_ip
  * @global type $localqtb_download_protocol
- * @global type $localqtb_username
  * @return type
  */
 function capture_localqtb_info_get($action, $asset = '') {
-    global $localqtb_ip;
+    global $ezrecorder_ip;
     global $localqtb_download_protocol;
-    global $localqtb_username;
-    global $localqtb_upload_dir;
+    global $ezrecorder_username;
+    global $logger;
 
-    switch ($action) {
-        case 'download':
-            $tmp_dir = capture_localqtb_tmpdir_get($asset);
-
-            $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
-
-            // rsync requires ssh protocol is set (key sharing) on the remote server
-            $download_info_array = array("ip" => $localqtb_ip,
-                "protocol" => $localqtb_download_protocol,
-                "username" => $localqtb_username,
-                "filename" => $localqtb_upload_dir . $meta_assoc['record_date'] . "_" . $meta_assoc['course_name'] . "/cam.mov");
-            return $download_info_array;
-            break;
+    //only download supported
+    if($action != "download")
+        return false;
+    
+    $filename = get_asset_dir($asset, 'upload') . "/cam.mov";
+    if(!file_exists($filename)) {
+        $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
+        return false; //invalid file
     }
+
+    // rsync requires ssh protocol is set (key sharing) on the remote server
+    $download_info_array = array("ip" => $ezrecorder_ip,
+        "protocol" => $localqtb_download_protocol,
+        "username" => $ezrecorder_username,
+        "filename" => $filename);
+    return $download_info_array;
 }
 
 /**
@@ -319,6 +355,7 @@ function capture_localqtb_info_get($action, $asset = '') {
  * @return string the contents of the image to display
  */
 function capture_localqtb_thumbnail() {
+    global $logger;
     global $localqtb_basedir;
     global $localqtb_script_qtbthumbnail;
     global $localqtb_capture_file;
@@ -360,11 +397,15 @@ function capture_localqtb_status_get() {
  * Defines the status of the current recording
  */
 function capture_localqtb_status_set($status) {
+    global $logger;
+    global $module_name;
     global $localqtb_status_file;
     global $localqtb_last_request_file;
 
     file_put_contents($localqtb_status_file, $status);
     file_put_contents($localqtb_last_request_file, time());
+    
+    $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__));
 }
 
 /**
@@ -403,10 +444,8 @@ function capture_localqtb_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $localqtb_basedir . '/var/' . $asset;
-    if (!dir($tmp_dir))
+    if (!file_exists($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;
 }
-
-?>

@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -39,6 +39,7 @@
  */
 require_once 'config.inc';
 require_once 'lib_capture.php';
+require_once $basedir . 'lib_model.php';
 
 $asset = $argv[1]; // this program is called using 'date_album' of the current record as parameter
 $last_id = $argv[2];
@@ -144,7 +145,7 @@ while (true) {
         $now = time();
 
         if ($now - $startrec_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-            mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
+            mail($mailto_admins, 'Recording timed out', 'axis_cam: cli_monitoring.php: The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no change to the video file since ' . ($now - $lastmod_time) . ' seconds.');
             send_timeout();
         }
     }
@@ -159,20 +160,8 @@ while (true) {
 }
 
 function send_timeout() {
-//sends a request to the 'main core' to let it know that a recording has timed out
-    global $axiscam_force_quit_url;
-
-    $ch = curl_init($axiscam_force_quit_url);
-    $res = curl_exec($ch);
-    $curlinfo = curl_getinfo($ch);
-    curl_close($ch);
-
-    if (!$res) {//error
-        if (isset($curlinfo['http_code']))
-            return $curlinfo['http_code'];
-        else
-            return "Curl error";
-    }
+    //sends a request to the 'main core' to let it know that a recording has timed out
+    controller_recording_force_quit();
 
     //All went well send http response in stderr to be logged
     return false;

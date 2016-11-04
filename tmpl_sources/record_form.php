@@ -6,29 +6,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=8" />
         <meta name="viewport" content="width=device-width" />
         <?php /*
-         * EZCAST EZrecorder
-         *
-         * Copyright (C) 2014 Université libre de Bruxelles
-         *
-         * Written by Michel Jansens <mjansens@ulb.ac.be>
-         * 	      Arnaud Wijns <awijns@ulb.ac.be>
-         *            Antoine Dewilde
-         * UI Design by Julien Di Pietrantonio
-         *
-         * This software is free software; you can redistribute it and/or
-         * modify it under the terms of the GNU Lesser General Public
-         * License as published by the Free Software Foundation; either
-         * version 3 of the License, or (at your option) any later version.
-         *
-         * This software is distributed in the hope that it will be useful,
-         * but WITHOUT ANY WARRANTY; without even the implied warranty of
-         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-         * Lesser General Public License for more details.
-         *
-         * You should have received a copy of the GNU Lesser General Public
-         * License along with this software; if not, write to the Free Software
-         * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
           This is the template of the new record form. This template is displayed when a new user logs in.
          */ ?>
         <title>®Page_title®</title>
@@ -36,10 +13,12 @@
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
         <link rel="stylesheet" type="text/css" href="css/style_recorder.css"/>
         <link rel="stylesheet" type="text/css" href="css/colorbox.css"/>
+        <link rel="stylesheet" href="css/font-awesome.min.css"/>
         <script type="text/javascript" src="js/Selectbox-checkbox.js"></script>
         <script type="text/javascript" src="js/hover.js"></script>
-        <script type="text/javascript" src="js/jQuery/jquery-1.3.2.min.js"></script>
-        <script src="js/jquery.colorbox.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
+        <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
+        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             var record_type = '';
 
@@ -55,10 +34,10 @@
                     return false;
                 }
                 else if (title.length > <?php
-        include_once 'global_config.inc';
-        global $title_max_length;
-        echo $title_max_length;
-        ?>) {
+                    require_once 'global_config.inc';
+                    global $title_max_length;
+                    echo $title_max_length;
+            ?>                          ) {
                     window.alert('®Title_too_long®');
                     return false;
                 }

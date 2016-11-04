@@ -1,28 +1,4 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 /*
  * This file contains all functions needed to save information about the current
@@ -34,6 +10,8 @@
  */
 
 include "config.inc";
+require_once __DIR__."/../../global_config.inc";
+require_once "$basedir/lib_various.php";
 
 /**
  * @implements
@@ -44,13 +22,24 @@ include "config.inc";
  */
 function session_xml_metadata_save($metadata_assoc_array) {
     global $metadata_file;
-
+    global $logger;
+    
+    $processUser = posix_getpwuid(posix_geteuid());
+    $name = $processUser['name'];
+        
     //create and store recording properties
-    $xml = session_xml_assoc_array2metadata($metadata_assoc_array);
-    file_put_contents($metadata_file, $xml);
-    chmod($metadata_file, 0644);
-
-    return true;
+    $xml = xml_assoc_array2metadata($metadata_assoc_array);
+    $res = file_put_contents($metadata_file, $xml);
+    if(!$res) {
+        $logger->log(EventType::RECORDER_METADATA, LogLevel::ERROR, __FUNCTION__.": Failed to save metadata to $metadata_file. Current user: $name. Probably a permission problem.", array("lib_recording_session"));
+        return false;
+    }
+    $res = chmod($metadata_file, 0644);
+    if(!$res) {
+        //file is owned by podclient. Any solution ?
+        $logger->log(EventType::TEST, LogLevel::WARNING, "Could not chmod file $metadata_file. Current user: $name", array("lib_recording_session"));
+    }
+    return $xml;
 }
 
 /**
@@ -60,7 +49,8 @@ function session_xml_metadata_save($metadata_assoc_array) {
  */
 function session_xml_metadata_delete() {
     global $metadata_file;
-    unlink($metadata_file);
+    if(file_exists($metadata_file))
+        unlink($metadata_file);
 }
 
 /**
@@ -71,7 +61,7 @@ function session_xml_metadata_get() {
     global $metadata_file;
 
     if (file_exists($metadata_file))
-        return session_xml_metadata2assoc_array($metadata_file);
+        return xml_file2assoc_array($metadata_file);
     else 
         return false;
 }
@@ -177,7 +167,8 @@ function session_xml_is_locked() {
  */
 function session_xml_lock($username) {
     global $lock_file;
-
+    global $logger;
+    
     if (session_xml_is_locked()) {
         //  TODO 
         //        capture_last_error('Recorder is already in use');
@@ -190,6 +181,11 @@ function session_xml_lock($username) {
     }
 
     $res = file_put_contents($lock_file, $username);
+    if($res == false) {
+        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not write lock file $lock_file", array(__FUNCTION__));
+        return false;
+    }
+    
     return true;
 }
 
@@ -201,7 +197,9 @@ function session_xml_lock($username) {
 function session_xml_unlock() {
     global $lock_file;
 
-    unlink($lock_file);
+    if(file_exists($lock_file))
+        unlink($lock_file); 
+    
     return true;
 }
 
@@ -217,38 +215,3 @@ function session_xml_current_user_get() {
 
     return file_get_contents($lock_file);
 }
-
-/**
- *
- * @param path $meta_path
- * @return assoc_array|false
- * @desc open a metadatafile (xml 1 level) and return all properties and values in an associative array
- */
-function session_xml_metadata2assoc_array($meta_path) {
-    $xml = simplexml_load_file($meta_path);
-    if ($xml === false)
-        return false;
-    $assoc_array = array();
-    foreach ($xml as $key => $value) {
-        $assoc_array[$key] = (string) $value;
-    }
-    return $assoc_array;
-}
-
-/**
- *
- * @param <type> $assoc_array
- * @return <xml_string>
- * @desc takes an assoc array and transform it in a xml metadata string
- */
-function session_xml_assoc_array2metadata($assoc_array) {
-    $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
-    $xml = new SimpleXMLElement($xmlstr);
-    foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
-    }
-    $xml_txt = $xml->asXML();
-    return $xml_txt;
-}
-
-?>

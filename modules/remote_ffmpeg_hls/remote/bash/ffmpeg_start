@@ -1,0 +1,40 @@
+#!/bin/bash -x
+
+#include localdefs
+source $(dirname $0)/localdefs
+
+ASSET=$1
+TARGET_DIR=$2
+#INPUT=$3
+CUT_LIST=$3
+
+REC_STATUS=`cat $STATUS`
+
+#Verifies that the recording has been properly launched
+if [ "$REC_STATUS" == "launch_failure" ]; then
+
+    $EZCASTDIR/bash/ffmpeg_relaunch $TARGET_DIR
+
+    SDAT=`date +"%s"` 	#start date
+    WAITING_DELAY=10 	#if the file doesn't exist after 4s, we consider FFMPEG has planted
+    EXISTS_VIDEO=0 	# 1 if ${COMMON_MOVIE_NAME}* exists on EZrecorder
+
+    # loop while delay hasn't expired and cam file doesn't exist
+    while [ $(( `date +"%s"`- $SDAT )) -le $WAITING_DELAY -a \( $EXISTS_VIDEO -eq 0 \) ]
+    do 
+            # if video didn't exist yet, checks if it exists now
+            [ $EXISTS_VIDEO -eq 0 ] && test -e $TARGET_DIR/high/$COMMON_MOVIE_NAME.m3u8 && EXISTS_VIDEO=1;
+            # if cam doesn't exist yet, wait 
+            if [ $EXISTS_VIDEO -eq 0 ]
+            then
+                    sleep 1
+            fi
+    done
+
+    if [ $EXISTS_VIDEO -eq 1 ]; then
+        echo "open" >> $STATUS
+    fi;
+    echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > $CUT_LIST
+fi;
+
+echo play:$[ `date +%s` + 5 ]:`date +"%Y_%m_%d_%Hh%M"` >> $CUT_LIST

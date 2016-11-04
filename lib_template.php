@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -52,26 +52,26 @@ $accepted_file_extensions = array('.html', '.xhtml', '.xml', '.htm', '.php'); //
  * @param string $path Path to the folder containing parsed templates
  * @return string|false Either the path to the templates repository, or an error status 
  */
-function template_repository_path($path="") {
-    static  $tmpl_repository_path=false;
+function template_repository_path($path = "") {
+    static $tmpl_repository_path = false;
 
-      if($path==""){
-        if($tmpl_repository_path===false){
+    if($path == "") {
+        if($tmpl_repository_path === false) {
           echo ("1 Error: repository path not defined");
           return false;
-         }
-        else{
+        } else {
           return $tmpl_repository_path;
-         }//if $repository_path
-       }//if $ath
+        }
+     }
 
-      //if path exists then store it
-      $res=is_dir($path);
-      if($res)
+    //if path exists then store it
+    $res=is_dir($path);
+    if($res)
         $tmpl_repository_path=$path;
-       else
+     else
         echo ("2 Error: repository path not found: $path");
-      return $res;
+     
+    return $res;
 }
 
 /**
@@ -260,6 +260,47 @@ function template_get_message($id, $lang) {
     return (string) $res;
 }
 
+function template_generate($source_folder, $lang, $output_folder, &$error = '') {
+    global $accepted_languages;
+    
+    if (!is_dir($source_folder)) {
+        $error = 'Error: source folder ' . $source_folder . ' does not exist';
+        return false;
+    }
+    
+    if (!is_dir($source_folder)) {
+        $error = 'Error: source folder ' . $source_folder . ' does not exist';
+        return false;
+    }
+
+    if (!is_dir($output_folder)) {
+        mkdir($output_folder);
+        chmod($output_folder, 0755);
+        if (!is_dir($output_folder)) {
+            $error = 'Error: Unable to create output folder "' . $source_folder . '"';
+            return false;
+        }
+    }
+
+    if (!in_array($lang, $accepted_languages)) {
+        $error = 'Error: language ' . $lang . ' not supported';
+        return false;
+    }
+
+    $files = template_list_files($source_folder);
+
+    //
+    // Parsing each template file
+    //
+    foreach ($files as $file) {
+        //echo 'Translating ' . $file . '...' . PHP_EOL;
+        template_parse($file, $lang, $output_folder);
+        //echo 'Translation complete' . PHP_EOL . PHP_EOL;
+    }
+    return true;
+}
+
+
 /**
  *
  * @param [string $msg error meesage (optional)]
@@ -310,4 +351,3 @@ function template_set_warnings_visible() {
     global $warning_visible;
     $warning_visible = true;
 }
-?>

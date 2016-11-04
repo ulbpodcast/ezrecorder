@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -29,13 +29,9 @@ require_once dirname(__FILE__).'/../../global_config.inc';
 $axiscam_features = array('recording');
 $axiscam_ip = "127.0.0.1"; // static IP address of Axis camera
 $axiscam_module_ip = $ezrecorder_ip;  
-$axiscam_module_username = $ezrecorder_username; // user of axis_cam module
 $axiscam_username = "root"; // username of axis camera
 $axiscam_password = "";  // password of Axis camera
 $axiscam_input_nb = 1; // Digital input port used to trigger the recording [1..4]
-
-$axiscam_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
-// used in cli_monitoring.php to stop the recording after a timeout
 
 $axiscam_basedir = $modules_basedir . '/axis_cam/';
 $axiscam_recorddir = $ezrecorder_recorddir;

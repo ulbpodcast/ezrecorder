@@ -3,7 +3,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -56,7 +56,7 @@ function capture_localfmle_init(&$pid, $meta_assoc) {
     $tmp_dir = capture_localfmle_tmpdir_get($asset);
 
     // saves recording metadata as xml file 
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
 
     // status of the current recording
@@ -225,7 +225,7 @@ function capture_localfmle_process($meta_assoc, &$pid) {
         $localfmle_processing_tool = $localfmle_processing_tools[0];
 
     // saves recording metadata in xml file
-    assoc_array2xml_file($meta_assoc, "$tmp_dir/_metadata.xml");
+    xml_assoc_array2file($meta_assoc, "$tmp_dir/_metadata.xml");
 
     $status = capture_localfmle_status_get();
     if ($status != 'recording' && $status != 'open') {
@@ -410,7 +410,7 @@ function capture_localfmle_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $localfmle_basedir . '/var/' . $asset;
-    if (!dir($tmp_dir))
+    if (!file_exists($tmp_dir) && !dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;

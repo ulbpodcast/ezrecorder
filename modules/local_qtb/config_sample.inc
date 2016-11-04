@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -29,8 +29,6 @@ require_once dirname(__FILE__).'/../../global_config.inc';
 $localqtb_features = array('recording');
 $localqtb_ip = $ezrecorder_ip;
 $localqtb_username = $ezrecorder_username;
-$localqtb_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit"; 
-// used in cli_monitoring.php to stop the recording after a timeout
 
 $localqtb_basedir = $modules_basedir . '/local_qtb/';
 $localqtb_recorddir = $ezrecorder_recorddir;
@@ -40,6 +38,7 @@ $localqtb_monitoring_file = $localqtb_basedir.'var/_monitoring_pid';
 $localqtb_status_file = $localqtb_basedir.'var/status'; // Current recorder status (paused, recording, stopped,...)
 $localqtb_recorder_logs = $localqtb_basedir.'var/_log'; // Log file
 $localqtb_capture_file = $localqtb_basedir.'var/screencapture.jpg'; // Camera screenshot
+$localqtb_last_request_file = $localqtb_basedir.'var/last_request'; 
 
 $localqtb_processing_tool = "ffmpeg"; // [ffmpeg | pcastaction]
 $localqtb_processing_tools = array("ffmpeg", "pcastaction");

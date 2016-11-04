@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -25,7 +25,7 @@
  */
 
 $module_title = "remote_qtb";
-$module_description = "This module is designed to record videos using QuickTime Broadcaster on a remote recorder.";
+$module_description = "Record videos using QuickTime Broadcaster on a remote recorder.";
 $module_name = "remoteqtb";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

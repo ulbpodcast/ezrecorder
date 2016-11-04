@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -31,7 +31,7 @@
 include_once 'global_config.inc';
 
 /**
- * Prints the error message on screen and quits
+ * Prints the error message on screen
  * @param string $msg The message to print
  * @param bool $log If set to false, the error won't be logged.
  */
@@ -41,7 +41,6 @@ function error_print_message($msg, $log = true) {
     
     if($log) {
         log_append('error', $msg);
-        die;
     }
 }
 
@@ -107,4 +106,3 @@ function error_last_message($msg = '') {
        return true;
    }
 }
-?>

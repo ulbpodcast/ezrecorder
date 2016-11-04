@@ -1,34 +1,8 @@
-#!/bin/bash -x
-
-# EZCAST EZrecorder
-#
-# Copyright (C) 2014 Université libre de Bruxelles
-#
-# Written by Michel Jansens <mjansens@ulb.ac.be>
-# 	     Arnaud Wijns <awijns@ulb.ac.be>
-#            Antoine Dewilde
-# UI Design by Julien Di Pietrantonio
-#
-# This software is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 3 of the License, or (at your option) any later version.
-#
-# This software is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this software; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-# This script must be sudo authorized for _www to run as podclient
-# creates a thumbnail on the remote server and copies it locally
+#!/bin/bash
 
 SLIDE_IP=$1
 IMG_FILE=$2
 IMG_TMP_FILE=$3
 
-scp -o ConnectTimeout=10 $SLIDE_IP:$IMG_FILE $IMG_TMP_FILE
+scp -o ConnectTimeout=10 -o BatchMode=yes $SLIDE_IP:$IMG_FILE $IMG_TMP_FILE
        

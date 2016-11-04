@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -30,6 +30,7 @@
  */
 include_once 'lib_capture.php';
 include_once 'config.inc';
+include_once '../../global_config.inc';
 
 if ($argc != 2) {
     echo "usage: " . $argv[0] . " <meta_assoc> <recording_ids_file_path>\n";
@@ -52,7 +53,7 @@ foreach ($records_ids as $record_id) {
 }
 
 
-$cmd = 'sudo -u ' . $axiscam_module_username . ' ' . $axiscam_script_process . ' ' . $meta_assoc['course_name'] . ' ' . $meta_assoc['record_date'] . ' >> ' . $axiscam_recorder_logs;
+$cmd = 'sudo -u ' . $ezrecorder_username . ' ' . $axiscam_script_process . ' ' . $meta_assoc['course_name'] . ' ' . $meta_assoc['record_date'] . ' >> ' . $axiscam_recorder_logs;
 log_append('recording', "launching command: $cmd");
 system($cmd);
 ?>

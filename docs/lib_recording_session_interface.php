@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -47,7 +47,7 @@ include "config.inc";
  *       $meta['author'] : Author's name
  *       $meta['netid'] : Author's id
  *       $meta['record_date'] : YYYY_MM_DD_HH\hmm (i.e 2014_01_01_00h00)
- * @return bool error status 
+ * @return bool metadata as string or false on error
  */
 function session_modulename_metadata_save($meta) {}
 

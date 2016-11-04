@@ -79,6 +79,8 @@
         <label id="Title_not_defined" lang="en">Undefined title</label>
         <label id="Type_not_defined" lang="fr">Format d'enregistrement non-défini</label>
         <label id="Type_not_defined" lang="en">Undefined record type</label>
+        <label id="Type_not_valid" lang="fr">Format d'enregistrement invalide</label>
+        <label id="Type_not_valid" lang="en">Invalid record type</label>
         <label id="Media_submitted_public" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album public une fois l'opération terminée.</label>
         <label id="Media_submitted_public" lang="en">Record saved and waiting for processing.&lt;br/&gt;It will be added to your public album once ready.</label>
         <label id="Media_submitted_private" lang="fr">Enregistrement sauvegardé et en cours de traitement.&lt;br/&gt;Il sera ajouté à votre album privé une fois l'opération terminée.</label>
@@ -104,8 +106,8 @@
         <label id="launch_failure" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</label>
         <label id="Ongoing_recording" lang="fr">Attention : enregistrement en cours.\nVoulez-vous arrêter l'enregistrement en cours et en lancer un nouveau?</label>
         <label id="Ongoing_recording" lang="en">Caution: ongoing recording.\nDo you want to stop the current recording and start your own?</label>
-        <label id="offline_from_podc" lang="fr">Attention: Cette action n'a pas été exécutée.\n\n Vous semblez avoir été déconnecté de EZrecorder. Vérifiez que vous êtes toujours connecté au réseau wifi 'PODC' et rafraichissez la page de votre navigateur (ctrl+R / cmd+R) avant de réessayer.</label>
-        <label id="offline_from_podc" lang="en">Warning: This action has not been executed.\n\n Your connection might have been lost. Verify that you are still connected to PODC and refresh the page in your web browser (ctrl+R / cmd+R) before retrying.</label>
+        <label id="offline_from_podc" lang="fr">Attention: Cette action n'a pas pu être éxécutée.\n\n Vérifiez que vous êtes toujours connecté au réseau wifi 'PODC' et rafraichissez la page de votre navigateur (ctrl+R / cmd+R) avant de réessayer.</label>
+        <label id="offline_from_podc" lang="en">Warning: This action could not be executed.\n\n Verify that you are still connected to PODC and refresh the page in your web browser (ctrl+R / cmd+R) before retrying.</label>
 
     </labels>
         

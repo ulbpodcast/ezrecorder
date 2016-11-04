@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -48,10 +48,13 @@ function auth_file_check($login, $passwd) {
 
     // We could get a login of type "real_login/user_login"
     // In that case, we split it into two different variables
-    list($real_login, $user_login) = explode('/', $login);
-    if (empty($user_login))
-        $user_login = $real_login;
-
+    if (strpos($login,'/') !== false) {
+        list($real_login, $user_login) = explode('/', $login);
+    } else {
+        $real_login = $login;
+        $user_login = $login;
+    }
+    
     // If there was a real_login and a user_login, that means somone is trying to take another's identity.
     // The only persons allowed to do that are admins so we check if $real_login is in admin list
     require_once $admin_file;
@@ -139,8 +142,16 @@ function auth_file_user_is_admin($login) {
  */
 function auth_file_courselist_get() {
     global $courselist_file;
+    global $logger;
+    
     include $courselist_file;
-    return $course;
+    
+    if(isset($course))
+        return $course;
+    else {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_courselist_get'));
+        return false;
+    }
 }
 
 /**
@@ -152,9 +163,19 @@ function auth_file_courselist_get() {
  */
 function auth_file_user_courselist_get($user) {
     global $courselist_file;
-    include $courselist_file;
-    return $course[$user];
+    global $logger;
     
+    include $courselist_file;
+    
+    if(!isset($course)) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_user_courselist_get'));
+        return array();
+    }
+            
+    if(isset($course[$user]))
+        return $course[$user];
+    
+    return array();    
 }
 
 /**
@@ -166,9 +187,18 @@ function auth_file_user_courselist_get($user) {
  * @return type
  */
 function auth_file_user_has_course($user, $course_name) {
+    global $logger;
     global $courselist_file;
+    
     include $courselist_file;
-    return (array_key_exists($course_name, $course[$user]));
+    
+    if(!isset($course)) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "Could not get any course from file $courselist_file. Did the server pushed the course list?", array('auth_file_user_courselist_get'));
+        return array();
+    }
+    
+    if(isset($course[$user]))
+        return (array_key_exists($course_name, $course[$user]));
+    
+    return false;
 }
-
-?>

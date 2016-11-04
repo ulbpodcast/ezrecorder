@@ -1,29 +1,5 @@
 <?php
 
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2014 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 /**
  *  This CLI script performs various monitoring tasks. It is started when the user starts a recording, and stopped when they stop recording.
@@ -38,8 +14,16 @@
  * This program is meant to be run as a crontask at least once every "timeout" seconds
  */
 require_once 'global_config.inc';
+require_once $basedir . 'lib_model.php';
 
 require_once $session_lib;
+
+global $service;
+$service = true;
+
+Logger::$print_logs = true;
+
+$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring started", array(__FILE__));
 
 // Saves the time when the recording has been init
 $init_time = time();
@@ -49,7 +33,6 @@ $fct_initstarttime_set($init_time);
 // Delays, in seconds
 $threshold_timeout = 7200; // Threshold before we start worrying about the user
 //$threshold_timeout = 120; // Threshold before we start worrying about the user
-$recovery_threshold = 20; // Threshold before we start worrying about QTB
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
 //$timeout = 30;
 $sleep_time = 60; // Duration of the sleep between two checks
@@ -58,15 +41,18 @@ set_time_limit(0);
 $pid = getmypid();
 fwrite(fopen($recorder_monitoring_pid, 'w'), $pid);
 
+//get asset name ?
+
 // This is the main loop. Runs until the lock file disappears
 while (true) {
 
     $fct_is_locked = "session_" . $session_module . "_is_locked";
 
-    // We stop if the file does not exist anymore ("kill -9" simulation)
+    // We stop if the pid file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
     // or the recorder is not locked anymore
     if (!file_exists($recorder_monitoring_pid) || $pid != file_get_contents($recorder_monitoring_pid) || !$fct_is_locked()) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped", array(__FILE__));
         die;
     }
 
@@ -77,19 +63,23 @@ while (true) {
     $lastmod_time = $fct_last_request_get();
     $now = time();
 
-    if ($now - $init_time > $threshold_timeout && $now - $lastmod_time > $timeout) {
-        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom . ' was stopped and published in private album because there has been no user activity since ' . ($now - $lastmod_time) . ' seconds ago.');
+    // if record was started at least $threshold_timeout seconds ago
+    // and if no request received in the last $timeout seconds 
+    // force stop the recorder
+    $diff_lastmod = $now - $lastmod_time;
+    $diff_init = $now - $init_time;
+    
+    if ($diff_init > $threshold_timeout && $diff_lastmod > $timeout) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Timeout triggered after $diff_lastmod seconds. Init: $init_time / Last request: $lastmod_time.", array(__FILE__));
+        mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 
+             . ' was stopped and published in private album because there has been no user activity since ' 
+             . ($diff_lastmod) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s", $lastmod_time)
+             . ' Start time: ' . date("y-m-d_H:s",$init_time) . '');
 
-        $ezrecorder_force_quit_url = "$ezrecorder_url/index.php?action=recording_force_quit";
-
-        $ch = curl_init($ezrecorder_force_quit_url);
-        $res = curl_exec($ch);
-        $curlinfo = curl_getinfo($ch);
-        curl_close($ch);
+        controller_recording_force_quit();
     }
+    
+    //$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(__FILE__));
 
     sleep($sleep_time);
 }
-
-
-?>

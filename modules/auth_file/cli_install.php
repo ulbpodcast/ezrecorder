@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -30,5 +30,3 @@ echo           "***************************************" . PHP_EOL;
 echo PHP_EOL . "creating config.inc" . PHP_EOL;
 
 copy(dirname(__FILE__)."/config_sample.inc", dirname(__FILE__)."/config.inc");
-
-?>

@@ -24,3 +24,5 @@ Each product remains the entire property of its original author and keeps its or
 * EASING EQUATION under the BSD license, copyright Robert Penner <http://gsgd.co.uk/sandbox/jquery/easing/>
 --> ./htdocs/js/jQuery/function.js
 
+* ponvif under GNU General Public License, author Lorenzo Toscano
+--> ./external_products/ponvif/*

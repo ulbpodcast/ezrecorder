@@ -2,7 +2,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -25,7 +25,7 @@
  */
 
 $module_title = "local_qtb";
-$module_description = "This module is designed to record videos using QuickTime Broadcaster.";
+$module_description = "Record videos using QuickTime Broadcaster.";
 $module_name = "localqtb";
 $module_path = dirname(__FILE__);
 $module_type = "recording";

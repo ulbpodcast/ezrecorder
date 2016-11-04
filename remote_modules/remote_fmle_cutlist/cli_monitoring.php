@@ -3,7 +3,7 @@
 /*
  * EZCAST EZrecorder
  *
- * Copyright (C) 2014 Université libre de Bruxelles
+ * Copyright (C) 2016 Université libre de Bruxelles
  *
  * Written by Michel Jansens <mjansens@ulb.ac.be>
  * 	      Arnaud Wijns <awijns@ulb.ac.be>
@@ -77,8 +77,7 @@ while (true) {
         system("osascript $remotefmle_open; wait;");
         system("osascript $remotefmle_action; wait");
 
-        mail($mailto_admins, 'FMLE crash', 'Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
-
+        mail($mailto_admins, 'FMLE crash', 'Remote Flash Media Live Encoder crashed in room ' . $classroom . '. Recording will resume, but rendering will probably fail.');
 
         $files = glob("$remotefmle_recorddir/$remotefmle_movie_name*.f4v");
         foreach ($files as $file) {
