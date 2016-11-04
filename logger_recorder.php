@@ -28,7 +28,7 @@ class RecorderLogger extends Logger {
     //Structure used to create database. If changing this structure, don't forget to update log(...) function
     const LOG_TABLE_NAME = "logs";
     
-    private $db_structure = [
+    private $db_structure = array(
       'id'          => 'INTEGER PRIMARY KEY AUTOINCREMENT',
       'event_time'  => 'DATETIME',
       'asset'       => 'VARCHAR(50)',
@@ -39,7 +39,7 @@ class RecorderLogger extends Logger {
       'type_id'     => 'INTEGER',
       'loglevel'    => 'TINYINT(1)',
       'message'     => 'TEXT',
-    ];
+    );
 
     protected $last_log_sent_get_url;
     protected $classroom;
