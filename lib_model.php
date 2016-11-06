@@ -259,6 +259,7 @@ function controller_recording_start() {
             "Started recording at user $user request. Requested type: $requested_record_type", array(__FUNCTION__), $asset, 
             $user, $requested_record_type, $_SESSION['recorder_course'], $classroom);
 
+    echo "OK";
     return true;
 }
 
@@ -1164,8 +1165,6 @@ function controller_stop_and_view_record_submit() {
 
     //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
 
-    reset_cam_position();
-    
     // And displaying the submit form
     require_once template_getpath('record_submit.php');
 }
