@@ -488,17 +488,18 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $cam_module;
     global $logger;
     global $remoteffmpeg_module_name;
+    global $ezrecorder_username;
     
     switch ($action) {
         case 'download':
             $filename = $remoteffmpeg_upload_dir . '/' . $asset . "/slide.mov";
             
-            $cmd = "ssh -o ConnectTimeout=5 $remote_recorder_username@$remote_recorder_ip 'test -e $filename'";
+            $cmd = "sudo -u $ezrecorder_username ssh -o ConnectTimeout=5 $remote_recorder_username@$remote_recorder_ip 'test -e $filename'";
             $return_val = 0;
             system($cmd, $return_val);
 
             if($return_val != 0)  {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. File: $filename. Cmd: $cmd", array(__FUNCTION__), $asset);
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. Or maybe ssh command failed? File: $filename. Cmd: $cmd", array(__FUNCTION__), $asset);
             }
 
             //Todo: check file existence on remote server
