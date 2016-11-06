@@ -254,7 +254,7 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     $return_val = 0;
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $cutlist_file = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
-    $log_file = $working_dir . '/cutlist.log';
+    $log_file = $working_dir . '/pause_resume.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
     system($cmd, $return_val);
     if($return_val != 0) {
@@ -309,7 +309,7 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     // pauses the current recording (while user chooses the way to publish the record)
     $cut_list = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
-    $log_file = $working_dir . '/cutlist.log';
+    $log_file = $working_dir . '/stop.log';
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
     $return_var = 0;
     system($cmd, $return_var);

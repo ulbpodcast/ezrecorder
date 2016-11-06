@@ -241,7 +241,7 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     }
     
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
-    $remote_log_file = $working_dir . '/cutlist.log';
+    $remote_log_file = $working_dir . '/pause_resume.log';
     $cmd = "$remoteffmpeg_script_cutlist $action $asset";
     $return_val = remote_call($cmd, $remote_log_file);
     if($return_val != 0) {
@@ -293,7 +293,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     }
     
     $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
-    $remote_log_file = $working_dir . '/cutlist.log';
+    $remote_log_file = $working_dir . '/stop.log';
     $cmd = "$remoteffmpeg_script_cutlist stop $asset";
     $return_val = remote_call($cmd, $remote_log_file);
     if($return_val != 0) {
