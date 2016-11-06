@@ -48,11 +48,20 @@ while (true) {
 
     $fct_is_locked = "session_" . $session_module . "_is_locked";
 
+    //Stop conditions:
     // We stop if the pid file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
     // or the recorder is not locked anymore
-    if (!file_exists($recorder_monitoring_pid) || $pid != file_get_contents($recorder_monitoring_pid) || !$fct_is_locked()) {
-        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped", array(__FILE__));
+    if (!file_exists($recorder_monitoring_pid)) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Monitoring pid file not found", array(__FILE__));
+        die;
+    }
+    if ($pid != file_get_contents($recorder_monitoring_pid)) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Could not read monitoring file", array(__FILE__));
+        die;
+    }
+    if (!$fct_is_locked()) {
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Recorder is not locked anymore", array(__FILE__));
         die;
     }
 
