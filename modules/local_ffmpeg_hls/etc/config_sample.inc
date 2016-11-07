@@ -36,7 +36,7 @@ $ffmpeg_download_protocol = "rsync"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'
 $ffmpeg_streaming_protocol = "http"; // if you change the protocol, you might
 // have to adapt the function 'capture_ffmpeg_info_get()' in 'lib_capture.php'
-$ffmpeg_input_source = "rtsp"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | avfoundation | rstp | ...)
+$ffmpeg_input_source = "rtsp"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | avfoundation | rstp | IntensityShuttleThunderbolt | ...)
 // you might have to adapt the 'bash/ffmpeg_init' script
 $ffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highlow | high | low | none)
 
