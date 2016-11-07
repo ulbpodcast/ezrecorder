@@ -18,6 +18,8 @@ $ffmpeg_recorder_logs = $ffmpeg_basedir.'var/_log'; // Log file
 $ffmpeg_streaming_info = $ffmpeg_basedir.'var/streaming'; // contains server and port number
 $ffmpeg_capture_file = $ffmpeg_basedir.'var/screencapture.jpg'; // Camera screenshot
 $process_result_filename = "process_result.txt";
+$ffmpeg_capture_tmp_file = "$ffmpeg_basedir/var/pic_new.jpg"; // ffmpeg thumb output file
+$ffmpeg_capture_transit_file = "$ffmpeg_basedir/var/transit_screencapture.jpg"; // tmp resized file
 
 $ffmpeg_processing_tool = "ffmpeg"; 
 $ffmpeg_processing_tools = array("ffmpeg");

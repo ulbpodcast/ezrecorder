@@ -83,6 +83,7 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         default: 
             trigger_error("Invalid status '$module_status' to ".__FUNCTION__, E_USER_WARNING);
         case "open":
+        case "paused":
             break;
     }
     if($img_status != null)

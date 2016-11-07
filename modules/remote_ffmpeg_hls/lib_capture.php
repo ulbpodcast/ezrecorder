@@ -207,6 +207,7 @@ function capture_remoteffmpeg_start($asset) {
     $status = capture_remoteffmpeg_status_get();
     if ($status == "open") {
         capture_remoteffmpeg_status_set('recording');
+        capture_remoteffmpeg_recstatus_set('recording');
         $logger->log(EventType::RECORDER_START, LogLevel::INFO, "User started recording, recording start mark set", array(__FUNCTION__), $asset);
     } else {
         capture_remoteffmpeg_status_set("error");
@@ -252,6 +253,8 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     $set_status = $pause ? 'paused' : 'recording';
     capture_remoteffmpeg_status_set($set_status);
     $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
+    
+    echo "OK";
     return true;    
 }
 
@@ -302,7 +305,7 @@ function capture_remoteffmpeg_stop(&$pid, $asset) {
     }
     
     capture_remoteffmpeg_status_set('stopped');
-    capture_remoteffmpeg_rec_status_set('');
+    capture_remoteffmpeg_recstatus_set('');
     
     $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::DEBUG, "Recording was stopped by user", array(__FUNCTION__), $asset);
 
@@ -335,7 +338,7 @@ function capture_remoteffmpeg_cancel($asset = null) {
     }
     
     //update (clear) status
-    capture_remoteffmpeg_rec_status_set('');
+    capture_remoteffmpeg_recstatus_set('');
     $logger->log(EventType::RECORDER_CANCEL, LogLevel::INFO, "Recording was cancelled", array(__FUNCTION__));
     $logger->log(EventType::RECORDER_CANCEL, LogLevel::DEBUG, "Cancel backtrace: " . print_r(debug_backtrace(),true), array(__FUNCTION__));
 
@@ -391,7 +394,7 @@ function capture_remoteffmpeg_process($asset, &$pid) {
     
     //update (clear) status
     capture_remoteffmpeg_status_set('');
-    capture_remoteffmpeg_rec_status_set('');
+    capture_remoteffmpeg_recstatus_set('');
 
     // should be saved in Movies/local_processing/<date+hour>/
     // combine cam and slide:
@@ -452,10 +455,10 @@ function capture_remoteffmpeg_thumbnail() {
             //copy screencapture to actual snap
             $status = capture_remoteffmpeg_status_get();
             if ($status == 'recording') {
-                $status = capture_remoteffmpeg_rec_status_get();
+                $status = capture_remoteffmpeg_recstatus_get();
             }
             
-            //invalid statis in rec_status ?
+            //invalid status in rec_status ?
             if($status == '') {
                 $status = 'open';
             }
@@ -464,7 +467,7 @@ function capture_remoteffmpeg_thumbnail() {
             if($ok) 
                 rename($remoteffmpeg_capture_transit_file, $remoteffmpeg_capture_file);
             else {
-                copy("./nopic.jpg", "$remoteffmpeg_capture_file");
+                copy("./nopic.jpg", $remoteffmpeg_capture_file);
             }
         }
     }
@@ -608,7 +611,7 @@ function capture_remoteffmpeg_features_get() {
     return $remoteffmpeg_features;
 }
 
-function capture_remoteffmpeg_rec_status_get() {
+function capture_remoteffmpeg_recstatus_get() {
     global $remote_recorder_ip;
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_get;
@@ -625,16 +628,15 @@ function capture_remoteffmpeg_rec_status_get() {
     return trim($res);
 }
 
-function capture_remoteffmpeg_rec_status_set($status) {
+function capture_remoteffmpeg_recstatus_set($status) {
     global $remote_recorder_ip;
     global $remoteffmpeg_rec_status_file;
     global $remote_script_datafile_set;
     global $remote_recorder_username;
     global $logger;
     
-    $status = "'$status'";
-    
-    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_set $remote_recorder_ip $status $remoteffmpeg_rec_status_file";
+    $return_val = 0;
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_set $remote_recorder_ip '$status' $remoteffmpeg_rec_status_file";
     system($cmd, $return_val);
     if($return_val == 0) {
         $logger->log(EventType::RECORDER_SET_STATUS, LogLevel::DEBUG, "REC Status set to ".$status, array(__FUNCTION__));

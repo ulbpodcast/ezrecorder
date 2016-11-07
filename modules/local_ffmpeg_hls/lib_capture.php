@@ -217,6 +217,7 @@ function capture_ffmpeg_start($asset) {
     $status = capture_ffmpeg_status_get();
     if ($status == "open") {
         capture_ffmpeg_status_set('recording');
+        capture_ffmpeg_recstatus_set('recording');
         $logger->log(EventType::RECORDER_START, LogLevel::INFO, "User started recording, recording start mark set", array(__FUNCTION__), $asset);
     } else {
         capture_ffmpeg_status_set("error");
@@ -265,6 +266,8 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     $set_status = $pause ? 'paused' : 'recording';
     capture_ffmpeg_status_set($set_status);
     $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
+    
+    echo "OK";
     return true;
 }
 
@@ -586,14 +589,15 @@ function capture_ffmpeg_info_get($action, $asset = '') {
  * @return string the contents of the image to display
  */
 function capture_ffmpeg_thumbnail() {
-    global $ffmpeg_basedir;
     global $ffmpeg_capture_file;
-
+    global $ffmpeg_capture_tmp_file;
+    global $ffmpeg_capture_transit_file;
+            
     // Camera screenshot
     $diff = time() - filemtime($ffmpeg_capture_file);
     if (!file_exists($ffmpeg_capture_file) || ($diff > 3)) {
         //if no image or image is old get a new screencapture
-        if ((time() - filemtime("$ffmpeg_basedir/var/pic_new.jpg") > 3)) {
+        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 3)) {
             //print "could not take a screencapture";
             copy("./nopic.jpg", $ffmpeg_capture_file);
         } else {
@@ -602,7 +606,17 @@ function capture_ffmpeg_thumbnail() {
             if ($status == 'recording') {
                 $status = capture_ffmpeg_recstatus_get();
             }
-            rename("$ffmpeg_basedir/var/pic_new.jpg", $ffmpeg_capture_file);
+             //invalid status in rec_status ?
+            if($status == '') {
+                $status = 'open';
+            }
+            
+            $ok = image_resize($ffmpeg_capture_tmp_file, $ffmpeg_capture_transit_file, 235, 157, $status, false);
+            if($ok) 
+                rename($ffmpeg_capture_transit_file, $ffmpeg_capture_file);
+            else {
+                copy("./nopic.jpg", $ffmpeg_capture_file);
+            }
         }
     }
     return file_get_contents($ffmpeg_capture_file);
