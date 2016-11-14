@@ -123,6 +123,7 @@ function controller_recording_submit_infos() {
 
 /** Update record_type in metadata file according to allowed cam/slide
  * You can for example use this to disable camera in metadata if camera failed
+ * Return false if type was changed
 */
 function update_metadata_with_allowed_types($meta_assoc, $allow_cam, $allow_slide, &$new_record_type = null) {
     $record_type = $meta_assoc['record_type'];
@@ -133,6 +134,7 @@ function update_metadata_with_allowed_types($meta_assoc, $allow_cam, $allow_slid
     if($record_type != $new_record_type) {
         //write new type
         $meta_assoc['record_type'] = $new_record_type;
+        return false;
     }
     //else nothing to do, type is ok
     
