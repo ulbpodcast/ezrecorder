@@ -491,7 +491,7 @@ function move_remote_asset($asset, $target) {
     $return_val = 0;
     system($local_cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target", array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd", array(__FILE__), $asset);
         return false;
     }
     $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FILE__), $asset);

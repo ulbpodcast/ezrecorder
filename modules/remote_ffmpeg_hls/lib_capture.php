@@ -252,6 +252,7 @@ function capture_remoteffmpeg_pause_resume($action, $asset) {
     
     $set_status = $pause ? 'paused' : 'recording';
     capture_remoteffmpeg_status_set($set_status);
+    capture_remoteffmpeg_recstatus_set($set_status);
     $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
     
     echo "OK";
@@ -440,13 +441,13 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_recorder_ip;
     global $remote_script_thumbnail_create;
     global $remote_recorder_username;
-    global $logger;
         
     //if no image or image is old get a new screencapture
     if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 3)) {
         $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
         $return_val = 0;
         system($cmd, $return_val);
+        
         //if command failed or remote script did not actually create image file
         if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
             //print "could not take a screencapture";

@@ -89,8 +89,8 @@ if (RecordType::to_int_from_string($record_type) & RecordType::SLIDE) {
 }
 
 //update record type depending on failures above. Note that if a module fail but was not included in requested record type, this won't cause problem from here
-update_metadata_with_allowed_types($meta_assoc, $cam_download_info != false, $slide_download_info != false, $new_record_type);
-
+update_metadata_with_allowed_types($meta_assoc, isset($cam_download_info) && $cam_download_info != false, isset($slide_download_info) && $slide_download_info != false, $new_record_type);
+   
 if($new_record_type == false) { //we may have errors on both, stop in this case
     $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Both cam and slides modules are disabled or have errors, nothing to upload.", array("cli_upload_to_server"), $asset);
     exit(3);

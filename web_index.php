@@ -8,7 +8,6 @@
 include_once 'global_config.inc';
 include_once 'common.inc';
 
-
 session_register_shutdown(); // By default, calls to die() do not write session on shutdown. This makes it so that it does.
 session_start();
 
