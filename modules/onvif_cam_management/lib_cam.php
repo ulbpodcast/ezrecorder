@@ -73,20 +73,35 @@ function cam_onvif_ptz_posnames_get() {
     global $ptzposdir;
     global $logger;
     
-    $ptznames = array();
-    if (is_dir($ptzposdir)) {
-        if ($dh = opendir($ptzposdir)) {
-            while (($file = readdir($dh) ) !== false) {
-                if (substr($file, -4) == ".ptz") {
-                    //its a ptz file so put it in the list
-                    $name = str_replace(".ptz", "", $file);
-                    array_push($ptznames, $name);
-                }
-            }
-            closedir($dh);
-        }
+    $presets = null;
+    
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception while trying to get ponvif object: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
     }
-    return $ptznames;
+    
+    try {
+        $presets = $ponvif->ptz_GetPresets($profileToken);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception in ptz_GetPresets: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    if($presets == null) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "ptz_GetPresets returned null", array(__FUNCTION__));
+        return false;
+    }
+    
+    $posnames = array();
+    foreach($presets as $key => $value) {
+        array_push($posnames, $value['Name']);
+    }
+    
+    return $posnames;
 }
 
 /**
@@ -94,14 +109,29 @@ function cam_onvif_ptz_posnames_get() {
  * Saves the current position of the camera
  * @global string $ptzposdir
  * @global type $imagesnap_cmd
- * @param type $name the name of the position
+ * @param string $presetName the name of the position
  * @return int
  */
-function cam_onvif_ptz_pos_save($name) {
+function cam_onvif_ptz_pos_save($presetName) {
     global $logger;
     
-    error_log("NYI");
-    die();
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception while trying to get ponvif object: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    try {
+        $ponvif->ptz_SetPreset($profileToken, $presetName);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception in ptz_SetPreset: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    $logger->log(EventType::TEST, LogLevel::NOTICE, "Created preset $presetName", array(__FUNCTION__));
 }
 
 /**
@@ -110,11 +140,32 @@ function cam_onvif_ptz_pos_save($name) {
  * @global string $ptzposdir
  * @param type $name
  */
-function cam_onvif_ptz_pos_delete($name) {
+function cam_onvif_ptz_pos_delete($presetName) {
     global $logger;
     
-    error_log("NYI");
-    die();
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception while trying to get ponvif object: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    $preset_token = cam_onvif_ptz_preset_token_get($presetName);
+    if(!$preset_token) {
+        $logger->log(EventType::TEST, LogLevel::WARNING, "Could not get preset token for preset name: $presetName", array(__FUNCTION__));
+        return false;
+    }
+    
+    try {
+        $ponvif->ptz_RemovePreset($profileToken, $preset_token);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception in ptz_RemovePreset: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    $logger->log(EventType::TEST, LogLevel::NOTICE, "Removed preset $presetName (token: $preset_token)", array(__FUNCTION__));
 }
 
 /**
@@ -135,7 +186,15 @@ function cam_onvif_ptz_move($PresetName) {
         return false;
     }
     
-    $ponvif->ptz_GotoPreset($profileToken,$PresetName,0.1,0.1,0.2);
+    try {
+        $ponvif->ptz_GotoPreset($profileToken,$PresetName,0.1,0.1,0.2);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "cam_onvif_ptz_move: Exception in ptz_GotoPreset: " . $e->getMessage(), array("module","onvif_cam_management"));
+        return false;
+    }
+    
+    $logger->log(EventType::TEST, LogLevel::INFO, "cam_onvif_ptz_move: Move to preset $PresetName", array("module","onvif_cam_management"));
+        
     return true;
 }
 
@@ -149,4 +208,53 @@ function str_toalnum($string) {
     return $toalnum;
 }
 
-?>
+function cam_onvif_ptz_get_presets() {
+    global $logger;
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception while trying to get ponvif object: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    $presets = null;
+    try {
+        $presets = $ponvif->ptz_GetPresets($profileToken);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "cam_onvif_ptz_posnames_get: Exception in ptz_GetPresets: " . $e->getMessage(), array("module","onvif_cam_management"));
+        return false;
+    }
+    
+    return $presets;
+}
+
+//get preset token for preset with given name
+function cam_onvif_ptz_preset_token_get($presetName)
+{   
+    global $logger;
+    try {
+        $ponvif = create_ponvif_helper();
+        $profileToken = get_ponvif_profile_token($ponvif);
+    } catch (Exception $e)
+    {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Exception while trying to get ponvif object: " . $e->getMessage(), array(__FUNCTION__));
+        return false;
+    }
+    
+    try {
+        $presets = $ponvif->ptz_GetPresets($profileToken);
+    } catch (Exception $e) {
+        $logger->log(EventType::TEST, LogLevel::ERROR, "cam_onvif_ptz_posnames_get: Exception in ptz_GetPresets: " . $e->getMessage(), array("module","onvif_cam_management"));
+        return false;
+    }
+    
+    foreach($presets as $key => $value) {
+        if($value['Name'] == $presetName){
+            return $value['Token'];
+        }
+    }
+    
+    return null;
+}
