@@ -172,17 +172,19 @@ function session_xml_lock($username) {
     if (session_xml_is_locked()) {
         //  TODO 
         //        capture_last_error('Recorder is already in use');
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Cannot lock recorder, recorder already is use", array(__FUNCTION__));
         return false;
     }
     if (empty($username)) {
         //  TODO
         //        capture_last_error('capture_lock: empty username!');
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Empty user name given", array(__FUNCTION__));
         return false;
     }
 
     $res = file_put_contents($lock_file, $username);
     if($res == false) {
-        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not write lock file $lock_file", array(__FUNCTION__));
+        $logger->log(EventType::TEST, LogLevel::ALERT, "Could not write lock file $lock_file", array(__FUNCTION__));
         return false;
     }
     

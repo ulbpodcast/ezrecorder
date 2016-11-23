@@ -24,11 +24,13 @@ $template_folder = 'tmpl/';
 template_repository_path($template_folder . get_lang());
 template_load_dictionnary('translations.xml');
 
+
 //
 // Controller
 //
 // Login/logout
 // If we're not logged in, we try to log in or display the login form
+
 if (!user_logged_in()) {
 
     // If an "action" was given, it means we've already submitted the login form
@@ -38,10 +40,6 @@ if (!user_logged_in()) {
         //login and password were given, try to login
         user_login($input['login'], $input['passwd']);
     } else {
-        //hackfix, until we got a proper pages/service separation
-        if(isset($input['action']) && ($input['action'] == 'view_screenshot_iframe' || $input['action'] == 'view_screenshot_image'))
-            die;
-        
         // No login infos were submitted, display login form
         controller_view_login_form();
     }
@@ -59,6 +57,7 @@ if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
         $_SESSION['asset'] = $session[0];
     }
 }
+
 
 // At this point of the code, we know the user is logged in.
 // So now, we must see what action they wanted to perform, and do it.
