@@ -282,7 +282,7 @@ class ponvif {
 			  foreach ($getpresetsresponse as $preset) {
 			        $presets[]=array('Token'=>$preset['@attributes']['token'],
 		                         'Name'=>$preset['Name'],
-		                         'PTZPosition'=>$preset['PTZPosition']);
+		                         'PTZPosition'=> isset($preset['PTZPosition']) ? $preset['PTZPosition'] : NULL);
 			  }
 			  return $presets;
                         }
