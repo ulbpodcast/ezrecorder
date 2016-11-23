@@ -48,6 +48,8 @@ class EventType {
     const MANAGER_MAM_INSERT                 = "manager_mam_insert";
     const MANAGER_SUBMIT_RENDERING           = "manager_submit_rendering";
     const MANAGER_FILL_STATUS                = "manager_fill_status";
+    const MANAGER_ASSET_DELETE               = "manager_asset_delete";
+    const MANAGER_ASSET_MOVE                 = "manager_asset_move";
     
     // EZRenderer
     
@@ -100,6 +102,8 @@ class EventType {
        EventType::MANAGER_MAM_INSERT                         => 3003,
        EventType::MANAGER_SUBMIT_RENDERING                   => 3004,
        EventType::MANAGER_FILL_STATUS                        => 3005,
+       EventType::MANAGER_ASSET_DELETE                       => 3006,
+       EventType::MANAGER_ASSET_MOVE                         => 3007,
         
        // EZRenderer: 4000->4999
         

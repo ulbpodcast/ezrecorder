@@ -24,7 +24,7 @@ function reconnect_active_session() {
     global $redraw;
     global $logger;
     
-    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$_SESSION['user_login'].' reconnected active session', array('auth'));
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$_SESSION['user_login'].' reconnected active session', array(__FUNCTION__));
     log_append("Reconnect active session");
     $status = status_get();
     //lets check what the 'real' state we're in
@@ -827,9 +827,21 @@ function controller_view_record_form() {
  * Helper function
  * @return bool true if the user is already logged in; false otherwise
  */
-//TODO: The function doesn't check anything for now
 function user_logged_in() {
-    return isset($_SESSION['recorder_logged']);
+    global $logger;
+    global $session_module;
+    
+    if(!isset($_SESSION['recorder_logged']))
+        return false;
+    
+    $fct_is_locked = "session_" . $session_module . "_is_locked";
+    if (!$fct_is_locked()) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "User is logged in but session is not locked. This should not happen and if you're seeing this locking logic must be fixed", array(__FUNCTION__));
+        close_session();
+        return false;
+    }
+    
+    return true;
 }
 
 /**
@@ -855,7 +867,7 @@ function user_login($login, $passwd) {
         $error = template_get_message('Empty_username_password', get_lang());
         //show login form again
         require_once template_getpath('login.php');
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, 'Login failed, no login/password provided', array('auth'));
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, 'Login failed, no login/password provided', array(__FUNCTION__));
         return false;
     }
 
@@ -866,7 +878,7 @@ function user_login($login, $passwd) {
         $fct_auth_last_error = "auth_" . $auth_module . "_last_error";
         $error = $fct_auth_last_error();
         require_once template_getpath('login.php');
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "Login failed, wrong credentials for login: $login", array('auth'));
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "Login failed, wrong credentials for login: $login", array(__FUNCTION__));
         return false;
     }
 
@@ -925,15 +937,15 @@ function user_login($login, $passwd) {
     }
     $user = $res['user_login'];
     $fct_session_lock = "session_" . $session_module . "_lock";
-    $res = $fct_session_lock($user);
+    $lock_ok = $fct_session_lock($user);
 
-    if (!$res) {
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user", array('auth'));
+    if (!$lock_ok) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user", array(__FUNCTION__));
         error_print_message('Could not lock recorder: ' . error_last_message());
         die;
     }
 
-    $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "User $login logged in", array('auth'));
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "User $login logged in", array(__FUNCTION__));
     log_append('login');
 
     // 4) And finally, we can display the record form
@@ -1005,10 +1017,10 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
             $return_val = 0;
             system("chmod +a \"group:everyone allow list,add_file,search,add_subdirectory,delete_child,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit\" $asset_dir", $return_val);
             if($return_val != 0) {
-                $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Failed to set folder permissions for $asset_dir", array(__FUNCTION__), $asset);
+                $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to set folder permissions for $asset_dir", array(__FUNCTION__), $asset);
             }
         }  else {
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $asset_dir", array(__FUNCTION__), $asset);
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Failed to create dir $asset_dir", array(__FUNCTION__), $asset);
             return false;
         }
     }
@@ -1016,7 +1028,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     // saves recording metadata as xml file
     $success = xml_assoc_array2file($metadata, "$asset_dir/_metadata.xml");
     if(!$success) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, __FUNCTION__.": Can't init because _metadata writing failed", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Can't init because _metadata writing failed", array(__FUNCTION__), $asset);
         return false;
     }
     
