@@ -208,7 +208,9 @@ function server_start_download($asset, $record_type, $record_date, $course_name,
     global $asset_dir;
     global $recorder_version;
     global $php_cli_cmd;
-
+    global $cam_info_ok;
+    global $slide_info_ok;
+    
     $post_array['action'] = 'download';
     $post_array['record_type'] = $record_type;
     $post_array['record_date'] = $record_date;
@@ -216,11 +218,11 @@ function server_start_download($asset, $record_type, $record_date, $course_name,
     $post_array['php_cli'] = $php_cli_cmd;
     $post_array['metadata_file'] = $asset_dir . "/metadata.xml";
 
-    if (isset($cam_download_info) && count($cam_download_info) > 0) {
+    if (strpos($record_type, "cam") !== false && count($cam_download_info) > 0) {
         $post_array['cam_info'] = serialize($cam_download_info);
     }
 
-    if (isset($slide_download_info) && count($slide_download_info) > 0) {
+    if (strpos($record_type, "slide") !== false && count($slide_download_info) > 0) {
         $post_array['slide_info'] = serialize($slide_download_info);
     }
 
