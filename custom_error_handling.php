@@ -59,6 +59,7 @@ function error_handler($error_type, $errstr, $errfile, $errline) {
     global $logger;
     
     $err_no_str = get_error_type_str($error_type);
+    $errstr = addslashes(htmlspecialchars($errstr));
     $full_err_str = "PHP [$err_no_str]: $errstr (file $errfile, line $errline)";
             
     if(isset($_SERVER["REMOTE_ADDR"]) && $_SERVER["REMOTE_ADDR"] != "" && $debug_mode) { //first conditions is to avoid printing error in case of php execution in console

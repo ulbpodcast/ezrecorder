@@ -20,7 +20,7 @@ require_once "$basedir/lib_ffmpeg.php";
 //we can't use $ffmpeg_module_name directly as it may be overriden when including other module info.php
 $ffmpeg_module_name = $module_name;
 
-function init_streaming($asset) {
+function init_streaming($asset, &$meta_assoc) {
     global $logger;
     global $ffmpeg_streaming_quality;
     global $ezcast_submit_url;
@@ -43,7 +43,7 @@ function init_streaming($asset) {
     
     // streaming is enabled, we send a request to EZmanager to
     // init the streamed asset
-    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, __FUNCTION__.": Streaming is enabled", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, "Streaming is enabled", array(__FUNCTION__), $asset);
 
     $post_array = $streaming_info;
     $post_array['action'] = 'streaming_init';
@@ -53,7 +53,7 @@ function init_streaming($asset) {
         // an error occured with CURL
         $meta_assoc['streaming'] = 'false';
         unlink($ffmpeg_streaming_info);
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Curl failed to send request to server: $result", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Curl failed to send request to server. Request: ". print_r($post_array, true) .". Result: $result", array(__FUNCTION__), $asset);
     }
     
     $course_name = $meta_assoc['course_name'];
@@ -163,7 +163,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     $pid = file_get_contents($init_pid_file);
 
     // init the streaming
-    init_streaming($asset);
+    init_streaming($asset, $meta_assoc);
 
     $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::INFO, "Successfully initialized module (init script is still running in background at this point)", array(__FUNCTION__), $asset);
     return true;
@@ -593,15 +593,14 @@ function capture_ffmpeg_thumbnail() {
     global $ffmpeg_capture_file;
     global $ffmpeg_capture_tmp_file;
     global $ffmpeg_capture_transit_file;
-            
+    
     // Camera screenshot
     $diff = time() - filemtime($ffmpeg_capture_file);
-    if (!file_exists($ffmpeg_capture_file) || ($diff > 3)) {
-        //if no image or image is old get a new screencapture
-        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 3)) {
+    if (!file_exists($ffmpeg_capture_file) || ($diff > 1)) { //if last used capture is more than 1 sec old
+        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 3)) { //if last ffmpeg thumbnail is older than 3 secs
             //print "could not take a screencapture";
             copy("./nopic.jpg", $ffmpeg_capture_file);
-        } else {
+        } else { //use ffmpeg thumbnail to generate final thumbnail (resize + add status on it)
             //copy screencapture to actual snap
             $status = capture_ffmpeg_status_get();
             if ($status == 'recording') {

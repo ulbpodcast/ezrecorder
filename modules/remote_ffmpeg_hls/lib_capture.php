@@ -443,7 +443,7 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_recorder_username;
         
     //if no image or image is old get a new screencapture
-    if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 3)) {
+    if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 1)) {
         $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
         $return_val = 0;
         system($cmd, $return_val);

@@ -202,7 +202,10 @@ abstract class Logger {
                 && $type != EventType::PHP //PHP events are already printed in custom_error_handling.php
                 && (!isset($service) || $service == false) //some services will try to parse the response, and our <script> may interfere in this case
                 && php_sapi_name() != "cli") //don't print in CLI
-            echo("<script>console.log(\"".htmlspecialchars($print_str)."\");</script>");
+        {
+            $sanitized_str = addslashes(htmlspecialchars($print_str));
+            echo("<script>console.log(\"$sanitized_str\");</script>");
+        }
         
         //idea: if level is critical or below, add strack trace to message
         

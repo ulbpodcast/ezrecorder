@@ -24,18 +24,18 @@ function reconnect_active_session() {
     global $redraw;
     global $logger;
     
-    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$_SESSION['user_login'].' reconnected active session', array(__FUNCTION__));
     log_append("Reconnect active session");
     $status = status_get();
     //lets check what the 'real' state we're in
     $already_recording = ($status == 'recording' || $status == 'paused');
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$_SESSION['user_login']." reconnected active session. Current recorder status is $status", array(__FUNCTION__));
     if ($already_recording || $status == 'open') {
         //state is one of the recording mode
         $redraw = true;
         view_record_screen();
     } else if ($status == 'stopped') {
         //stopped means we have already clicked on stop
-        controller_stop_and_view_record_submit();
+        controller_view_record_submit();
     } else
         controller_view_record_form(); //none of the above cases to this is a first form screen
 }
@@ -394,9 +394,8 @@ function controller_recording_cancel() {
     
     // something wrong happened while cancelling the recording
     if (!$result) {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "Something wrong happened while cancelling record. " . error_last_message(), array(__FUNCTION__));
+        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "Something wrong happened while cancelling record. Destroying session and status anway." . error_last_message(), array(__FUNCTION__));
         error_print_message(error_last_message());
-        return false;
     }
     
     // releases the recording session. Someone else can now record
@@ -517,18 +516,9 @@ function stop_current_record($start_post_process = true) {
 
     //write almost final metadata here a first time in asset folder. Note that it may still be overwritten when choosing a moderation type later
     {
-        $fct_metadata_xml_get = "session_" . $session_module . "_metadata_xml_get";
-        $meta_xml_string = $fct_metadata_xml_get();
-        if($meta_xml_string == false) {
-            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Current metadata from session was invalid, cannot continue.", array(__FUNCTION__), $asset);
-            return false;
-        }
-
-        // saves the recording metadata in a tmp xml file (used later in cli_upload_to_server.php)
-        $res = file_put_contents($asset_dir . "/metadata.xml", $meta_xml_string);
-        if($res == false) {
-            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not write metadata to asset dir ($asset_dir)", array(__FUNCTION__), $asset);
-            return false;
+        $ok = copy($asset_dir . "/_metadata.xml", $asset_dir . "/metadata.xml");
+        if(!$ok) {
+            $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not create pre-final metadata file. Processing will probably fail later on", array(__FUNCTION__), $asset);
         }
     }
     
@@ -1172,12 +1162,16 @@ function controller_stop_and_view_record_submit() {
     $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record submitted", array(__FUNCTION__), $asset);
     $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::INFO, 'Stop button pressed', array(__FUNCTION__), $asset);
 
+    //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
     $success = stop_current_record(false);
     if(!$success) {
         $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::ERROR, 'Stopping failed. Trying to continue anyway.', array(__FUNCTION__), $asset);
     }
 
-    //If any failure happened here, try to continue anyway. We may loose the "stop" point but this is a salvagable situation.
+    controller_view_record_submit();
+}
+
+function controller_view_record_submit() {
 
     // And displaying the submit form
     require_once template_getpath('record_submit.php');

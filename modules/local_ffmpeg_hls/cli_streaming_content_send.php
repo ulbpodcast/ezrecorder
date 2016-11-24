@@ -57,6 +57,8 @@ $post_array['module_type'] = $meta_assoc['module_type'];
 $post_array['protocol'] = $ffmpeg_streaming_protocol;
 $post_array['action'] = 'streaming_content_add';
 
+$logger->log(EventType::STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array(basename(__FILE__)));
+
 // This is the main loop. Runs until the status is unset
 while (true) {
 
@@ -64,6 +66,7 @@ while (true) {
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the status is not set (should be open / recording / paused / stopped)
     if ($status == '') {
+        $logger->log(EventType::STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array(basename(__FILE__)));
         die;
     }
 
@@ -77,6 +80,7 @@ while (true) {
         if (strpos($result, 'Curl error') !== false) {
             // an error occured with CURL
             file_put_contents($basedir . "/var/curl.log", "--------------------------" . PHP_EOL . date("h:i:s") . ": [${asset}_$album] curl error occured ($result)" . PHP_EOL, FILE_APPEND);
+            $logger->log(EventType::STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)));
         }
     }
 

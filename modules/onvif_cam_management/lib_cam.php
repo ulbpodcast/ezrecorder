@@ -104,7 +104,8 @@ function cam_onvif_ptz_posnames_get() {
     
     $posnames = array();
     foreach($presets as $key => $value) {
-        array_push($posnames, $value['Name']);
+        if($value['Name']) //For some reason my test camera apparently has a a preset with NULL in all values
+            array_push($posnames, $value['Name']);
     }
     
     return $posnames;

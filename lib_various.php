@@ -171,15 +171,13 @@ function server_request_send($server_url, $post_array) {
     curl_close($ch);
     file_put_contents("$basedir/var/curl.log", var_export($curlinfo, true) . PHP_EOL . $res, FILE_APPEND);
     if (!$res) {//error
-        $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::ERROR, "Curl failed to POST data to $server_url", array("cli_upload_to_server", "server_request_send"));
+        $http_code = isset($curlinfo['http_code']) ? $curlinfo['http_code'] : false;
+        $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::ERROR, "Curl failed to POST data to $server_url. Http code: $http_code", array(__FUNCTION__));
 
-        if (isset($curlinfo['http_code'])) {
-            return "Curl error : " . $curlinfo['http_code'];
-        } else
-            return "Curl error";
+        return "Curl error. Http code: $http_code";
     }
     
-    $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array("cli_upload_to_server", "server_request_send"));
+    $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array(__FUNCTION__));
 
     //All went well send http response in stderr to be logged
     //fputs(STDERR, "curl result: $res", 2000);
