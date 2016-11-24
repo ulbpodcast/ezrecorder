@@ -118,15 +118,13 @@ if($new_record_type == false) { //we may have errors on both, stop in this case
     } else if ($slide_info_ok) {
         $new_record_type = 'slide';
     }
-        
-    $meta_assoc['record_type'] = $new_record_type;
-   
 } 
 
 if ($new_record_type != $record_type) {
     // CASE 2, we got only part of what we wanted (CASE 3 also ends up here)
     $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Cam or slide had error and was disabled (desired type: $record_type, new type: $new_record_type). Trying to continue.", array(__FILE__), $asset);
     
+    $meta_assoc['record_type'] = $new_record_type;
     $ok = xml_assoc_array2file($meta_assoc, $metadata_file);
     if(!$ok) {
         $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::ERROR, "Could not write new record type to file ($metadata_file).", array(__FILE__), $asset);
@@ -164,7 +162,7 @@ $logger->log(EventType::RECORDER_UPLOAD_TO_EZCAST, LogLevel::CRITICAL, "Upload f
 exit(5);
 
 // checks whether we can send this data to the server
-function is_valid_cam_download_info($download_info, &$err_info) {
+function is_valid_cam_download_info($download_info, &$err_info = null) {
     global $logger;
     
     if(!file_exists($download_info["filename"]))
@@ -178,7 +176,7 @@ function is_valid_cam_download_info($download_info, &$err_info) {
 }
 
 // checks whether we can send this data to the server
-function is_valid_slide_download_info($download_info, &$err_info) {
+function is_valid_slide_download_info($download_info, &$err_info = null) {
     global $logger;
     
     if($download_info["filename"] == "")
