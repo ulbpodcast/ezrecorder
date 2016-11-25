@@ -118,7 +118,7 @@ function controller_recording_submit_infos() {
     file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
 
     // And finally we can display the main screen! This will init the recorders (blocking call)
-    view_record_screen();
+    view_init_record_screen();
 }
 
 /** Update record_type in metadata file according to allowed cam/slide
@@ -1064,19 +1064,14 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     return true;
 }
 
-/**
- * Displays the screen with "pause/resume", video feedback, etc.
- */
-function view_record_screen() {
-    global $logger;
+function view_init_record_screen() {
     global $session_module;
-    global $cam_enabled;
-    global $slide_enabled;
-    global $cam_management_enabled;
-    global $cam_management_module;
+    global $logger;
     global $php_cli_cmd;
     global $cli_timeout_monitoring;
-
+    global $cam_enabled;
+    global $slide_enabled;
+    
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $metadata = $fct_metadata_get();
     if($metadata == false) {
@@ -1106,7 +1101,7 @@ function view_record_screen() {
         $logger->log(EventType::TEST, LogLevel::INFO, 'view_record_screen, capture was already initiliazed', array(__FUNCTION__));
     }
 
-    // did something went wrong while initializing the recorders ?
+    // Update status, did something went wrong while initializing the recorders ?
     // if capture module launch failed, reset status and display an error box
     $status = status_get();
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
@@ -1115,16 +1110,10 @@ function view_record_screen() {
         return;
     }
     
-    // Then we set up some variables
-    if ($cam_management_enabled) {
-        $fct_cam_posnames_get = "cam_" . $cam_management_module . "_posnames_get";
-        $positions = $fct_cam_posnames_get(); // List of camera positions available (used in record_screen.php)
-    }
-    
     // launches the timeout monitoring process in background
     $errno = 0;
     $cmd = "$php_cli_cmd $cli_timeout_monitoring > /dev/null &";
-    exec($cmd, $output, $errno);
+    system($cmd, $errno);
     if($errno != 0) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Failed to start timeout monitoring. Return val: $errno. Cmd was $cmd", array(__FUNCTION__));
     }
@@ -1132,6 +1121,34 @@ function view_record_screen() {
     log_append("recording_init", "initiated recording by request (record_type: " .
             $metadata['record_type'] . " - cam module enabled : $cam_enabled - slide module enabled : $slide_enabled");
 
+    view_record_screen();
+}
+
+/**
+ * Displays the screen with "pause/resume", video feedback, etc.
+ */
+function view_record_screen() {
+    global $logger;
+    global $session_module;
+    global $cam_management_enabled;
+    global $cam_management_module;
+    
+    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
+    $metadata = $fct_metadata_get();
+    if($metadata == false) {
+        $logger->log(EventType::RECORDER_METADATA, LogLevel::WARNING, 'view_record_screen called but couldnt get metadata. Return to submit form', array(__FUNCTION__));
+        controller_view_record_form();
+        return;
+    }
+    
+    //get status of recording (from file)
+    $status = status_get();
+    
+    // Then we set up some variables
+    if ($cam_management_enabled) {
+        $fct_cam_posnames_get = "cam_" . $cam_management_module . "_posnames_get";
+        $positions = $fct_cam_posnames_get(); // List of camera positions available (used in record_screen.php)
+    }
     
     // view only variables
     //
