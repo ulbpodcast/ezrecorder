@@ -65,7 +65,7 @@ function streaming_init() {
     
     if ($start_low) {
         system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low > /dev/null &", $return_val_low);
-         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "PPPPPPP $php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low", array(__FUNCTION__));
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "PPPPPPP $php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low", array(__FUNCTION__));
     }
     
     if($return_val_high != 0 || $return_val_low != 0) {

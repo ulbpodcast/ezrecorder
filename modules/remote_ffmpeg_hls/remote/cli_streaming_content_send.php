@@ -6,7 +6,7 @@
  */
 require_once __DIR__.'/config.inc';
 require_once __DIR__.'/lib_tools.php';
-require_once '../../../global_config.inc';
+require_once __DIR__.'/../../../global_config.inc';
 require_once "$basedir/lib_various.php";
 require_once __DIR__.'/../info.php';
 

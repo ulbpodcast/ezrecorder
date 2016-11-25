@@ -54,6 +54,7 @@ class EventType {
     const MANAGER_ASSET_DELETE               = "manager_asset_delete";
     const MANAGER_ASSET_MOVE                 = "manager_asset_move";
     const MANAGER_STREAMING                  = "manager_streaming";
+    const MANAGER_BOOKMARKS                  = "manager_bookmarks";
     
     // EZRenderer
     
@@ -111,6 +112,7 @@ class EventType {
        EventType::MANAGER_ASSET_DELETE                       => 3006,
        EventType::MANAGER_ASSET_MOVE                         => 3007,
        EventType::MANAGER_STREAMING                          => 3008,
+       EventType::MANAGER_BOOKMARKS                          => 3009,
         
        // EZRenderer: 4000->4999
         
