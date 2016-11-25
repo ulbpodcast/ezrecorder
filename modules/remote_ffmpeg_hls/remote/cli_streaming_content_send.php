@@ -4,33 +4,47 @@
  *  This CLI script sends the TS segments for HLS video to EZmanager.
  * This script is called by capture_ffmpeg_init() in lib_capture.php
  */
-require_once 'config.inc';
-require_once 'lib_tools.php';
+require_once __DIR__.'/config.inc';
+require_once __DIR__.'/lib_tools.php';
 require_once '../../../global_config.inc';
 require_once "$basedir/lib_various.php";
-require_once 'info.php';
+require_once __DIR__.'/../info.php';
+
+Logger::$print_logs = true;
 
 if ($argc !== 4) {
     print "Expected 3 parameters (found ".($argc - 1).") " . PHP_EOL;
     print "<course> the mnemonic of the course to be streamed " . PHP_EOL;
-    print "<asset> Asset name" . PHP_EOL;
+    print "<asset_time> Asset time" . PHP_EOL;
     print "<quality> the quality of the stream (high | low) " . PHP_EOL;
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::WARNING, "Wrong arguments given: " . print_r($argv, true), array(basename(__FILE__)));
     exit(1);
 }
 
 
 $course = $argv[1];
-$asset = $argv[2];
+$asset_time = $argv[2];
 $quality = $argv[3];
 
+$asset = get_asset_name($course, $asset_time);
+
 $meta_assoc = xml_file2assoc_array($remoteffmpeg_streaming_info);
+if($meta_assoc == false) {
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::WARNING, "Could not read from file $remoteffmpeg_streaming_info, cannot start streaming" . print_r($argv, true), array("remote_ffmpeg_hls",basename(__FILE__)));
+    exit(2);
+}
+
 $post_array['course'] = $course;
-$post_array['asset'] = $asset;
+$post_array['asset'] = $asset_time;
 $post_array['quality'] = $quality;
 $post_array['record_type'] = $meta_assoc['record_type'];
 $post_array['module_type'] = $meta_assoc['module_type'];
 $post_array['protocol'] = $meta_assoc['protocol'];
 $post_array['action'] = 'streaming_content_add';
+
+$logger->log(EventType::RECORDER_STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array("remote_ffmpeg_hls", basename(__FILE__)));
+
+$start_time = time();
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
@@ -38,8 +52,9 @@ while (true) {
     $status = status_get();
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the status is not set (should be open / recording / paused / stopped)
-    if ($status == '') {
-        die;
+    if ($status == '' && time() > ($start_time + 5 * 60)) { //hackz, give it 5 minutes before stopping, status is not set at this point
+        $logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array("remote_ffmpeg_hls", basename(__FILE__)));
+        exit(0);
     }
 
     $m3u8_segment = (get_next($asset));
@@ -50,6 +65,10 @@ while (true) {
         if (strpos($result, 'Curl error') !== false) {
             // an error occured with CURL
             file_put_contents($remoteffmpeg_basedir . "/var/curl.log", "--------------------------" . PHP_EOL . date("h:i:s") . ": [${asset}_$album] curl error occured ($result)" . PHP_EOL, FILE_APPEND);
+            static $count = 0;
+            if($count % 10 == 0)
+                $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array("remote_ffmpeg_hls",basename(__FILE__)));
+            $count++;
         }
     }
 

@@ -31,33 +31,45 @@
  */
 require_once 'etc/config.inc';
 require_once $basedir . '/lib_various.php';
-require_once 'lib_capture.php';
-require_once 'info.php';
+require_once __DIR__.'/lib_capture.php';
+require_once __DIR__.'/info.php';
+
+Logger::$print_logs = true;
 
 // verifies that all required parameters are correctly set
 if ($argc !== 4) {
     print "Expected 3 parameters (found ".($argc - 1).") " . PHP_EOL;
     print "<course> the mnemonic of the course to be streamed " . PHP_EOL;
-    print "<asset> Asset name" . PHP_EOL;
+    print "<asset_time> Asset time" . PHP_EOL;
     print "<quality> the quality of the stream (high | low) " . PHP_EOL;
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::WARNING, "Wrong arguments given: " . print_r($argv, true), array(basename(__FILE__)));
     exit(1);
 }
 
 $course = $argv[1];
-$asset = $argv[2];
+$asset_time = $argv[2];
 $quality = $argv[3];
+
+$asset = get_asset_name($course, $asset_time);
 
 // gets needed information for streaming, from the module
 $meta_assoc = capture_ffmpeg_info_get('streaming', $asset);
+if($meta_assoc == false) {
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, "Could not start sending streaming content, ffmpeg module returned no info", array(basename(__FILE__)));
+    exit(2);
+}
+
 $post_array['course'] = $course;
-$post_array['asset'] = $asset;
+$post_array['asset'] = $asset_time;
 $post_array['quality'] = $quality;
 $post_array['record_type'] = $meta_assoc['record_type'];
 $post_array['module_type'] = $meta_assoc['module_type'];
 $post_array['protocol'] = $ffmpeg_streaming_protocol;
 $post_array['action'] = 'streaming_content_add';
 
-$logger->log(EventType::STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array(basename(__FILE__)));
+$logger->log(EventType::RECORDER_STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array(basename(__FILE__)));
+
+$start_time = time();
 
 // This is the main loop. Runs until the status is unset
 while (true) {
@@ -65,9 +77,9 @@ while (true) {
     $status = capture_ffmpeg_status_get();
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the status is not set (should be open / recording / paused / stopped)
-    if ($status == '') {
-        $logger->log(EventType::STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array(basename(__FILE__)));
-        die;
+    if ($status == '' && time() > ($start_time + 5 * 60)) { //hackz, give it 5 minutes before stopping, status is not set at this point
+        $logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array(basename(__FILE__)));
+        exit(0);
     }
 
     // retrieves the next .ts segment (handles server delays)
@@ -80,7 +92,10 @@ while (true) {
         if (strpos($result, 'Curl error') !== false) {
             // an error occured with CURL
             file_put_contents($basedir . "/var/curl.log", "--------------------------" . PHP_EOL . date("h:i:s") . ": [${asset}_$album] curl error occured ($result)" . PHP_EOL, FILE_APPEND);
-            $logger->log(EventType::STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)));
+            static $count = 0;
+            if($count % 10 == 0)
+                $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)));
+            $count++;
         }
     }
 
@@ -129,6 +144,7 @@ function get_next($asset) {
 
     $m3u8_file = "$ffmpeg_moviesdir/${ffmpeg_movie_name}_$file_index/$quality/$ffmpeg_movie_name.m3u8";
 
+    echo $m3u8_file .PHP_EOL;
     if (file_exists($m3u8_file)) {
         clearstatcache(false, $m3u8_file);
         // verifies that the m3u8 file has been modified

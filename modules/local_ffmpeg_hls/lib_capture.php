@@ -48,7 +48,8 @@ function init_streaming($asset, &$meta_assoc) {
     $post_array = $streaming_info;
     $post_array['action'] = 'streaming_init';
     $result = server_request_send($ezcast_submit_url, $post_array);
-
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, "Sent request for streaming with data " . print_r($post_array, true), array(__FUNCTION__), $asset);
+ 
     if (strpos($result, 'Curl error') !== false) {
         // an error occured with CURL
         $meta_assoc['streaming'] = 'false';
@@ -61,11 +62,17 @@ function init_streaming($asset, &$meta_assoc) {
     //not used $result = unserialize($result);
     // executes the command for sending TS segments to EZmanager in background
     // for low and high qualities
+    $return_val_high = 0;
+    $return_val_low = 0;
     if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
-        exec("$php_cli_cmd $ffmpeg_cli_streaming $course_name $asset high > /dev/null &");
+        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high > /dev/null &", $return_val_high);
     }
     if (strpos($ffmpeg_streaming_quality, 'low') !== false) {
-        exec("$php_cli_cmd $ffmpeg_cli_streaming $course_name $asset low > /dev/null &");
+        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " low > /dev/null &", $return_val_low);
+    }
+    if($return_val_high != 0 || $return_val_low != 0) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__), $asset);
+        return false;
     }
     
     return true;

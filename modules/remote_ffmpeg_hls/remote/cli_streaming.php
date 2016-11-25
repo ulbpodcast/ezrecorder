@@ -30,6 +30,7 @@ function streaming_init() {
     global $remoteffmpeg_streaming_info;
     global $remoteffmpeg_cli_streaming;
     global $php_cli_cmd;
+    global $logger;
     
     // init the streamed asset
     $post_array = xml_file2assoc_array($remoteffmpeg_streaming_info);
@@ -44,21 +45,43 @@ function streaming_init() {
     }
     $result = unserialize($result);
 
-    $album = $post_array['album'];
-    $asset = get_asset_name($post_array['asset'], $post_array['album']); //album or course name ?
+    $course = $post_array['course'];
+    $asset_time = $post_array['asset'];
     
     // executes the command for sending TS segments to EZmanager in background
     // for low and high qualities
-    if (strpos($post_array['module_quality'], 'high') !== false)
-        system("$php_cli_cmd $remoteffmpeg_cli_streaming $album $asset high > /dev/null &");    
-    if (strpos($post_array['module_quality'], 'low') !== false)
-        system("$php_cli_cmd $remoteffmpeg_cli_streaming $album $asset low > /dev/null &");
+    $return_val_high = 0;
+    $return_val_low = 0;
+    $start_high = (strpos($post_array['module_quality'], 'high') !== false);
+    $start_low = (strpos($post_array['module_quality'], 'low') !== false);
+    
+    if(!$start_high && !$start_low) {
+         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "No valid module quality found, overriding with low quality", array(__FUNCTION__));
+         $start_low = true;
+    }
+    
+    if ($start_high)
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time high > /dev/null &", $return_val_high);    
+    
+    if ($start_low) {
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low > /dev/null &", $return_val_low);
+         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "PPPPPPP $php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low", array(__FUNCTION__));
+    }
+    
+    if($return_val_high != 0 || $return_val_low != 0) {
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start at least one background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__));
+        return false;
+    }
+    
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Started background streaming processes for qualities: high $start_high | low $start_low ", array(__FUNCTION__));
+    
+    return true;
 }
 
 function streaming_close() {
     global $remoteffmpeg_streaming_info;
-    global $remoteffmpeg_cli_streaming;
-
+    global $logger;
+    
     // init the streamed asset
     $post_array = xml_file2assoc_array($remoteffmpeg_streaming_info);
     $post_array['action'] = 'streaming_close';
@@ -67,6 +90,8 @@ function streaming_close() {
     unlink($remoteffmpeg_streaming_info);
     if (strpos($result, 'Curl error') !== false) {
         // an error occured with CURL
+         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to close streaming. Curl returned: $result", array(__FUNCTION__));
+    
     }
     $result = unserialize($result);
 }

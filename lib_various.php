@@ -140,12 +140,8 @@ function xml_assoc_array2metadata($assoc_array) {
 function xml_file2assoc_array($meta_path) {
     $xml = simplexml_load_file($meta_path);
     if ($xml === false)
-    {
-        global $debug_mode;
-        if($debug_mode)
-            print_r(debug_backtrace());
         return false;
-    }
+    
     $assoc_array = array();
     foreach ($xml as $key => $value) {
         $assoc_array[$key] = (string) $value;
@@ -177,7 +173,7 @@ function server_request_send($server_url, $post_array) {
         return "Curl error. Http code: $http_code";
     }
     
-    $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array(__FUNCTION__));
+    //$logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::DEBUG, "server_request_send $server_url, result= $res", array(__FUNCTION__));
 
     //All went well send http response in stderr to be logged
     //fputs(STDERR, "curl result: $res", 2000);
