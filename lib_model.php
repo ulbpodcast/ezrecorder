@@ -463,7 +463,7 @@ function start_post_process($asset) {
     }
     
     $return_val = 0;
-    system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log &", $return_val);
+    system("$php_cli_cmd $cli_post_process $asset > $asset_dir/post_process.log 2>&1 &", $return_val);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "$cli_post_process returned error $return_val", array(__FUNCTION__), $asset);
         return false;
@@ -1112,7 +1112,7 @@ function view_init_record_screen() {
     
     // launches the timeout monitoring process in background
     $errno = 0;
-    $cmd = "$php_cli_cmd $cli_timeout_monitoring > /dev/null &";
+    $cmd = "$php_cli_cmd $cli_timeout_monitoring > /dev/null 2>&1 &";
     system($cmd, $errno);
     if($errno != 0) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Failed to start timeout monitoring. Return val: $errno. Cmd was $cmd", array(__FUNCTION__));

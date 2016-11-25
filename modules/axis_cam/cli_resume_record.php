@@ -62,5 +62,4 @@ file_put_contents($tmp_dir . "/_monitoring_log", "*     - Waited before resume: 
 file_put_contents($tmp_dir . "/_monitoring_log", "******************************************************" . PHP_EOL, FILE_APPEND);
 
 
-system("$php_cli_cmd $axiscam_cli_monitoring $asset ". $last_record ." > /dev/null &");
-?>
+system("$php_cli_cmd $axiscam_cli_monitoring $asset ". $last_record ." > 2>&1 /dev/null &");

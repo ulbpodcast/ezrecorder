@@ -172,7 +172,7 @@ global $php_cli_cmd;
 $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::DEBUG, "Call to $cli_upload", array(basename(__FILE__)), $asset);
 
 $return_val = 0;
-$cmd = "$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log";
+$cmd = "$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log 2>&1";
 system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Could not start upload ($cli_upload), cli returned $return_val. Command: $cmd", array(basename(__FILE__)), $asset);

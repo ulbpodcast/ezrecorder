@@ -8,6 +8,9 @@ require_once __DIR__.'/lib_tools.php';
 require_once __DIR__.'/config.inc';
 require_once __DIR__.'/../../../global_config.inc';
 require_once "$basedir/lib_various.php";
+require_once __DIR__."/../info.php";
+
+Logger::$print_logs = true;
 
 if ($argc !== 2) {
     print "Expected 1 parameter (found $argc) " . PHP_EOL;
@@ -48,6 +51,8 @@ function streaming_init() {
     $course = $post_array['course'];
     $asset_time = $post_array['asset'];
     
+    $asset = get_asset_name($course, $asset_time);
+    
     // executes the command for sending TS segments to EZmanager in background
     // for low and high qualities
     $return_val_high = 0;
@@ -56,24 +61,22 @@ function streaming_init() {
     $start_low = (strpos($post_array['module_quality'], 'low') !== false);
     
     if(!$start_high && !$start_low) {
-         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "No valid module quality found, overriding with low quality", array(__FUNCTION__));
+         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "No valid module quality found, overriding with low quality", array(__FUNCTION__), $asset);
          $start_low = true;
     }
     
     if ($start_high)
-        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time high > /dev/null &", $return_val_high);    
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time high > /dev/null 2>&1 &", $return_val_high);    
     
-    if ($start_low) {
-        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low > /dev/null &", $return_val_low);
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "PPPPPPP $php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low", array(__FUNCTION__));
-    }
+    if ($start_low)
+        system("$php_cli_cmd $remoteffmpeg_cli_streaming $course $asset_time low > /dev/null 2>&1 &", $return_val_low);
     
     if($return_val_high != 0 || $return_val_low != 0) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start at least one background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__));
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start at least one background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__), $asset);
         return false;
     }
     
-    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Started background streaming processes for qualities: high $start_high | low $start_low ", array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Started background streaming processes for qualities: high $start_high | low $start_low ", array(__FUNCTION__), $asset);
     
     return true;
 }
