@@ -198,7 +198,7 @@ function controller_recording_start() {
     $status = status_get();
     if ($status != 'open') {
         error_print_message("capture_start: error status ($status): status not 'open'");
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "(action recording_start) Could not start recording because of status '$status'", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "(action recording_start) Could not start recording because of status '$status'", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -211,7 +211,7 @@ function controller_recording_start() {
 
     $asset_dir = get_asset_dir($asset, "local_processing");
     if (!file_exists($asset_dir)) {
-        $logger->log(EventType::RECORDER_START, LogLevel::INFO, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
         return false;
     }
     

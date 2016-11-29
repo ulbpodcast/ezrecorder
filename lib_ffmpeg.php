@@ -8,16 +8,16 @@
 require_once("global_config.inc");
 require_once("lib_various.php");
 
-function create_parts_list($dir, $list_file) {
+function get_ordered_video_files($dir) {
     global $logger;
     
     $video_files = array();
     $count = 1;
-    $video_file = getcwd()."/$dir/ffmpegmovie".$count.".ts";
+    $video_file = "$dir/ffmpegmovie".$count.".ts";
     while(file_exists($video_file)) {
         array_push($video_files, $video_file);
         $count++;
-        $video_file = getcwd()."/$dir/ffmpegmovie".$count.".ts";
+        $video_file = "$dir/ffmpegmovie".$count.".ts";
     }
 
     if(empty($video_files)) {
@@ -25,11 +25,65 @@ function create_parts_list($dir, $list_file) {
         return false;
     }
 
+    return $video_files;
+}
+
+function create_parts_list($dir, $list_file) {
+    global $logger;
+    
+    $video_files = get_ordered_video_files(getcwd().$dir);
+    if($video_files === false) 
+        return false;
+    
     if(file_exists($list_file))
         unlink($list_file);
 
     foreach($video_files as $video_file) {
         file_put_contents($list_file, "file '$video_file'" . PHP_EOL, FILE_APPEND);
+    }
+    return true;
+}
+
+//try to merge file using .m3u8 file. Return success.
+function merge_method_m3u8($m3u8_file, $out_file, $maxtime = null) {
+    global $ffmpeg_cli_cmd;
+    global $logger;
+    
+    $cmd = "$ffmpeg_cli_cmd -i $m3u8_file -c copy -bsf:a aac_adtstoasc -y $out_file";
+    if($maxtime !== null)
+        $cmd = "timeout $maxtime $cmd";
+    
+    $return_val = 0;
+    $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array(__FUNCTION__));
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Join command method 1 failed, last command: $cmd", array(__FUNCTION__));
+        return false;
+    }
+    return true;
+}
+
+//fallback merge method, just concat the files together. This leads to some audio stuterring.
+function merge_method_fallback($video_dir, $out_file) {
+    global $logger;
+    global $ffmpeg_cli_cmd;
+    
+    // -- Create list file for ffmpeg concat - cant use scandir else we get wrong parts order, such as 1 10 100 2 ...
+    $tmpdir = dirname($out_file);
+    $list_file = "$tmpdir/filelist.txt";
+    $ok = create_parts_list($video_dir, $list_file);
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "File listing failed", array(__FUNCTION__));
+        return false;
+    }
+    // --
+
+    $cmd = "$ffmpeg_cli_cmd -safe 0 -f concat -i $list_file -c copy -bsf:a aac_adtstoasc -y $out_file";
+    $return_val = 0;
+    system($cmd, $return_val);
+    if($return_val != 0) {
+        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Join command fallback method failed, last command: $cmd", array(__FUNCTION__));
+        return false;
     }
     return true;
 }
@@ -72,35 +126,19 @@ function movie_join_parts($movies_path, $commonpart, $output) {
             return "no .m3u8 file found at i = $i";
         }
         
-        // -- Create list file for ffmpeg concat - cant use scandir else we get wrong parts order, such as 1 10 100 2 ...
         $dir = "${commonpart}_$i/$quality/";
-        $list_file = "$tmpdir/filelist.txt";
-        $ok = create_parts_list($dir, $list_file);
-        if(!$ok) {
-            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "File listing failed", array(__FUNCTION__));
-            return false;
-        }
-        // --
-        
-        $cmd = "$ffmpeg_cli_cmd -safe 0 -f concat -i $list_file -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
-        /*
-        if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
-            $quality = "high";
-        } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
-            $quality = "low";
-        } else {
-            return "no .m3u8 file found at i = $i";
-        }
-        $cmd = "$ffmpeg_cli_cmd -i $movies_path/${commonpart}_$i/$quality/$commonpart.m3u8 -c copy -bsf:a aac_adtstoasc -y $tmpdir/part$i.mov";
-         * 
+        /* The m3u8 method is the "normal" method but in some case freeze ffmpeg in our experience, so we use a fallback method in those case.
+         * This second method cause some audio stuterring, so it should be avoided if possible
          */
-        $return_val = 0;
-        $cmd_output = "";
-        $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array("merge_movies"));
-        system($cmd, $return_val);
-        if($return_val != 0) {
-            return "Join command failed, last command: $cmd " .PHP_EOL."Result: " . print_r($cmd_output, true);
+        $success = merge_method_m3u8("$tmpdir/$commonpart.m3u8", "$tmpdir/part$i.mov", 30 * 60); //give it 30 minutes max to merge
+        if(!$success) {
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Normal merge method failed, trying fallback method", array(__FUNCTION__));
+            $success = merge_method_fallback($dir, "$tmpdir/part$i.mov");
         }
+        
+        if(!$success)
+            return "Merge failure";
+        
     }
 
     //if we got more than one movie (means there were relaunches), merge them, else we're done
