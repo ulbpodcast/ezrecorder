@@ -542,7 +542,7 @@ function capture_ffmpeg_info_get($action, $asset = '') {
     
     switch ($action) {
         case 'download':
-            $filename = get_asset_dir($asset, 'upload') . "/cam.mov";
+            $filename = get_asset_dir($asset) . "/cam.mov";
             if(!file_exists($filename)) {
                 $logger->log(EventType::RECORDER_INFO_GET, LogLevel::DEBUG, "info_get: download: No camera file found, no info to give. File: $filename.", array(__FUNCTION__), $asset);
                 return false; //invalid file
