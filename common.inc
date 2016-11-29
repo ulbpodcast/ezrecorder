@@ -28,6 +28,9 @@ $recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";
 $nopic_file = "$basedir/nopic.jpg";
 $modules_basedir = "$basedir/modules/";
 
+//portable script to emulate "timeout" behavior
+$timeout_script = "$basdir/timeout.sh";
+
 // cli script for  uploading to server
 $cli_upload = "$basedir/cli_upload_to_server.php";
 // cli script for recording processing. Auto start $cli_upload afterwards

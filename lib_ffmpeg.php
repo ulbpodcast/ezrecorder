@@ -48,10 +48,11 @@ function create_parts_list($dir, $list_file) {
 function merge_method_m3u8($m3u8_file, $out_file, $maxtime = null) {
     global $ffmpeg_cli_cmd;
     global $logger;
+    global $timeout_script;
     
     $cmd = "$ffmpeg_cli_cmd -i $m3u8_file -c copy -bsf:a aac_adtstoasc -y $out_file";
     if($maxtime !== null)
-        $cmd = "timeout $maxtime $cmd";
+        $cmd = "$timeout_script $maxtime $cmd";
     
     $return_val = 0;
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array(__FUNCTION__));
@@ -130,7 +131,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         /* The m3u8 method is the "normal" method but in some case freeze ffmpeg in our experience, so we use a fallback method in those case.
          * This second method cause some audio stuterring, so it should be avoided if possible
          */
-        $success = merge_method_m3u8("$tmpdir/$commonpart.m3u8", "$tmpdir/part$i.mov", 30 * 60); //give it 30 minutes max to merge
+        $success = merge_method_m3u8("$dir/$commonpart.m3u8", "$tmpdir/part$i.mov", 30 * 60); //give it 30 minutes max to merge
         if(!$success) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Normal merge method failed, trying fallback method", array(__FUNCTION__));
             $success = merge_method_fallback($dir, "$tmpdir/part$i.mov");
