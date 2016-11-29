@@ -1,30 +1,5 @@
 <?php
 
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 /**
  *  This CLI script sends the TS segments for HLS video to EZmanager.
  * This script is called by capture_ffmpeg_init() in lib_capture.php
@@ -55,7 +30,7 @@ $asset = get_asset_name($course, $asset_time);
 // gets needed information for streaming, from the module
 $meta_assoc = capture_ffmpeg_info_get('streaming', $asset);
 if($meta_assoc == false) {
-    $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, "Could not start sending streaming content, ffmpeg module returned no info", array(basename(__FILE__)));
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, "Could not start sending streaming content, ffmpeg module returned no info", array(basename(__FILE__)), $asset);
     exit(2);
 }
 
@@ -67,7 +42,7 @@ $post_array['module_type'] = $meta_assoc['module_type'];
 $post_array['protocol'] = $ffmpeg_streaming_protocol;
 $post_array['action'] = 'streaming_content_add';
 
-$logger->log(EventType::RECORDER_STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array(basename(__FILE__)));
+$logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Started streaming with infos: " . print_r($post_array, true), array(basename(__FILE__)), $asset);
 
 $start_time = time();
 
@@ -78,7 +53,7 @@ while (true) {
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the status is not set (should be open / recording / paused / stopped)
     if ($status == '' && time() > ($start_time + 5 * 60)) { //hackz, give it 5 minutes before stopping, status is not set at this point
-        $logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array(basename(__FILE__)));
+        $logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Streaming stopped because ffmpeg module status is empty", array(basename(__FILE__)), $asset);
         exit(0);
     }
 
@@ -94,7 +69,7 @@ while (true) {
             file_put_contents($basedir . "/var/curl.log", "--------------------------" . PHP_EOL . date("h:i:s") . ": [${asset}_$album] curl error occured ($result)" . PHP_EOL, FILE_APPEND);
             static $count = 0;
             if($count % 10 == 0)
-                $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)));
+                $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)), $asset);
             $count++;
         }
     }

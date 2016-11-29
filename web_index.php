@@ -55,6 +55,9 @@ if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
     $session = explode(';', file_get_contents($recorder_session));
     if ($_SESSION['user_login'] == $session[1]) {
         $_SESSION['asset'] = $session[0];
+        $logger->log(EventType::TEST, LogLevel::INFO, 'Restored asset into session from session file. User: ' . $_SESSION['user_login'], array('controller'));
+    } else {
+        $logger->log(EventType::TEST, LogLevel::ERROR, 'Could not restore asset for user ' . $_SESSION['user_login'] . '. Current user did not match with the one in session file.', array('controller'));
     }
 }
 
@@ -136,7 +139,7 @@ switch ($action) {
     // At this point of the code, we know the user is logged in, but for some reason they didn't provide an action.
     // That means they manually reloaded the page. In this case, we bring them back from where they came.
     default:
-        $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session', array('controller'));
+        $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session. User: ' . $_SESSION['user_login'], array('controller'));
         reconnect_active_session();
 }
 
