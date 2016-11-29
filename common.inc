@@ -29,7 +29,7 @@ $nopic_file = "$basedir/nopic.jpg";
 $modules_basedir = "$basedir/modules/";
 
 //portable script to emulate "timeout" behavior
-$timeout_script = "$basdir/timeout.sh";
+$timeout_script = "$basedir/timeout.sh";
 
 // cli script for  uploading to server
 $cli_upload = "$basedir/cli_upload_to_server.php";
