@@ -61,7 +61,9 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console
 $send_debug_logs_to_server = false; //by default, events of type debug are not sent to ezcast
-   
+
+$enable_vu_meter = true;
+
 global $in_install;
 //load static variables
 if(!isset($in_install)) {

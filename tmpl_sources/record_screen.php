@@ -24,101 +24,6 @@
         <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
         <script type="text/javascript" src="js/footer.js"></script>
-        <script type="text/javascript">
-            function offline_alert() {
-                window.alert("®offline_from_podc®");
-            }
-            function recording_start() {
-                $.ajax({
-                    type: 'GET',
-                    url: "index.php?action=recording_start",
-                    cache: false,
-                    timeout: 10000,
-                    error: offline_alert,
-                    success: function (html) {
-                        if (html) { // Everything went fine
-                            document.getElementById('BoutonCancel').style.display = 'none';
-                            MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');
-                            window.location = 'index.php';
-                        }
-                        else {
-                            offline_alert();
-                            location.reload();
-                        }
-                    }
-                }
-                );
-                //      makeRequest('index.php', '?action=recording_start', 'errorBox');
-            }
-
-            function recording_pause() {
-                $.ajax({
-                    type: 'GET',
-                    url: "index.php?action=recording_pause",
-                    cache: false,
-                    timeout: 10000,
-                    error: offline_alert,
-                    success: function (html) {
-                        if (html) {  // Everything went fine
-                            MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');
-                        }
-                        else {
-                            offline_alert();
-                            location.reload();
-                        }
-                    }
-                }
-                );
-                //    makeRequest('index.php', '?action=recording_pause', 'errorBox');
-            }
-
-            function recording_resume() {
-                $.ajax({
-                    type: 'GET',
-                    url: "index.php?action=recording_resume",
-                    cache: false,
-                    timeout: 10000,
-                    error: offline_alert,
-                    success: function (html) {
-                        if (html) { // Everything went fine
-                            MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');
-                        }
-                        else {
-                            offline_alert()
-                            location.reload();
-                        }
-                    }
-                }
-                );
-                //    makeRequest('index.php', '?action=recording_resume', 'errorBox');
-            }
-
-            function recording_stop() {
-                if(window.confirm('®Stop_recording®')) {
-                    $.ajax({
-                        type: 'GET',
-                        url: "index.php?action=view_press_stop",
-                        cache: false,
-                        timeout: 15000,
-                        error: offline_alert,
-                        success: function (html) {
-                            if (html) {  // Everything went fine
-                                $('html').html(html);
-                            }
-                            else {
-                                offline_alert()
-                                location.reload();
-                            }
-                        }
-                    }
-                    );
-                }
-            }
-
-            function move_camera(posname) {
-                makeRequest('index.php', '?action=camera_move&position=' + posname, 'errorBox');
-            }
-        </script>
     </head>
 
     <body onload="MM_preloadImages('images/page3/BsupEnr.png', 'images/page3/BpubEnr.png', 'images/page3/BpubDEnr.png', 'images/page2/BDemEnrg.png', 'images/page2/BStopEnr.png', 'images/page2/BPauseEnr.png', 'images/page2/BReprendreEnr.png')">
@@ -127,37 +32,34 @@
             <?php include 'div_main_header.php'; ?>
             <div id="global2">
                 <div id="global3">
-                    <!-- ERROR MESSAGE -->
                     <div id="errorBox" style="color: red; padding: 10px;"></div>
-                    <!-- ERROR MESSAGE FIN -->
 
-                    <!-- Plan Quicktime video+Slides etc... -->
+                    <!-- Display div -->
                     <div style="text-align: center; height: 180px;">
                         <?php if ($has_camera) {
                             ?>
-                            <iframe id ="cam_frame" src="index.php?action=view_screenshot_iframe&amp;source=cam" width="255px" height="178px" scrolling="false" frameborder="0"><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
-                            <?php
+                            <!-- generate blank img -->
+                            <img id="cam_frame" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" height="157px" width="255px" border="0" alt="cam preview"/>
+                        <?php
                         }
 
                         if ($has_slides) {
-                            ?>
-                            <iframe id ="slide_frame" src="index.php?action=view_screenshot_iframe&amp;source=slides" width="255px" height="178px" scrolling="false" style="overflow:hidden;" frameborder="0"q><img src="nopic.jpg" alt="®Iframes_unsupported®" /></iframe>
-                            <?php
+                        ?>
+                            <!-- generate blank img -->
+                            <img id="slides_frame" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" height="157px" width="255px" border="0" alt="slide preview"/>
+                        <?php
                         }
                         ?>
+                        <!-- Stay hidden until first successful update -->
+                        <canvas hidden style="position: relative; border: black 1px solid" id="meter" width="15" height="156"></canvas>
                     </div>
-                    <!-- <div id="camera">
-                    </div> -->
-                    <!-- Plan Quicktime video+Slides etc... [FIN] -->
-
+                
+                    <!-- Controls div -->
                     <div id="boutonEnregistrement">
-                        <!-- RECORD BUTTON PLAY / PAUSE / STOP -->
                         <div id="id1" <?php if ($redraw && $already_recording) echo 'style="display: none;"'; ?>>
                             <a href="javascript:recording_start();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page2/BDemEnrg.png', 1)"><img src="images/page2/ADemEnrg.png" name="Image2" title="®Start_recording®" border="0" id="Image2" />®Start_recording®</a>
                         </div>
-                        <!-- RECORD BUTTON PLAY / PAUSE / STOP [END] -->
 
-                        <!-- CAMERA BUTTON + PLAN -->
                         <?php if ($cam_management_enabled && (!isset($_SESSION['recorder_type']) || $_SESSION['recorder_type'] != 'slide')) {
                             ?>
                             <div id='btnScenes' class="PlanCamera">
@@ -187,7 +89,7 @@
                     </div>
                 </div>
 
-                <!-- Camera position bloc -->
+                <!-- Camera position bloc (hidden at load) -->
                 <?php if ($cam_management_enabled) {
                     ?>
                     <div id="divid5" style="display:none;">
@@ -216,7 +118,6 @@
                     <?php
                 }
                 ?>
-                <!-- Camera position bloc [Fin] -->
 
                 <!-- CANCEL BUTTON -->
                 <?php
@@ -228,13 +129,171 @@
                     <?php
                 }
                 ?>
-                <!-- CANCEL BUTTON FIN -->
             </div>
 
-            <!-- FOOTER - INFOS COPYRIGHT -->
             <?php include 'div_main_footer.php'; ?>
-            <!-- FOOTER - INFOS COPYRIGHT [FIN] -->
-
         </div>
+        
+        <script type="text/javascript">
+         function offline_alert() {
+             window.alert("®offline_from_podc®");
+         }
+         function recording_start() {
+             $.ajax({
+                 type: 'GET',
+                 url: "index.php?action=recording_start",
+                 cache: false,
+                 timeout: 10000,
+                 error: offline_alert,
+                 success: function (html) {
+                     if (html) { // Everything went fine
+                         document.getElementById('BoutonCancel').style.display = 'none';
+                         MM_DisplayHideLayers('id1', '', 'hide', 'id2', '', 'show');
+                         window.location = 'index.php';
+                     }
+                     else {
+                         offline_alert();
+                         location.reload();
+                     }
+                 }
+             }
+             );
+         }
+
+         function recording_pause() {
+             $.ajax({
+                 type: 'GET',
+                 url: "index.php?action=recording_pause",
+                 cache: false,
+                 timeout: 10000,
+                 error: offline_alert,
+                 success: function (html) {
+                     if (html) {  // Everything went fine
+                         MM_DisplayHideLayers('id3', '', 'hide', 'id4', '', 'show');
+                     }
+                     else {
+                         offline_alert();
+                         location.reload();
+                     }
+                 }
+             }
+             );
+         }
+
+         function recording_resume() {
+             $.ajax({
+                 type: 'GET',
+                 url: "index.php?action=recording_resume",
+                 cache: false,
+                 timeout: 10000,
+                 error: offline_alert,
+                 success: function (html) {
+                     if (html) { // Everything went fine
+                         MM_DisplayHideLayers('id3', '', 'show', 'id4', '', 'hide');
+                     }
+                     else {
+                         offline_alert()
+                         location.reload();
+                     }
+                 }
+             }
+             );
+         }
+
+         function recording_stop() {
+             if(window.confirm('®Stop_recording®')) {
+                 $.ajax({
+                     type: 'GET',
+                     url: "index.php?action=view_press_stop",
+                     cache: false,
+                     timeout: 15000,
+                     error: offline_alert,
+                     success: function (html) {
+                         if (html) {  // Everything went fine
+                             $('html').html(html);
+                         }
+                         else {
+                             offline_alert()
+                             location.reload();
+                         }
+                     }
+                 }
+                 );
+             }
+         }
+
+         function update_sound_status() {
+             $.ajax({
+                 type: 'GET',
+                 url: "index.php?action=view_sound_status",
+                 cache: false,
+                 timeout: 5000,
+                 success: function (db) {
+                     if (db) { // Everything went fine
+                        $("#meter").show();
+                        set_vu_level(db);
+                     }
+                 }
+             }
+             );
+         }
+
+         function move_camera(posname) {
+             makeRequest('index.php', '?action=camera_move&position=' + posname, 'errorBox');
+         }
+
+         function init_vu_meter() {
+              var canvas = document.querySelector('#meter');
+             var ctx = canvas.getContext('2d');
+             var w = canvas.width;
+             var h = canvas.height;
+
+             //fill the canvas first
+             ctx.fillStyle = '#555';
+             ctx.fillRect(0,0,w,h);
+         }
+
+         function set_vu_level(db) {
+             var canvas = document.querySelector('#meter');
+             var ctx = canvas.getContext('2d');
+             var w = canvas.width;
+             var h = canvas.height;
+
+             var grad = ctx.createLinearGradient(w/10,h*0.2,w/10,h*0.95);
+             grad.addColorStop(0,'#990000'); //red
+             grad.addColorStop(-6/-72,'#ffcc00'); //yellow
+             grad.addColorStop(1,'#009900'); //green
+             //fill the background
+             ctx.fillStyle = '#555';
+             ctx.fillRect(0,0,w,h);
+             ctx.fillStyle = grad;
+             //draw the rectangle
+             ctx.fillRect(w/10,h*0.8*(db/-72),w*8/10,(h*0.99)-h*0.8*(db/-72));
+         }
+
+         function refresh_preview(source_type) {
+             var img_element = document.getElementById(source_type + '_frame');
+             img_element.src = 'index.php?action=view_screenshot_image&source=' + source_type + '&rand=' + Math.random();
+         }
+
+
+
+        init_vu_meter();
+        
+        <?php if($enable_vu_meter) { ?>
+        setInterval(function() {
+            update_sound_status();
+        }, 1500);
+        <?php } ?>
+
+        setInterval(function() {
+             refresh_preview("cam");
+             refresh_preview("slides");
+        }, 2000);
+
+         //also fetch first images immediately
+        refresh_preview("cam");
+        refresh_preview("slides"); 
+     </script>
     </body>
 </html>

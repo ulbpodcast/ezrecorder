@@ -23,6 +23,34 @@
         <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
         <script type="text/javascript" src="js/footer.js"></script>
+    </head>
+
+    <body onload="MM_preloadImages('images/page3/BsupEnr.png', 'images/page3/BpubEnr.png', 'images/page3/BpubDEnr.png', 'images/loading.gif')">
+        <div class="container">
+            <?php include 'div_main_header.php'; ?>
+            <div id="global">
+
+                <!-- Error msg if any-->
+                <div id="errorBox" style="color: red; padding: 10px;"></div>
+
+                <!-- Buttons : delete, publish in private, publish in public album -->
+                <div id="troisbouton">
+                    <a id="btnCancel" href="javascript:cancel();" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page3/BsupEnr.png', 1)"><img src="images/page3/AsupEnr.png" name="Image2" title="®Delete_record®" width="128" border="0" id="Image2" />®Delete_record®</a>
+                    <a id="btnPriv" href="javascript:stop_and_publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page3/BpubEnr.png', 1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
+                    <a id="btnPub" href="javascript:stop_and_publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page3/BpubDEnr.png', 1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
+                </div>
+            </div>  
+
+            <?php include 'div_main_footer.php'; ?>
+        </div>
+
+        <div style="display: none;">
+            <div class="popup" id="loading_popup">
+                <img src="images/loading.gif" />
+            </div>
+        </div>
+        
+        
         <script type="text/javascript">
             $(document).ready(function () {
                 $.colorbox.remove();
@@ -55,36 +83,6 @@
                 //$.colorbox({inline: true, href: '#loading_popup', overlayClose: false});
             }
         </script>
-    </head>
-
-    <body onload="MM_preloadImages('images/page3/BsupEnr.png', 'images/page3/BpubEnr.png', 'images/page3/BpubDEnr.png', 'images/loading.gif')">
-        <div class="container">
-            <?php include 'div_main_header.php'; ?>
-            <div id="global">
-
-                <!-- Eventuel message d'erreur -->
-                <div id="errorBox" style="color: red; padding: 10px;"></div>
-                <!-- Message d'erreur FIN -->
-
-                <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT -->
-                <div id="troisbouton">
-                    <a id="btnCancel" href="javascript:cancel();" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image2', '', 'images/page3/BsupEnr.png', 1)"><img src="images/page3/AsupEnr.png" name="Image2" title="®Delete_record®" width="128" border="0" id="Image2" />®Delete_record®</a>
-                    <a id="btnPriv" href="javascript:stop_and_publish('true');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image3', '', 'images/page3/BpubEnr.png', 1)"><img src="images/page3/ApubEnr.png" name="Image3" title="®Publish_in_private_album®" width="128" border="0" id="Image3" />®Publish_in_private_album®</a> 
-                    <a id="btnPub" href="javascript:stop_and_publish('false');" onclick="loading_popup();" onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('Image4', '', 'images/page3/BpubDEnr.png', 1)"><img src="images/page3/ApubDEnr.png" name="Image4" title="®Publish_in_public_album®" width="128" border="0" id="Image4" />®Publish_in_public_album®</a>
-                </div>
-            </div>  
-            <!-- TROIS BOUTONS  SUPPRIMER / PUBLIER PLUS TARD / PUBLIER DIRECTEMENT [FIN] -->
-
-            <!-- FOOTER - INFOS COPYRIGHT -->
-            <?php include 'div_main_footer.php'; ?>
-
-            <!-- FOOTER - INFOS COPYRIGHT [FIN] -->
-        </div>
-
-        <div style="display: none;">
-            <div class="popup" id="loading_popup">
-                <img src="images/loading.gif" />
-            </div>
-        </div>
+        
     </body>
 </html>

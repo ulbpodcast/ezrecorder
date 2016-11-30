@@ -81,13 +81,23 @@ switch ($action) {
 
     // Displays the screenshot iframe for visual feedback
     case 'view_screenshot_iframe':
+        global $service;
+        $service = true;
         controller_view_screenshot_iframe();
         break;
 
     case 'view_screenshot_image':
+        global $service;
+        $service = true;
         controller_view_screenshot_image();
         break;
 
+    case 'view_sound_status':
+        global $service;
+        $service = true;
+        controller_view_sound_status();
+        break;
+    
     case 'view_login_form':
         controller_view_login_form();
         break;

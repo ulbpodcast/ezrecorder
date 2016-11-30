@@ -42,7 +42,7 @@ $post_array['module_type'] = $meta_assoc['module_type'];
 $post_array['protocol'] = $meta_assoc['protocol'];
 $post_array['action'] = 'streaming_content_add';
 
-$logger->log(EventType::RECORDER_STREAMING, LogLevel::NOTICE, "Started streaming with infos: " . print_r($post_array, true), array("remote_ffmpeg_hls", basename(__FILE__)));
+$logger->log(EventType::RECORDER_STREAMING, LogLevel::DEBUG, "Started streaming with infos: " . print_r($post_array, true), array("remote_ffmpeg_hls", basename(__FILE__)));
 
 $start_time = time();
 

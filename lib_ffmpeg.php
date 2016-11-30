@@ -369,3 +369,71 @@ function ffmpeg_get_cutlist_file($module_name, $asset) {
     
     return "$folder/_cut_list.txt";
 }
+
+//return extraction success
+function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume) {
+    foreach($output as $line) {
+        $part = strstr($line, "mean_volume:");
+        if($part == false)
+            continue;
+
+        $mean_volume = filter_var($part, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        break;
+    }
+    
+     foreach($output as $line) {
+        $part = strstr($line, "max_volume:");
+        if($part == false)
+            continue;
+
+        $max_volume = filter_var($part, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        break;
+    }
+}
+
+//move this to a common defines file?
+class FileSoundInfo {
+    public $max_volume = -999.0; //dummy value
+    public $mean_volume = -999.0;
+}
+
+//return FileSoundInfo or false on failure
+function volume_info_from_file($filename, $time_from = null, $time_to = null) {
+    global $ffmpeg_cli_cmd;
+    global $logger;
+    
+    $from_str = $time_from !== null ? "-ss $time_from" : "";
+    $to_str = $time_to !== null ? "-to $time_to" : "";
+    $cmd = "$ffmpeg_cli_cmd -i $filename $from_str $to_str -af 'volumedetect' -f null /dev/null 2>&1";
+    $returncode = 0;
+    $cmdoutput = "";
+    exec($cmd, $cmdoutput, $returncode);
+    if($returncode != 0) {
+        $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
+        return false;
+    }
+
+   //extract mean volume from output
+    $mean_volume = -1.0;
+    $max_volume = -1.0;
+    $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $mean_volume, $max_volume);
+    if($ok === false)
+        return false;
+    
+    $sound_info = new FileSoundInfo();
+    $sound_info->max_volume = $max_volume;
+    $sound_info->mean_volume = $mean_volume;
+    
+    return $sound_info;
+}
+
+//return mean volume for the last second, or false on failure
+function sound_info_get_current() {
+    global $cam_module;
+    global $cam_enabled;
+    
+    if(!$cam_enabled || $cam_module != "ffmpeg")
+        return false;
+    
+    return capture_ffmpeg_get_current_sound();
+}
