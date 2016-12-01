@@ -31,7 +31,7 @@ function get_ordered_video_files($dir) {
 function create_parts_list($dir, $list_file) {
     global $logger;
     
-    $video_files = get_ordered_video_files(getcwd().$dir);
+    $video_files = get_ordered_video_files($dir);
     if($video_files === false) 
         return false;
     
@@ -127,7 +127,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
             return "no .m3u8 file found at i = $i";
         }
         
-        $dir = "${commonpart}_$i/$quality/";
+        $dir = "$movies_path/${commonpart}_$i/$quality/";
         /* The m3u8 method is the "normal" method but in some case freeze ffmpeg in our experience, so we use a fallback method in those case.
          * This second method cause some audio stuterring, so it should be avoided if possible
          */

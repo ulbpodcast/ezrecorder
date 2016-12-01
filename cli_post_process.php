@@ -98,7 +98,7 @@ if(!$cam_pid && !$slide_pid) {
 }
 
 $init_time = time();
-$timeout = 14400; //timeout after 4 hours
+$timeout = 4 * 60 * 60; //timeout after 4 hours
 
 // wait for local processing to finish
 while ( ($cam_pid && is_process_running($cam_pid)) || ($slide_pid && is_process_running($slide_pid)) ) {

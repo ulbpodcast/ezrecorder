@@ -270,7 +270,7 @@ function capture_ffmpeg_pause_resume($action, $asset) {
         return false;
     }
     
-    $set_status = $pause ? 'paused' : 'recording';
+    $set_status = $pause ? 'paused' : 'resumed';
     capture_ffmpeg_status_set($set_status);
     capture_ffmpeg_recstatus_set($set_status);
     $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
