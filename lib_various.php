@@ -106,7 +106,7 @@ function xml_assoc_array2file($assoc_array, $metadata_file) {
     $xml_txt = xml_assoc_array2metadata($assoc_array);
     $result = file_put_contents($metadata_file, $xml_txt);
     if($result == false) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array("xml_assoc_array2file"));
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Couldn't write metadata file $metadata_file: $xml_txt", array(__FUNCTION__));
         return false;
     }
 
@@ -279,7 +279,7 @@ function create_working_dir($dir) {
         if($ok)
             chmod($dir, 0777);
         else
-            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, __FUNCTION__.": Failed to create dir $dir");
+            $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Failed to create dir $dir", array(__FUNCTION__));
     }
     return $ok;
 }
@@ -292,7 +292,7 @@ function create_module_working_folders($module_name, $asset) {
     $ok = create_working_dir($dir);
     
     if(!$ok) {
-        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, __FUNCTION__.": Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Error while creating ffmpeg working folders (probably permissions). Main folder: $dir", array(__FUNCTION__), $asset);
     }
     return $ok;
 }
@@ -442,29 +442,29 @@ function move_asset($asset, $target, $move_on_remote = false) {
     
     $valid_targets = array("local_processing", "upload_to_server", "upload_ok");
     if(!in_array($target, $valid_targets)) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, 'Invalid target folder give', array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, 'Invalid target folder give', array(__FUNCTION__), $asset);
         return false;
     }
 
     $current_dir = get_asset_dir($asset);
     if(!file_exists($current_dir)) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not find asset dir for asset $asset", array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Could not find asset dir for asset $asset", array(__FUNCTION__), $asset);
         return false;
     }
 
     $target_dir = get_asset_dir($asset, $target);
     if($current_dir == $target_dir) {
-        $logger->log(EventType::TEST, LogLevel::DEBUG, "Asset is already in target directory $target, nothing to do", array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::DEBUG, "Asset is already in target directory $target, nothing to do", array(__FUNCTION__), $asset);
         return true;
     }
 
     $ok = rename($current_dir, $target_dir);
     if(!$ok) {
-        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not move asset folder from $current_dir to $target_dir dir", array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::CRITICAL, "Could not move asset folder from $current_dir to $target_dir dir", array(__FUNCTION__), $asset);
         return false;
     }
 
-    $logger->log(EventType::TEST, LogLevel::INFO, "Local asset moved from $current_dir to $target_dir dir", array(__FILE__), $asset);
+    $logger->log(EventType::TEST, LogLevel::INFO, "Local asset moved from $current_dir to $target_dir dir", array(__FUNCTION__), $asset);
     
     if($slide_enabled && $move_on_remote) { //move only if remote exists
         return move_remote_asset($asset, $target);
@@ -485,9 +485,9 @@ function move_remote_asset($asset, $target) {
     $return_val = 0;
     system($local_cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd", array(__FILE__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd", array(__FUNCTION__), $asset);
         return false;
     }
-    $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FILE__), $asset);
+    $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FUNCTION__), $asset);
     return true;
 }

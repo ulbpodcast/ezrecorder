@@ -758,7 +758,6 @@ function controller_view_record_form() {
     global $slide_module;
     global $session_module;
     global $auth_module;
-    global $notice; // Possible errors that occurred at previous steps.
     global $streaming_available;
     global $recorder_monitoring_pid;
     global $logger;
@@ -769,10 +768,6 @@ function controller_view_record_form() {
     if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
-    // Retrieving the course list (to display in the web interface)
-    $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
-    $courselist = $fct_user_courselist_get($_SESSION['user_login']);
-    
     if (isset($_SESSION['asset']) && isset($input['reset_player']) && $input['reset_player'] == 'true') {
         $asset = $_SESSION['asset'];
         $result = cancel_current_record($asset, true);
@@ -801,11 +796,17 @@ function controller_view_record_form() {
     $fct_metadata_get = "session_" . $session_module . "_metadata_get";
     $metadata = $fct_metadata_get();
 
+    //pre fill form with previous data
     $_SESSION['recorder_course'] = $metadata['course_name'];
     $_SESSION['title'] = $metadata['title'];
     $_SESSION['description'] = $metadata['description'];
     $_SESSION['recorder_type'] = $metadata['record_type'];
 
+    // Retrieving the course list (to display in the web interface)
+    $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
+    $courselist = $fct_user_courselist_get($_SESSION['user_login']);
+    
+    global $notice; // Possible errors that occurred at previous steps.
     require_once template_getpath('record_form.php');
 }
 
@@ -825,12 +826,12 @@ function user_logged_in() {
         return false;
     
     $fct_is_locked = "session_" . $session_module . "_is_locked";
-    if (!$fct_is_locked()) {
+    if (!$fct_is_locked($_SESSION['user_login'])) {
         $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "User is logged in but session is not locked. This should not happen and if you're seeing this locking logic must be fixed", array(__FUNCTION__));
         close_session();
         return false;
-    }
-    
+    } 
+
     return true;
 }
 
@@ -933,6 +934,15 @@ function user_login($login, $passwd) {
         $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user", array(__FUNCTION__));
         error_print_message('Could not lock recorder: ' . error_last_message());
         die;
+    }
+    
+    //check if current metadata belong to current user. If not, remove it
+    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
+    $metadata = $fct_metadata_get();
+    if($metadata != false && $metadata["netid"] != $_SESSION['user_login']) {
+        $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
+        $fct_metadata_delete();
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, "User $login logged and last metadata in session wasn't his, deleting it", array(__FUNCTION__));
     }
 
     $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "User $login logged in", array(__FUNCTION__));

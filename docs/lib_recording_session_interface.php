@@ -137,9 +137,10 @@ function session_modulename_last_request_get() {}
 /**
  * @implements
  * Checks whether or not there is already a capture going on.
+ * If a username is specified, return true only if session is locked by given user
  * @return bool "true" if a capture is already going on, "false" otherwise 
  */
-function session_modulename_is_locked() {}
+function session_modulename_is_locked($username = null) {}
 
 /**
  * @implements

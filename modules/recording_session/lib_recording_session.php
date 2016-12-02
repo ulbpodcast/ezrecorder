@@ -153,10 +153,17 @@ function session_xml_last_request_get() {
  * Checks whether or not there is already a capture going on.
  * @return bool "true" if a capture is already going on, "false" otherwise 
  */
-function session_xml_is_locked() {
+function session_xml_is_locked($username = null) {
     global $lock_file;
 
-    return file_exists($lock_file);
+    if(!file_exists($lock_file))
+        return false;
+    
+    if($username == null)
+        return true;
+    
+    $content = file_get_contents($lock_file);
+    return trim($content) == $username;
 }
 
 /**
