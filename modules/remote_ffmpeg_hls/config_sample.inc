@@ -38,6 +38,7 @@ $remoteffmpeg_streaming_info = $remoteffmpeg_basedir.'var/streaming.xml';
 $remoteffmpeg_rec_status_file = $remoteffmpeg_basedir . 'var/rec_status'; // Current recorder status (paused, recording, stopped,...)
 $remoteffmpeg_config1 = $remoteffmpeg_basedir.'config.inc'; //used to check config existence
 $remoteffmpeg_config2 = $remoteffmpeg_basedir.'bash/localdefs'; //used to check config existence
+$process_result_filename = "process_result.txt";
 
 // put some data in a specified file
 $remote_script_datafile_set = $remoteffmpeg_local_basedir . 'bash/dataset';

@@ -645,3 +645,33 @@ function capture_remoteffmpeg_recstatus_set($status) {
         $logger->log(EventType::RECORDER_SET_STATUS, LogLevel::ERROR, "Failed to set REC status to $status. Cmd: $cmd", array(__FUNCTION__));
     }
 }
+
+/** 
+ * @implements
+ * @param type $asset
+ * @return true on process success, false on failure or result not found
+ */
+function capture_remoteffmpeg_process_result($asset) {
+    global $remote_recorder_ip;
+    global $remote_script_datafile_get;
+    global $remote_recorder_username;
+    global $remoteffmpeg_module_name;
+    global $process_result_filename;
+    global $logger;
+    
+    $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
+    $result_file = "$working_dir/$process_result_filename";
+    $cmd = "sudo -u $remote_recorder_username $remote_script_datafile_get $remote_recorder_ip $result_file";
+    $errorcode = 0;
+    $result = exec($cmd, $output, $errorcode);
+    if ($errorcode != 0) {
+        return false;
+    }
+
+    if($result) 
+        $result = trim($result);
+    
+    $success = $result !== false && $result == "0";
+    $logger->log(EventType::TEST, LogLevel::DEBUG, "File was found ($result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
+    return $success;
+}

@@ -10,7 +10,6 @@ $remoteffmpeg_status_file = $remoteffmpeg_basedir . 'var/status';
 $remoteffmpeg_streaming_info = $remoteffmpeg_basedir . 'var/streaming.xml';
 $remoteffmpeg_cli_streaming = $remoteffmpeg_basedir . 'cli_streaming_content_send.php';
 $remoteffmpeg_pid_file = $remoteffmpeg_basedir.'var/ffmpeg_pid';
-$process_result_filename = "process_result.txt";
 $ffmpeg_movie_name = 'ffmpegmovie';
 
 $remoteffmpeg_input_source = "AV.io"; // specifies the input source (IntensityShuttle | UltraStudioMiniRecorder | ...)
