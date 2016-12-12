@@ -150,10 +150,7 @@ sudo vi /System/Library/LaunchDaemons/org.postfix.master.plist
 
 ```
 sudo visudo
-# Enter following lines in Cmnd Alias specification:
-# (Replace the path by the location of your ezrecorder directory)
-Cmnd_Alias EZCAST = /Library/ezrecorder/modules/*/bash/* 
-# and this at the end : (replace podclient by your username and _www by apache’s username)
+# add this at the end : (replace podclient by your username and _www by apache’s username)
 _www 	ALL=(podclient) NOPASSWD: ALL
 ```
 
