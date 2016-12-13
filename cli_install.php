@@ -83,13 +83,10 @@ if (strtoupper($choice) != 'N') {
             $remote_recorder_username = $value;
     }
     
-    $config = file_get_contents($basedir . "/global_config_sample.inc");
-
     $config = preg_replace('/\$classroom = (.+);/', '\$classroom = "' . $classroom . '";', $config);
     $config = preg_replace('/\$ezrecorder_ip = (.+);/', '\$ezrecorder_ip = "' . $ezrecorder_ip . '";', $config);
     $config = preg_replace('/\$ezrecorder_username = (.+);/', '\$ezrecorder_username = "' . $ezrecorder_username . '";', $config);
     $config = preg_replace('/\$ezrecorder_recorddir = (.+);/', '\$ezrecorder_recorddir = "' . $ezrecorder_recorddir . '";', $config);
-    $config = preg_replace('/\$basedir = (.+);/', '\$basedir = "' . $basedir . '/";', $config);
     $config = preg_replace('/\$web_basedir = (.+);/', '\$web_basedir = "' . $web_basedir . '";', $config);
     $config = preg_replace('/\$ezrecorder_web_user = (.+);/', '\$ezrecorder_web_user = "' . $ezrecorder_web_user . '";', $config);
     $config = preg_replace('/\$ezcast_manager_url = (.+);/', '\$ezcast_manager_url = "' . $ezcast_manager_url . '";', $config);

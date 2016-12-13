@@ -18,7 +18,7 @@ $recorder_timezone = "Europe/Brussels";
 date_default_timezone_set($recorder_timezone);
 
  // Project URI
-$basedir = "/Library/ezrecorder/"; // Path to EZrecorder basedir
+$basedir = __DIR__ . '/';
 $web_basedir = "/Library/WebServer/Documents/ezrecorder/"; // Web server URI
 $ezrecorder_web_user = "_www"; // Apache's username
 

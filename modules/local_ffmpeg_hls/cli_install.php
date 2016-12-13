@@ -43,7 +43,7 @@ switch($ffmpeg_input_source)
         break;
     case "avfoundation":
     case "AV.io":
-        echo "*Configuration of avfoundation audio and video interfaces indexes" . PHP_EOL;
+        echo "* Configuration of avfoundation audio and video interfaces indexes" . PHP_EOL;
         echo "If needed, you can list them with 'ffmpeg -f avfoundation -list_devices true -i \"\"'" .PHP_EOL;
         $value = read_line("avfoundation video interface [default: '$avfoundation_video_interface']:");
          if ($value != "")

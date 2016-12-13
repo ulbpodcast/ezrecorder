@@ -15,12 +15,10 @@ echo "Please, enter now the requested values:" . PHP_EOL;
 $value = read_line("Path to EZrecorder basedir on the remote recorder [default: '$remoteffmpeg_basedir']:");
 if ($value != "")
     $remoteffmpeg_basedir = $value; 
-unset($value);
 
 $value = read_line("Path to EZrecorder repository basedir on the remote recorder [default: '$remoteffmpeg_recorddir']: "); //should be removed if possible
 if ($value != "")
     $remoteffmpeg_recorddir = $value; 
-unset($value);
 
 $config = file_get_contents("$remoteffmpeg_local_basedir/config_sample.inc");
 
