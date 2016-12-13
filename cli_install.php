@@ -73,7 +73,7 @@ if (strtoupper($choice) != 'N') {
     if ($value != "")
         $ezrecorder_web_user = $value;
 
-    if(!$master) {
+    if($master) {
         $value = read_line("Remote recorder IP. This IP must be accessible from EZmanager server. [" .$remote_recorder_ip. "]: ");
         if ($value != "")
             $remote_recorder_ip = $value;

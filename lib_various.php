@@ -492,3 +492,9 @@ function move_remote_asset($asset, $target) {
     $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FUNCTION__), $asset);
     return true;
 }
+
+function ssh_ping($ip) {
+    $return_val = 0;
+    system("ssh -o ConnectTimeout=10 podclient@$ip \"touch /dev/null\" ", $return_val);
+    return $return_val == 0;
+}

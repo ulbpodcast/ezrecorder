@@ -39,5 +39,10 @@ echo "Enter sudo password for executing setperms.sh ." . PHP_EOL;
 system("sudo $remoteffmpeg_local_basedir/setperms.sh");
 
 
-echo "Double make sure this host can ssh into the remote host, as well as to run the install of the remote module on the remote host" . PHP_EOL;
+if(!ssh_ping($remote_recorder_ip)) {
+    echo "\033[31mCannot ssh into remote recorder $remote_recorder_ip from this recorder. \033[0mCheck if our public key is authorized on it, or correct remote IP in global_config.inc if necessary." . PHP_EOL;
+} else {
+    echo "Remote recorder $remote_recorder_ip ping okay" . PHP_EOL;
+}
+        
 echo "Finished." . PHP_EOL;

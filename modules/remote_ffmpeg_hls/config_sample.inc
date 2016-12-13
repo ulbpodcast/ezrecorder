@@ -46,3 +46,5 @@ $remote_script_datafile_set = $remoteffmpeg_local_basedir . 'bash/dataset';
 $remote_script_datafile_get = $remoteffmpeg_local_basedir . 'bash/dataget';
 $remote_script_call = $remoteffmpeg_local_basedir . 'bash/remotecall';
 $remote_script_thumbnail_create = $remoteffmpeg_local_basedir . 'bash/thumbnailcreate';
+
+//require_once __DIR__."/common.inc";
