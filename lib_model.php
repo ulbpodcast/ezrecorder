@@ -827,10 +827,10 @@ function user_logged_in() {
     
     $fct_is_locked = "session_" . $session_module . "_is_locked";
     if (!$fct_is_locked($_SESSION['user_login'])) {
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "User is logged in but session is not locked. This should not happen and if you're seeing this locking logic must be fixed", array(__FUNCTION__));
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "User is logged in but session is not locked by this user", array(__FUNCTION__));
         close_session();
         return false;
-    } 
+    }
 
     return true;
 }
@@ -874,7 +874,7 @@ function user_login($login, $passwd) {
     }
 
     // 2) Now we can set the session variables
-    $_SESSION['recorder_logged'] = 'LEtimin'; // "Boolean" telling that we're logged in
+    $_SESSION['recorder_logged'] = true; // "Boolean" telling that we're logged in
     $_SESSION['user_login'] = $res['user_login'];
     $_SESSION['user_real_login'] = $res['real_login'];
     $_SESSION['user_full_name'] = $res['full_name'];
@@ -993,6 +993,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     global $slide_module;
     global $logger;
     
+    $error = "";
     $env_ok = validate_environment($error);
     if(!$env_ok) {
         $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ALERT, "Environment validation failed with error: $error", array(__FUNCTION__));
@@ -1092,6 +1093,11 @@ function view_init_record_screen() {
     
     //get status of recording (from file)
     $status = status_get();
+    
+    if($status == 'init') {
+        $logger->log(EventType::TEST, LogLevel::INFO, 'view_record_screen, capture is currently initializing. Was form sent a second time?', array(__FUNCTION__));
+        
+    }
     
     $cam_ok = true;
     $slide_ok = true;
@@ -1320,11 +1326,7 @@ function status_get_slide() {
  * Status is set in each module. If status is not the same in every modules,
  * returns an "error" status.
  */
-
 function status_get(&$cam_status = '', &$slide_status = '') {
-    global $cam_enabled;
-    global $slide_enabled;
-
     $cam_status = status_get_cam();
     $slide_status = status_get_slide();
 

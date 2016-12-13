@@ -11,6 +11,7 @@ echo "***************************************" . PHP_EOL;
 echo PHP_EOL . "Creating config.inc" . PHP_EOL;
 
 echo "Please, enter now the requested values :" . PHP_EOL;
+//BUG?? la ligne de prompt apparait pas
 $value = read_line("Path to EZrecorder basedir on the remote recorder [default: '$remoteffmpeg_basedir']: ");
 if ($value != "")
     $remoteffmpeg_basedir = $value; unset($value);

@@ -16,6 +16,9 @@ EXISTS_VIDEO=0 		# 1 if ${COMMON_MOVIE_NAME}* exists on EZrecorder
 #make sure records don't run ad vitam aeternam in cas of problem
 LIMIT_DURATION=12:00:00
 
+STATUS_FILE=$EZCASTDIR/var/status
+echo -n "init" > $STATUS_FILE
+
 #first clean up eventual movie remaining
 PREVIOUS_RECORDS=$WORKING_DIR/${COMMON_MOVIE_NAME}*
 if [ -d "$PREVIOUS_RECORDS" ]; then
@@ -211,7 +214,7 @@ if [ $EXISTS_VIDEO -eq 0 ]
 then 
     echo "FAILURE FFMPEG"
     echo "FFMPEG Launch Failure in $CLASSROOM" | mail -s "FFMPEG Failure $CLASSROOM" $MAIL_TO
-    echo -n "launch_failure" > $EZCASTDIR/var/status
+    echo -n "launch_failure" > $STATUS_FILE
     exit 1
 else # currently recording
     #saves current date as recording init
@@ -220,6 +223,6 @@ else # currently recording
     #start monitoring 
     echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $WORKING_DIR" | at now
 
-    echo -n "open" > $EZCASTDIR/var/status
+    echo -n "open" > $STATUS_FILE
     exit 0
 fi
