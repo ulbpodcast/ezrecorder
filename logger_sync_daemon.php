@@ -10,7 +10,8 @@ class LoggerSyncDaemon {
     const CLI_SYNC = 'cli_sync_logs.php';
     const CLI_SYNC_DAEMON = 'cli_sync_logs_daemon.php';
     const SYNC_BATCH_SIZE = 1000;
-    
+    const MAX_RUN_TIME = 86400; //run max 24 hours. This is to help when global_config has been changed, or if this file has been updated
+            
     public static function ensure_is_running() {
         global $basedir;
         if(!self::is_running()) {
@@ -102,8 +103,10 @@ class LoggerSyncDaemon {
 
         global $logger;
 
+        $process_start_time = time();
+        
         while (true) {
-            $start_time = time();
+            $current_sync_start_time = time();
             
             //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Syncing...", array(basename(__FILE__)));
             
@@ -112,9 +115,9 @@ class LoggerSyncDaemon {
                 $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Command '".self::CLI_SYNC."' failed", array(basename(__FILE__)));
             }
             
-            $end_time = time();
+            $current_sync_end_time = time();
             
-            $time_spent = $end_time - $start_time;
+            $time_spent = $current_sync_end_time - $current_sync_start_time;
             // Try to keep UPDATE_INTERVAL between each sync start. 
             // For example, for UPDATE_INTERVAL = 60:
             //   if we spent 5 seconds syncing, sleep only 55 seconds.
@@ -123,6 +126,9 @@ class LoggerSyncDaemon {
             //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Logs synced with return val $error. Sleep for $time_to_sleep", array(basename(__FILE__)));
             
             sleep($time_to_sleep);
+            
+            if(($process_start_time + self::MAX_RUN_TIME) < time())
+                exit(0); //max run time reached, stop here
         }
     }
 }
