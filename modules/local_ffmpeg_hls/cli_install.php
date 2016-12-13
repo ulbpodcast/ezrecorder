@@ -15,8 +15,9 @@ $config = file_get_contents("$ffmpeg_basedir/etc/config_sample.inc");
 while(!in_array($value,$ffmpeg_input_source_list)) {
     $sources = "(";
     foreach($ffmpeg_input_source_list as $type) {
-       $sources .= "," . $type;
+       $sources .=  $type . ",";
     }
+    $sources = rtrim($sources, ",");
     $sources .= ")";
     
     $value = read_line("Input source, valid values are: $sources [default: '$ffmpeg_input_source']: ");

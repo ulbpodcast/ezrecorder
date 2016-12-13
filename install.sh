@@ -131,7 +131,7 @@ then
     while [ $check -lt 1 ]; do
         check=$($php_path -r "echo (function_exists('curl_version'))? 'enabled' : 'disabled';")
         if [[ "$check" == "disabled" ]]; then
-            echo -e "${R}CURL seems not to be enabled for PHP.${N}"
+            echo -e "${R}CURL does not seem to be enabled for PHP.${N}"
             echo "Enable CURL for PHP and press [Enter] to retry."
             read -p "Enter 'ignore' to continue without CURL enabled or 'quit' to leave: " choice
             if [ "$choice" == "quit" ]; then exit; fi
@@ -147,7 +147,7 @@ then
     while [ $check -lt 1 ]; do
         check=$($php_path -r "echo (function_exists('simplexml_load_file'))? 'enabled' : 'disabled';")
         if [[ "$check" == "disabled" ]]; then
-            echo -e "${R}SimpleXML seems not to be enabled for PHP.${N}"
+            echo -e "${R}SimpleXML does not seem to be enabled for PHP.${N}"
             echo "Enable SimpleXML for PHP and press [Enter] to retry."
             read -p "Enter 'ignore' to continue without SimpleXML enabled or 'quit' to leave: " choice
             if [ "$choice" == "quit" ]; then exit; fi
@@ -155,6 +155,22 @@ then
             if [ "$choice" == "ignore" ]; then check=1; fi
         else 
             echo -e "${G}SimpleXML is enabled for PHP${N}"
+            check=1
+        fi
+    done
+    # Verification for SQLITE
+    check=0
+    while [ $check -lt 1 ]; do
+        check=$($php_path -r "echo (extension_loaded('pdo_sqlite'))? 'enabled' : 'disabled';")
+        if [[ "$check" == "disabled" ]]; then
+            echo -e "${R}SQLite does not seem to be enabled for PHP.${N}"
+            echo "Enable SQLite for PHP and press [Enter] to retry."
+            read -p "Enter 'ignore' to continue without SQLite enabled or 'quit' to leave: " choice
+            if [ "$choice" == "quit" ]; then exit; fi
+            check=0
+            if [ "$choice" == "ignore" ]; then check=1; fi
+        else 
+            echo -e "${G}SQLite is enabled for PHP${N}"
             check=1
         fi
     done

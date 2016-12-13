@@ -20,7 +20,14 @@ unset($value);
     
 $value = "";
 while(!in_array($value,$remoteffmpeg_input_source_list)) {
-    $value = read_line("Input source, valid values are: ".print_r($remoteffmpeg_input_source_list, true)." [default: '$remoteffmpeg_input_source']: ");
+    $sources = "(";
+    foreach($remoteffmpeg_input_source_list as $type) {
+       $sources .=  $type . ",";
+    }
+    $sources = rtrim($sources, ",");
+    $sources .= ")";
+    
+    $value = read_line("Input source, valid values are: $sources [default: '$remoteffmpeg_input_source']: ");
     if ($value != "")
         $remoteffmpeg_input_source = $value;
     else
