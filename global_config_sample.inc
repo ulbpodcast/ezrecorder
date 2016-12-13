@@ -9,7 +9,7 @@ $recorder_version = "2.0"; //used as communication with server protocol version
 
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
-$ezrecorder_recorddir = "/Users/".$ezrecorder_username."/Movies/"; // basedir for the local video storage
+$ezrecorder_recorddir = "~/Movies/"; // basedir for the local video storage
 $remote_recorder_ip = "";
 $remote_recorder_username = "";
 
@@ -63,6 +63,9 @@ $debug_mode = false; //debug mode print recorder events and php errors to consol
 $send_debug_logs_to_server = false; //by default, events of type debug are not sent to ezcast
 
 $enable_vu_meter = true;
+
+
+$modules_basedir = "$basedir/modules/";
 
 global $in_install;
 //load static variables

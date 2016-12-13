@@ -26,7 +26,6 @@ $recorder_logs = "$basedir/var/_log"; // Log file
 $recorder_session = "$basedir/var/session";
 $recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";
 $nopic_file = "$basedir/nopic.jpg";
-$modules_basedir = "$basedir/modules/";
 
 //portable script to emulate "timeout" behavior
 $timeout_script = "$basedir/timeout.sh";
