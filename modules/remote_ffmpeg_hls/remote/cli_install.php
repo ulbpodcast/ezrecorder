@@ -15,11 +15,12 @@ $config = file_get_contents(dirname(__FILE__) . "/config_sample.inc");
 echo "Please enter now the requested values: " . PHP_EOL;
 $value = read_line("Path to this remote module on this Mac [default: '$remoteffmpeg_basedir']: ");
 if ($value != "")
-    $remoteffmpeg_basedir = $value; unset($value);
+    $remoteffmpeg_basedir = $value; 
+unset($value);
     
 $value = "";
-while(!in_array($value, array("UltraStudioMiniRecorder","IntensityShuttle","avfoundation","AV.io"))) {
-    $value = read_line("Input source, valid values are: 'UltraStudioMiniRecorder' 'IntensityShuttle' 'avfoundation' 'AV.io'. [default: '$remoteffmpeg_input_source']: ");
+while(!in_array($value,$remoteffmpeg_input_source_list)) {
+    $value = read_line("Input source, valid values are: ".print_r($remoteffmpeg_input_source_list, true)." [default: '$remoteffmpeg_input_source']: ");
     if ($value != "")
         $remoteffmpeg_input_source = $value;
     else
@@ -29,7 +30,8 @@ unset($value);
  
 $value = read_line("Path to the local video repository on this Mac [default: '$remoteffmpeg_recorddir']: ");
 if ($value != "")
-    $remoteffmpeg_recorddir = $value; unset($value);
+    $remoteffmpeg_recorddir = $value; 
+unset($value);
     
 if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')){
     mkdir($remoteffmpeg_recorddir . '/ffmpeg_hls', 0755, true);

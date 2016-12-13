@@ -423,7 +423,8 @@ function validate_allowed_record_type($record_type_str, $allowed_types) {
 }
 
 function read_line($prompt = '') {
-    echo $prompt;
+    echo $prompt . PHP_EOL;
+    flush();
     return rtrim(fgets(STDIN), "\n");
 }
 

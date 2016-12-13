@@ -82,10 +82,3 @@ file_put_contents("$remotefmle_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remotefmle_basedir/bash");
 chmod("$remotefmle_basedir/bin/CoreImageTool", 0755);
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    return rtrim(fgets(STDIN), "\n");
-}
-?>
-
