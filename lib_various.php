@@ -493,8 +493,8 @@ function move_remote_asset($asset, $target) {
     return true;
 }
 
-function ssh_ping($ip) {
+function ssh_ping($username, $ip) {
     $return_val = 0;
-    system("ssh -o ConnectTimeout=10 podclient@$ip \"touch /dev/null\" ", $return_val);
+    system("ssh -o ConnectTimeout=10 -o BatchMode=yes $username@$ip \"touch /dev/null\" ", $return_val);
     return $return_val == 0;
 }
