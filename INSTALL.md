@@ -4,14 +4,14 @@
 
 In order to use EZrecorder, you need to install / enable several components:
 
-- Apache 
-- PHP5
--- LIB SIMPLEXML for PHP5
--- LIB CURL for PHP5
+- Apache (nginx may be okay but not tested)
+- PHP5 or PHP7
+    - LIB SIMPLEXML
+    - LIB CURL
+    - LIB SQLITE
 - SSH
 - AT
-
-Some modules may require more components (for instance, FFMPEG is required for local_qtb module).
+- FFMPEG 3.x
 
 ## Detailed installation 
 
@@ -98,13 +98,7 @@ Change <true/> tag at Disabled key
 sudo launchctl load –w /System/Library/LaunchDaemons/com.apple.atrun.plist 
 ``` 
 
-* Activate remote control
-
-It can be useful to enable remote control for managing the recorder remotely. 
-
-Go in ‘System preferences’ >  ‘Sharing ‘ and activate ‘Remote login’ and ‘Remote management’.
-
-* Activate Internet Sharing
+* (Optional) Activate Internet Sharing
 
 Depending on your needs, you may have to use Internet Sharing to provide an access to the recorder.
 
@@ -133,6 +127,7 @@ sudo launchctl load –w /Library/LaunchAgents/be.ac.ulb.checkinternetsharing.pl
 * Activate 'mail'
 
 The ‘mail’ command line is not activated by default on Mac OS X. Here is how to activate it.
+Mail are used by the recorders to warn about some uploading issues.
 
 ```
 sudo vi /etc/postfix/main.cf
