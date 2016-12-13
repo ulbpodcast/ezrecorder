@@ -5,10 +5,10 @@
 In order to use EZrecorder, you need to install / enable several components:
 
 - Apache (nginx may be okay but not tested)
-- PHP5 or PHP7
-    - LIB SIMPLEXML
-    - LIB CURL
-    - LIB SQLITE
+- PHP5 or PHP7 with modules:
+    - simplexml
+    - curl
+    - pdo_sqlite
 - SSH
 - AT
 - FFMPEG 3.x
