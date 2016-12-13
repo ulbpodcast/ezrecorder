@@ -1327,6 +1327,9 @@ function status_get_slide() {
  * returns an "error" status.
  */
 function status_get(&$cam_status = '', &$slide_status = '') {
+    global $slide_enabled;
+    global $cam_enabled;
+    
     $cam_status = status_get_cam();
     $slide_status = status_get_slide();
 
