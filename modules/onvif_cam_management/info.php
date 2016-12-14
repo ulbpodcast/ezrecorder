@@ -25,7 +25,7 @@
  */
 
 $module_title = "onvif_cam_management";
-$module_description = "This module is designed to control an IP camera.";
+$module_description = "This module is designed to control an IP camera supporting onvif protocol.";
 $module_name = "onvif_ptz";
 $module_path = dirname(__FILE__);
 $module_type = "cam_management";

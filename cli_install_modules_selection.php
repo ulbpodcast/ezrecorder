@@ -161,12 +161,12 @@ if ($cam_enabled) {
             $cam_management_lib = $module['library'];
 
 
-            $value = read_line("Enter the default position for cam recording [default: '$cam_default_scene']: ");
+            $value = read_line("Enter the default camera position for cam recording [default: '$cam_default_scene']: ");
             if ($value != "")
                 $cam_default_scene = $value; unset($value);
             $config = preg_replace('/\$cam_default_scene = (.+);/', '\$cam_default_scene = "' . $cam_default_scene . '";', $config);
             if ($slide_enabled) {
-                $value = read_line("Enter the default position for slide recording [default: '$cam_screen_scene']: ");
+                $value = read_line("Enter the default camera position for slide recording (this position will be used for slide only record, to record a backup video) [default: '$cam_screen_scene']: ");
                 if ($value != "")
                     $cam_screen_scene = $value; unset($value);
                 $config = preg_replace('/\$cam_screen_scene = (.+);/', '\$cam_screen_scene = "' . $cam_screen_scene . '";', $config);

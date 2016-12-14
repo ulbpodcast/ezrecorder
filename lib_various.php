@@ -486,9 +486,3 @@ function move_remote_asset($asset, $target) {
     $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FUNCTION__), $asset);
     return true;
 }
-
-function ssh_ping($username, $ip) {
-    $return_val = 0;
-    system("ssh -o ConnectTimeout=10 -o BatchMode=yes $username@$ip \"touch /dev/null\" ", $return_val);
-    return $return_val == 0;
-}

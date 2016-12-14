@@ -1,11 +1,15 @@
 <?php
 
+/* Global config file, you can change values here at will, but don't remove them 
+ */
+
+require_once(__DIR__ . '/common_static.inc');
+
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
 $config_version = "20161003"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
-$recorder_version = "2.0"; //used as communication with server protocol version
 
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
@@ -15,7 +19,6 @@ $remote_recorder_username = "";
 
 //list of supported timezones: http://php.net/manual/en/timezones.europe.php
 $recorder_timezone = "Europe/Brussels";
-date_default_timezone_set($recorder_timezone);
 
  // Project URI
 $basedir = __DIR__ . '/';
@@ -27,7 +30,6 @@ $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZr
 $php_cli_cmd = "/usr/bin/php"; // PHP binary
 $ffmpeg_cli_cmd = "/usr/local/bin/ffmpeg"; //FFMPEG binary
 
-$dir_date_format = "Y_m_d_H\hi";// ls friendly date to create directories/files
 $title_max_length = 70; // Max. number of characters
 
 /* ---------------- MODULES ---------------- */
@@ -64,12 +66,8 @@ $send_debug_logs_to_server = false; //by default, events of type debug are not s
 
 $enable_vu_meter = true;
 
-
-$modules_basedir = "$basedir/modules/";
-
 global $in_install;
 //load static variables
 if(!isset($in_install)) {
     require_once(__DIR__ . '/common.inc');
 }
-

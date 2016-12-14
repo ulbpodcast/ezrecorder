@@ -6,7 +6,7 @@ echo PHP_EOL.
      "*******************************************************************".PHP_EOL;
 echo "*        C O N F I G U R A T I O N   O F    M O D U L E S         *".PHP_EOL;
 echo "*******************************************************************".PHP_EOL;
-echo PHP_EOL."You will be requested to mention the modules you want to enable at the end of this installation script." . PHP_EOL;
+
 $modules = glob('modules/*/info.php');
 foreach ($modules as $module) {
     require $module;

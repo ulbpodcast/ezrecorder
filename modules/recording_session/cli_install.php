@@ -25,6 +25,7 @@
  */
 
 require_once 'config_sample.inc';
+require_once(__DIR__."/../../global_config.inc");
 
 echo PHP_EOL . "********************************************" . PHP_EOL;
 echo           "* Installation of recording_session module *" . PHP_EOL;
@@ -45,5 +46,4 @@ file_put_contents("$modules_basedir/recording_session/setperms.sh", $perms_file)
 chmod("$modules_basedir/recording_session/setperms.sh", 0755);
 echo "Enter sudo password for executing setperms.sh .";
 system("sudo $modules_basedir/recording_session/setperms.sh");
-?>
-
+echo PHP_EOL;

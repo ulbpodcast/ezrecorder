@@ -1,7 +1,13 @@
 <?php
 
-require_once 'etc/config_sample.inc';
+$conf_file = __DIR__."/etc/config.inc";
+if(file_exists($conf_file) && filesize($conf_file) > 0)
+    require_once $conf_file;
+else
+    require_once __DIR__.'/etc/config_sample.inc';
+
 require_once(__DIR__."/../../lib_install.php");
+require_once(__DIR__."/../../global_config.inc");
 
 echo PHP_EOL . 
      "*******************************************" . PHP_EOL;

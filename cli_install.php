@@ -15,28 +15,30 @@ require_once(__DIR__."/lib_install.php");
 
 $in_install = true; //check usage in global_config.inc, this allow including the global_config_sample without failing
 
-if (file_exists("global_config.inc")) {
-    require_once 'global_config.inc';
-    echo "Would you like to setup EZrecorder's global configuration now? (global_config.inc)" . PHP_EOL;
-    $choice = read_line("[Y/n]: ");
-} else {
-    require_once 'global_config_sample.inc';
-    $php_cli_cmd = $argv[1];
-    $ffmpeg_cli_cmd = $argv[2];
-    $choice = 'Y';
-}
-$basedir = __DIR__;
-
-echo "Is this recorder a [M]aster or a [R]emote recorder ?" . PHP_EOL;
+echo "Is this recorder a [M]aster or a [R]emote recorder?" . PHP_EOL;
+echo "The master controls the recording and serve the web interface, while the slave is used only as an second video source." . PHP_EOL;
 while($choice != "M" && $choice != "R")
     $choice = strtoupper(read_line("[M/R]: "));
 
 $master = $choice == "M";
    
+if (file_exists("global_config.inc") && filesize("global_config.inc") > 0) {
+    require_once 'global_config.inc';
+    echo "Would you like to setup EZrecorder's global configuration now? (global_config.inc)" . PHP_EOL;
+    while(strtoupper($choice) != "Y" && strtoupper($choice) != "N" && $choice !== "")
+        $choice = read_line("[Y/n]: ");
+    $create_global_config = strtoupper($choice) == "Y" || $choice == "";
+} else {
+    require_once 'global_config_sample.inc';
+    $php_cli_cmd = $argv[1];
+    $ffmpeg_cli_cmd = $argv[2];
+    $create_global_config = true;
+}
+
 /*
  * First, we add user's configuration in global-config.inc
  */
-if (strtoupper($choice) != 'N') {
+if ($create_global_config) {
     echo "Please enter now the requested values: " . PHP_EOL;
     $value = read_line("Name of the classroom where the recorder is installed ['$classroom']: ");
     if ($value != "")
@@ -74,15 +76,17 @@ if (strtoupper($choice) != 'N') {
         $ezrecorder_web_user = $value;
 
     if($master) {
-        $value = read_line("Remote recorder IP. This IP must be accessible from EZmanager server. [" .$remote_recorder_ip. "]: ");
+        $value = read_line("Remote recorder IP. This IP must be accessible from EZmanager server. (leave empty if you don't use a remote) [" .$remote_recorder_ip. "]: ");
         if ($value != "")
             $remote_recorder_ip = $value;
         
-        $value = read_line("Remote recorder username [" .$remote_recorder_username. "]: ");
+        $value = read_line("Remote recorder username (leave empty if you don't use a remote) [" .$remote_recorder_username. "]: ");
         if ($value != "")
             $remote_recorder_username = $value;
     }
     
+    $config = file_get_contents(__DIR__ . "/global_config_sample.inc");
+      
     $config = preg_replace('/\$classroom = (.+);/', '\$classroom = "' . $classroom . '";', $config);
     $config = preg_replace('/\$ezrecorder_ip = (.+);/', '\$ezrecorder_ip = "' . $ezrecorder_ip . '";', $config);
     $config = preg_replace('/\$ezrecorder_username = (.+);/', '\$ezrecorder_username = "' . $ezrecorder_username . '";', $config);
@@ -93,10 +97,11 @@ if (strtoupper($choice) != 'N') {
     $config = preg_replace('/\$mailto_admins = (.+);/', '\$mailto_admins = "' . $mailto_admins . '";', $config);
     $config = preg_replace('/\$php_cli_cmd = (.+);/', '\$php_cli_cmd = "' . $php_cli_cmd . '";', $config);
     $config = preg_replace('/\$ffmpeg_cli_cmd = (.+);/', '\$ffmpeg_cli_cmd = "' . $ffmpeg_cli_cmd . '";', $config);
-    file_put_contents($basedir . "/global_config.inc", $config);
+    $config = preg_replace('/\$remote_recorder_ip = (.+);/', '\$remote_recorder_ip = "' . $remote_recorder_ip . '";', $config);
+    $config = preg_replace('/\$remote_recorder_username = (.+);/', '\$remote_recorder_username = "' . $remote_recorder_username . '";', $config);
+    file_put_contents(__DIR__. "/global_config.inc", $config);
+    echo PHP_EOL . __DIR__ . "/global_config.inc" . " was created with given values." . PHP_EOL;
 }
-
-echo PHP_EOL . $basedir . "/global_config.inc" . " was created with given values." . PHP_EOL;
 /*
  * Then, we adapt some paths in configuration files
  */
