@@ -1,10 +1,10 @@
 <?php
 
-
 require_once 'config_sample.inc';
-require_once(__DIR__."/../../lib_various.php");
+require_once(__DIR__."/../../lib_install.php");
 
-echo PHP_EOL . "**********************************************" . PHP_EOL;
+echo PHP_EOL;
+echo "**********************************************" . PHP_EOL;
 echo "* Installation of Axis_cam_management module *" . PHP_EOL;
 echo "**********************************************" . PHP_EOL;
 

@@ -1,7 +1,7 @@
 <?php
 
 require_once dirname(__FILE__) . '/config_sample.inc';
-require_once(__DIR__."/../../lib_various.php");
+require_once(__DIR__."/../../lib_install.php");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
 echo "* Installation of remote_qtb module    *" . PHP_EOL;

@@ -1,7 +1,7 @@
 <?php
 
 require_once 'config_sample.inc';
-require_once(__DIR__."/../../../lib_various.php");
+require_once(__DIR__."/../../../lib_install.php");
 require_once(__DIR__."/../../../global_config.inc");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;

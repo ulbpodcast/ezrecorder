@@ -7,7 +7,7 @@
  * 
  */
 
-require_once(__DIR__."/lib_various.php");
+require_once(__DIR__."/lib_install.php");
 
 if (!file_exists(__DIR__ . "/global_config.inc")) {
     echo 'Missing file : global_config.inc';

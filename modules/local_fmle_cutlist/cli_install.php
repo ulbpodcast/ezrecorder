@@ -1,7 +1,7 @@
 <?php
 
 require_once 'config_sample.inc';
-require_once(__DIR__."/../../lib_various.php");
+require_once(__DIR__."/../../lib_install.php");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
 echo "* Installation of local_fmle_cutlist module    *" . PHP_EOL;

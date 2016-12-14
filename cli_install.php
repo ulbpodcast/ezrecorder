@@ -11,7 +11,7 @@ if ($argc < 3) {
     die;
 }
 
-require_once(__DIR__."/lib_various.php");
+require_once(__DIR__."/lib_install.php");
 
 $in_install = true; //check usage in global_config.inc, this allow including the global_config_sample without failing
 

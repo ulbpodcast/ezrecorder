@@ -1,6 +1,6 @@
 <?php
 
-require_once(__DIR__."/lib_various.php");
+require_once(__DIR__."/lib_install.php");
 
 echo PHP_EOL.
      "*******************************************************************".PHP_EOL;

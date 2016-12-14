@@ -1,7 +1,7 @@
 <?php
 
-//FIXME: install need this file too, global_config does not exists yet. We should probably move the used function(s) out of here
-include_once "global_config.inc";
+require_once "global_config.inc";
+require_once "lib_install.php";
 
 /**
  * Resizes an image and adds a status on it
@@ -420,12 +420,6 @@ function validate_allowed_record_type($record_type_str, $allowed_types) {
     }
     
     return $ok_type_str;
-}
-
-function read_line($prompt = '') {
-    echo $prompt . PHP_EOL;
-    flush();
-    return rtrim(fgets(STDIN), "\n");
 }
 
 function get_asset_from_dir($dir) {
