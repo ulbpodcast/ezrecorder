@@ -88,7 +88,7 @@ if ($slide_enabled) {
     }
     
     if(!is_process_running($slide_pid)) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
     }
 }
 
@@ -107,7 +107,7 @@ while ( ($cam_pid && is_process_running($cam_pid)) || ($slide_pid && is_process_
     //kill post processing after a while. This helps with ffmpeg freezes.
     $now = time();
     if($now - $init_time > $timeout) {
-        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Processing timed out after $timeout seconds. Killing postprocess processes.", array(basename(__FILE__)), $asset);
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Processing timed out after $timeout seconds. Killing postprocess processes.", array(basename(__FILE__)), $asset);
         if(is_process_running($cam_pid))
             system("kill -9 $cam_pid");
         if(is_process_running($slide_pid))
