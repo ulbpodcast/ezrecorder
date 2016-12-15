@@ -271,6 +271,14 @@
              ctx.fillRect(w/10,h*0.8*(db/-72),w*8/10,(h*0.99)-h*0.8*(db/-72));
          }
 
+         function refresh_all_previews() {
+            <?php if ($has_camera) { ?>
+              refresh_preview("cam");
+            <?php } ?>
+            <?php if ($has_slides) { ?>
+              refresh_preview("slides");
+            <?php } ?>
+         }
          function refresh_preview(source_type) {
              var img_element = document.getElementById(source_type + '_frame');
              img_element.src = 'index.php?action=view_screenshot_image&source=' + source_type + '&rand=' + Math.random();
@@ -280,20 +288,19 @@
 
         init_vu_meter();
         
-        <?php if($enable_vu_meter) { ?>
+        <?php if($enable_vu_meter && sound_info_available()) { ?>
         setInterval(function() {
             update_sound_status();
         }, 1500);
         <?php } ?>
 
+        
         setInterval(function() {
-             refresh_preview("cam");
-             refresh_preview("slides");
+            refresh_all_previews();
         }, 2000);
 
-         //also fetch first images immediately
-        refresh_preview("cam");
-        refresh_preview("slides"); 
+        //also fetch first images immediately
+        refresh_all_previews();
      </script>
     </body>
 </html>

@@ -2,7 +2,7 @@
 
 /** Non user defined global variables should go here. 
  * Put here values that depends on global_config.inc values, else put them in common_static.inc
- * This files is included at the end of global_config.inc
+ * This files is included at the end of global_config.inc, unless we're in the installation (install can't use variables from here).
  *  */
 
 require_once('global_config.inc');

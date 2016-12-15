@@ -427,12 +427,17 @@ function volume_info_from_file($filename, $time_from = null, $time_to = null) {
     return $sound_info;
 }
 
-//return mean volume for the last second, or false on failure
-function sound_info_get_current() {
+function sound_info_available() {
     global $cam_module;
     global $cam_enabled;
     
     if(!$cam_enabled || $cam_module != "ffmpeg")
+        return false;
+}
+
+//return mean volume for the last second, or false on failure
+function sound_info_get_current() {
+    if(!sound_info_available())
         return false;
     
     return capture_ffmpeg_get_current_sound();

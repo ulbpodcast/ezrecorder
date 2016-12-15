@@ -18,6 +18,7 @@ echo "Creating etc/config.inc" . PHP_EOL;
 
 $config = file_get_contents("$ffmpeg_basedir/etc/config_sample.inc");
 
+$value = "";
 while(!in_array($value,$ffmpeg_input_source_list)) {
     $sources = "(";
     foreach($ffmpeg_input_source_list as $type) {

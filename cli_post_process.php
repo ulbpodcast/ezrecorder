@@ -46,14 +46,14 @@ if(isset($argv[1]))
 $asset_dir = get_asset_dir($asset);
 if(!$asset_dir) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get asset directory for asset '$asset'. Is asset already sent to server?", array(basename(__FILE__)), $asset);
-    exit(1);
+    exit(2);
 }
 
 $metadata_file = "$asset_dir/metadata.xml";
 if (!file_exists($metadata_file)) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get asset metadata file from dir: $asset_dir, cannot continue", array(basename(__FILE__)), $asset);
     echo "Error: metadata file $metadata_file does not exist" . PHP_EOL;
-    exit(1);
+    exit(3);
 }
 
 // Stopping and releasing the recorder
@@ -94,7 +94,7 @@ if ($slide_enabled) {
 
 if(!$cam_pid && !$slide_pid) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Both cam and slides post processing failed or disabled, stopping now.", array(basename(__FILE__)), $asset);
-    exit(2);
+    exit(4);
 }
 
 $init_time = time();
@@ -146,13 +146,15 @@ if ($slide_enabled) {
     }
 }
 
+$cam_msg = $cam_enabled ? ($cam_ok ? 'ok':'failure') : "disabled";
+$slide_msg = $slide_enabled ? ($slide_ok ? 'ok':'failure') : "disabled";
 if($slide_ok && $cam_ok) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::INFO, "Finished successfully videos post processing.", array(basename(__FILE__)), $asset);
 } else if (!(($slide_enabled && $slide_ok) || ($cam_enabled && $cam_ok))) {
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Post processing: Both cam and slides are either disabled or failed (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok)", array(basename(__FILE__)), $asset);
-    exit(1);
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Post processing: Both cam and slides are either disabled or failed (cam: $cam_msg, slide: $slide_msg)", array(basename(__FILE__)), $asset);
+    exit(5);
 } else {
-    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "At least one module failed video post processing (cam: ".($cam_ok ?'1':'0').", slide: ".($slide_ok ?'1':'0').") (1 = ok). Trying to continue anyway.", array(basename(__FILE__)), $asset);
+    $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "At least one module failed video post processing (cam: $cam_msg, slide: $slide_msg). Trying to continue anyway.", array(basename(__FILE__)), $asset);
 }
 system("echo \"`date` : local processing finished for both cam and slide modules\" >> $basedir/var/finish");
 
@@ -176,7 +178,7 @@ $cmd = "$php_cli_cmd $cli_upload $asset > $asset_dir/upload.log 2>&1";
 system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Could not start upload ($cli_upload), cli returned $return_val. Command: $cmd", array(basename(__FILE__)), $asset);
-    exit(1);
+    exit(6);
 }
 
 echo "OK";
