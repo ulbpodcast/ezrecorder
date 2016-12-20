@@ -79,18 +79,26 @@ function validate_remote_install(&$return_val) {
    global $remoteffmpeg_config2;
    global $remote_recorder_username;
    global $remote_recorder_ip;
+   global $logger;
    
-   if($remote_recorder_username == "" | $remote_recorder_ip == "")
+   if($remote_recorder_username == "" | $remote_recorder_ip == "") {
+       $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, '$remote_recorder_username or $remote_recorder_ip not properly configured', array(__FUNCTION__));
        return false;
+   }
    
    $return_val = 0;
-   
+       
    check_remote_file_existence($remoteffmpeg_config1, $return_val);
-   if($return_val != 0) 
+   if($return_val != 0) {
+       $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not find $remoteffmpeg_config1 on remote recorder", array(__FUNCTION__));
        return false;
+   }
+   
    check_remote_file_existence($remoteffmpeg_config2, $return_val);
-   if($return_val != 0) 
+   if($return_val != 0) {
+       $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not find $remoteffmpeg_config2 on remote recorder", array(__FUNCTION__));
        return false;
+   }
    
    return true;
 }
