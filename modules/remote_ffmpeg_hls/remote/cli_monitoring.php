@@ -7,8 +7,8 @@
  * - recovery check (checks whether ffmpeg has crashed, and restart it if it hs)
  */
 
-require_once 'config.inc';
-require_once 'lib_tools.php';
+require_once __DIR__.'/config.inc';
+require_once __DIR__.'/lib_tools.php';
 
 if ($argc !== 2) {
     print "Usage:  " . $argv[0] . " <remoteffmpeg_working_dir>" . PHP_EOL;

@@ -3,8 +3,8 @@
  * Move asset to another processing folder 
  */
 
-require_once 'global_config.inc';
-require_once 'lib_various.php';
+require_once __DIR__.'/global_config.inc';
+require_once __DIR__.'/lib_various.php';
 
 global $service;
 $service = true;
