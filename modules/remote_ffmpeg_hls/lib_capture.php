@@ -13,7 +13,6 @@
 require_once __DIR__."/config.inc";
 require_once $basedir . "/lib_various.php";
 require_once $basedir . "/lib_error.php";
-require_once $basedir . '/modules/local_ffmpeg_hls/lib_capture.php';
 require_once __DIR__. "/info.php";
 require_once "$basedir/lib_ffmpeg.php";
     

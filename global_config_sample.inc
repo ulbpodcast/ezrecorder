@@ -13,7 +13,7 @@ $classroom = "Classroom name"; // classroom name
 
 $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
-$ezrecorder_recorddir = "~/Movies/"; // basedir for the local video storage
+$ezrecorder_recorddir = "/Users/podclient/Movies/"; // basedir for the local video storage
 $remote_recorder_ip = "";
 $remote_recorder_username = "";
 

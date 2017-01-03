@@ -17,6 +17,7 @@ $in_install = true; //check usage in global_config.inc, this allow including the
 
 echo "Is this recorder a [M]aster or a [R]emote recorder?" . PHP_EOL;
 echo "The master controls the recording and serve the web interface, while the slave is used only as an second video source." . PHP_EOL;
+$choice = "";
 while($choice != "M" && $choice != "R")
     $choice = strtoupper(read_line("[M/R]: "));
 
