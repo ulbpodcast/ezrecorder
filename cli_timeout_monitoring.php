@@ -79,11 +79,12 @@ while (true) {
     $diff_init = $now - $init_time;
     
     if ($diff_init > $threshold_timeout && $diff_lastmod > $timeout) {
+        $date_format = "Y_M_D_H:s";
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Timeout triggered after $diff_lastmod seconds. Init: $init_time / Last request: $lastmod_time.", array(basename(__FILE__)));
         mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 
              . ' was stopped and published in private album because there has been no user activity since ' 
-             . ($diff_lastmod) . ' seconds ago. Time: ' . date("y-m-d_H:s",$now) . ' .Last request: ' . date("y-m-d_H:s", $lastmod_time)
-             . ' Start time: ' . date("y-m-d_H:s",$init_time) . '');
+             . ($diff_lastmod) . ' seconds ago. Time: ' . date($date_format,$now) . ' .Last request: ' . date($date_format, $lastmod_time)
+             . ' Start time: ' . date($date_format,$init_time) . '');
 
         controller_recording_force_quit();
     }
