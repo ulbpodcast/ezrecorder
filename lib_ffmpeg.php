@@ -427,12 +427,18 @@ function volume_info_from_file($filename, $time_from = null, $time_to = null) {
     return $sound_info;
 }
 
+//currently only supported with local_ffmpeg_hls
 function sound_info_available() {
     global $cam_module;
     global $cam_enabled;
+    global $slide_enabled;
+    global $slide_module;
     
-    if(!$cam_enabled || $cam_module != "ffmpeg")
-        return false;
+    if(($cam_enabled && $cam_module == "ffmpeg")
+       || ($slide_enabled && $slide_module == "ffmpeg"))
+        return capture_ffmpeg_sound_info_available();
+    
+    return false;
 }
 
 //return mean volume for the last second, or false on failure

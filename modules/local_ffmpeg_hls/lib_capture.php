@@ -791,6 +791,19 @@ function capture_ffmpeg_sound_info_get($asset) {
 }
 */
 
+function capture_ffmpeg_sound_info_available() {
+    global $ffmpeg_input_source;
+    
+    switch($ffmpeg_input_source)
+    {
+        case "avfoundation":
+        case "AV.io":
+            return true;
+        default:
+            return false;
+    }
+}
+
 //return current volume in decibel, or false on failure/not supported
 function capture_ffmpeg_get_current_sound() {
     //+ how to detect avfoundation support?
