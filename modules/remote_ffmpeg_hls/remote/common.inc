@@ -11,4 +11,4 @@ $remoteffmpeg_cli_streaming = $remoteffmpeg_basedir . 'cli_streaming_content_sen
 $remoteffmpeg_pid_file = $remoteffmpeg_basedir.'var/ffmpeg_pid';
 $ffmpeg_movie_name = 'ffmpegmovie';
 
-$remoteffmpeg_input_source_list = array("IntensityShuttle", "UltraStudioMiniRecorder", "avfoundation", "AV.io");
+$remoteffmpeg_input_source_list = array("IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io");
