@@ -1175,6 +1175,7 @@ function view_record_screen() {
     global $redraw;
     global $already_recording;
     global $enable_vu_meter;
+    require_once "lib_ffmpeg.php"; // for sound_info_available
     
     // And finally we display the page
     require_once template_getpath('record_screen.php');

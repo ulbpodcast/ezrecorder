@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <!-- 
-[autotest_record_screen] !! Please keep this this line for automated testing 
+[autotest_record_screen] !! Please keep this line for automated testing 
 -->
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -288,7 +288,8 @@
 
         init_vu_meter();
         
-        <?php if($enable_vu_meter && sound_info_available()) { ?>
+        <?php 
+        if($enable_vu_meter && sound_info_available()) { ?>
         setInterval(function() {
             update_sound_status();
         }, 1500);
@@ -298,7 +299,7 @@
         setInterval(function() {
             refresh_all_previews();
         }, 2000);
-
+ 
         //also fetch first images immediately
         refresh_all_previews();
      </script>

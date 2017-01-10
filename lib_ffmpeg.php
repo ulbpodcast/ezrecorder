@@ -427,18 +427,10 @@ function volume_info_from_file($filename, $time_from = null, $time_to = null) {
     return $sound_info;
 }
 
-//currently only supported with local_ffmpeg_hls
 function sound_info_available() {
-    global $cam_module;
-    global $cam_enabled;
-    global $slide_enabled;
-    global $slide_module;
+    //any conditions we can put here? Check avfoundation support?
     
-    if(($cam_enabled && $cam_module == "ffmpeg")
-       || ($slide_enabled && $slide_module == "ffmpeg"))
-        return capture_ffmpeg_sound_info_available();
-    
-    return false;
+    return true;
 }
 
 //return mean volume for the last second, or false on failure
@@ -446,5 +438,34 @@ function sound_info_get_current() {
     if(!sound_info_available())
         return false;
     
-    return capture_ffmpeg_get_current_sound();
+    return ffmpeg_get_current_sound();
+}
+
+//return current volume in decibel, or false on failure/not supported
+function ffmpeg_get_current_sound() {
+    //+ how to detect avfoundation support?
+    //prendre le bon adapter ? C'est réglé dans local_ffmpeg_hls pour le moment
+
+    global $timeout_script;
+    global $ffmpeg_cli_cmd;
+    global $logger;
+    global $vu_meter_avfoundation_index;
+    
+    $audio_interface = $vu_meter_avfoundation_index;
+    $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i \":$audio_interface\" -af 'volumedetect' -f null /dev/null 2>&1";
+    $returncode = 0;
+    $cmdoutput = "";
+    //return rand(-70, -10);
+    exec($cmd, $cmdoutput, $returncode);
+    if($returncode != 0) {
+        $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
+        return false;
+    }
+    $mean_volume = -999.0;
+    $max_volume = -999.0;
+    $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $mean_volume, $max_volume);
+    if($ok === false)
+        return false;
+    
+    return $mean_volume;
 }
