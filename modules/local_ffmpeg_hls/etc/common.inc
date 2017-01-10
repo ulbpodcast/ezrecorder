@@ -38,7 +38,7 @@ $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
 
-$ffmpeg_input_source_list = array("IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io", "rtsp");
+$ffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io", "rtsp");
 
 
 //variables used in bash scripts. A bash config file is created from this at module init.

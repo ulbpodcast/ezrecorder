@@ -19,5 +19,9 @@ $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
 // --
 
+// -- If source is "DeckLink"
+$decklink_format_index = 14;
+$decklink_device = "Ultra Studio Mini Recorder";
+// --
 
 require_once __DIR__."/common.inc";

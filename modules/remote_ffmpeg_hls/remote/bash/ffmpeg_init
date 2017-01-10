@@ -47,6 +47,17 @@ do
     fi
 
     case "$INPUT_SOURCE" in
+        "DeckLink" )
+          DECKLINK_INPUT="${DECKLINK_DEVICE}@${DECKLINK_FORMAT_INDEX}"
+          if [ $STREAMING == 'true' ]
+            then 
+                # streaming is enabled. We prepare low and high resolution
+                $FFMPEG_PATH -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+            else 
+                # streaming is disabled. We prepare high resolution only
+                $FFMPEG_PATH -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+            fi ;;
+        #kept for compat and should be removed as soon as possible
         "UltraStudioMiniRecorder" )
             if [ $STREAMING == 'true' ]
             then 
@@ -56,6 +67,7 @@ do
                 # streaming is disabled. We prepare high resolution only
                 $FFMPEG_PATH -f decklink -i 'UltraStudio Mini Recorder@14' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             fi ;;
+        #kept for compat and should be removed as soon as possible
         "IntensityShuttle" )
             if [ $STREAMING == 'true' ]
             then 
@@ -65,6 +77,7 @@ do
                 # streaming is disabled. We prepare high resolution only
                 $FFMPEG_PATH -f decklink -i 'Intensity Shuttle@3' -vcodec libx264 -r 25 -crf 18 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             fi ;;  
+        #kept for compat and should be removed as soon as possible
         "IntensityShuttleThunderbolt" )
              if [ $STREAMING == 'true' ]
             then 

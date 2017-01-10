@@ -62,6 +62,25 @@ switch($ffmpeg_input_source)
            $avfoundation_audio_interface = $value;
         //else keep default
         break;
+    case "IntensityShuttle":
+    case "IntensityShuttleThunderbolt":
+    case "UltraStudioMiniRecorder":
+        echo "Input source '$ffmpeg_input_source' is deprecated and only kept for compatibility. You should use DeckLink instead." . PHP_EOL;
+        break;
+    case "DeckLink":
+        echo "* Configuration of decklink format index" . PHP_EOL;
+        echo "If needed, you can list decklink device with command: ffmpeg -f decklink -list_devices 1 -i dummy" .PHP_EOL;
+        echo "Then list available formats with command: ffmpeg -f decklink -list_formats 1 -i 'Device Name'" .PHP_EOL;
+        echo "Example:  ffmpeg -f decklink -list_formats 1 -i 'UltraStudio Mini Recorder'" .PHP_EOL;
+        
+        $value = read_line("Device name [default: '$decklink_device']:");
+         if ($value != "")
+           $decklink_device = $value;
+         
+        $value = read_line("Format index [default: '$decklink_format_index']:");
+        if ($value != "")
+           $decklink_format_index = $value;
+        break;
     default:
         break;
 }
@@ -72,6 +91,8 @@ $config = preg_replace('/\$ffmpeg_rtsp_media_high_uri = (.+);/', '\$ffmpeg_rtsp_
 $config = preg_replace('/\$ffmpeg_rtsp_media_low_uri = (.+);/', '\$ffmpeg_rtsp_media_low_uri = "' . $ffmpeg_rtsp_media_low_uri . '";', $config);
 $config = preg_replace('/\$avfoundation_video_interface = (.+);/', '\$avfoundation_video_interface = "' . $avfoundation_video_interface . '";', $config);        
 $config = preg_replace('/\$avfoundation_audio_interface = (.+);/', '\$avfoundation_audio_interface = "' . $avfoundation_audio_interface . '";', $config);
+$config = preg_replace('/\$decklink_device = (.+);/', '\$decklink_device = "' . $decklink_device . '";', $config);
+$config = preg_replace('/\$decklink_format_index = (.+);/', '\$decklink_format_index = "' . $decklink_format_index . '";', $config);
 
 file_put_contents("$ffmpeg_basedir/etc/config.inc", $config);
 

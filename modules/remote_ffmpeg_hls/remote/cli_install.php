@@ -40,6 +40,8 @@ if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')){
 
 $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
+$decklink_format_index = 14;
+$decklink_device = "Utra Studio Mini Recorder";
 
 switch($remoteffmpeg_input_source)
 {
@@ -56,6 +58,25 @@ switch($remoteffmpeg_input_source)
         if ($value != "")
            $avfoundation_audio_interface = $value;
         //else keep default
+        break;
+    case "IntensityShuttle":
+    case "IntensityShuttleThunderbolt":
+    case "UltraStudioMiniRecorder":
+        echo "Input source '$remoteffmpeg_input_source' is deprecated and only kept for compatibility. You should use DeckLink instead." . PHP_EOL;
+        break;
+    case "DeckLink":
+        echo "* Configuration of decklink format index" . PHP_EOL;
+        echo "If needed, you can list decklink device with command: ffmpeg -f decklink -list_devices 1 -i dummy" .PHP_EOL;
+        echo "Then list available formats with command: ffmpeg -f decklink -list_formats 1 -i 'Device Name'" .PHP_EOL;
+        echo "Example:  ffmpeg -f decklink -list_formats 1 -i 'UltraStudio Mini Recorder'" .PHP_EOL;
+        
+        $value = read_line("Device name [default: '$decklink_device']:");
+         if ($value != "")
+           $decklink_device = $value;
+         
+        $value = read_line("Format index [default: '$decklink_format_index']:");
+        if ($value != "")
+           $decklink_format_index = $value;
         break;
     default:
         break;
@@ -77,6 +98,8 @@ $bash_file = str_replace("!PHP_PATH", $php_cli_cmd, $bash_file);
 $bash_file = str_replace("!FFMPEG_PATH", $ffmpeg_cli_cmd, $bash_file);
 $bash_file = str_replace("!AVFOUNDATION_VIDEO_INTERFACE", $avfoundation_video_interface, $bash_file);
 $bash_file = str_replace("!AVFOUNDATION_AUDIO_INTERFACE", $avfoundation_audio_interface, $bash_file);
+$bash_file = str_replace("!DECKLINK_DEVICE", "\"$decklink_device\"", $bash_file);
+$bash_file = str_replace("!DECKLINK_FORMAT_INDEX", $decklink_format_index, $bash_file);
 file_put_contents("$remoteffmpeg_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remoteffmpeg_basedir/bash");
