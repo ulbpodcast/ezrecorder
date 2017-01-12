@@ -41,7 +41,7 @@ G='\033[32m\033[1m'
 R='\033[31m\033[1m'
 N='\033[0m'
 
-PHP_MIN_VERSION=5.3
+PHP_MIN_VERSION=5.5
 
 clear
 echo "Welcome in this installation script !"
