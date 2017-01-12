@@ -11,6 +11,7 @@ class LoggerSyncDaemon {
     const CLI_SYNC_DAEMON = 'cli_sync_logs_daemon.php';
     const SYNC_BATCH_SIZE = 1000;
     const MAX_RUN_TIME = 86400; //run max 24 hours. This is to help when global_config has been changed, or if this file has been updated
+    const MAX_FAILURES_BEFORE_WARNING = 15;
             
     public static function ensure_is_running() {
         global $basedir;
@@ -104,6 +105,7 @@ class LoggerSyncDaemon {
         global $logger;
 
         $process_start_time = time();
+        $failure_in_a_row = 0;
         
         while (true) {
             $current_sync_start_time = time();
@@ -112,7 +114,11 @@ class LoggerSyncDaemon {
             
             $error = $this->sync_logs();
             if($error) {
-                $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Command '".self::CLI_SYNC."' failed", array(basename(__FILE__)));
+                $failure_in_a_row++;
+                if($failure_in_a_row >= self::MAX_FAILURES_BEFORE_WARNING)
+                    $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Command '".self::CLI_SYNC."' failed", array(basename(__FILE__)));
+            } else {
+                $failure_in_a_row = 0;
             }
             
             $current_sync_end_time = time();
