@@ -417,7 +417,7 @@ function cancel_current_record($asset, $reset_cam_position = true) {
     global $slide_module;
     global $session_module;
     
-    $cam_enabled = true;
+    $res_cam = true;
     $res_slide = true;
     
     // if cam module is enabled
