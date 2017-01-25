@@ -1418,6 +1418,7 @@ function controller_view_sound_status() {
     
     $sound_info = sound_info_get_current();
     if($sound_info === false) {
+        echo "Couldn't get sound info";
         http_response_code(500);
         return;
     }

@@ -41,7 +41,7 @@ if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')){
 $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
 $decklink_format_index = 14;
-$decklink_device = "Utra Studio Mini Recorder";
+$decklink_device = "UltraStudio Mini Recorder";
 
 switch($remoteffmpeg_input_source)
 {
@@ -54,7 +54,7 @@ switch($remoteffmpeg_input_source)
            $avfoundation_video_interface = $value;
         //else keep default
          
-        $value = read_line("avfoundation video interface [default: '$avfoundation_audio_interface']:");
+        $value = read_line("avfoundation audio interface [default: '$avfoundation_audio_interface']:");
         if ($value != "")
            $avfoundation_audio_interface = $value;
         //else keep default

@@ -11,7 +11,7 @@
             </li>
             <li>
                 <div class="footertext">
-                    Copyright © 2016
+                    Copyright © 2017
                 </div>
             </li>
         </ul>

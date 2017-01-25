@@ -57,7 +57,7 @@ switch($ffmpeg_input_source)
            $avfoundation_video_interface = $value;
         //else keep default
          
-        $value = read_line("avfoundation video interface [default: '$avfoundation_audio_interface']:");
+        $value = read_line("avfoundation audio interface [default: '$avfoundation_audio_interface']:");
         if ($value != "")
            $avfoundation_audio_interface = $value;
         //else keep default
