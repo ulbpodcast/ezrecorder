@@ -42,6 +42,7 @@ $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
 $decklink_format_index = 14;
 $decklink_device = "UltraStudio Mini Recorder";
+$decklink_volume = 1;
 
 switch($remoteffmpeg_input_source)
 {
@@ -77,6 +78,11 @@ switch($remoteffmpeg_input_source)
         $value = read_line("Format index [default: '$decklink_format_index']:");
         if ($value != "")
            $decklink_format_index = $value;
+        
+        $value = read_line("Decklink volume modifier [default: '$decklink_volume']:");
+        if ($value != "")
+           $decklink_volume = $value;
+        
         break;
     default:
         break;
@@ -100,6 +106,7 @@ $bash_file = str_replace("!AVFOUNDATION_VIDEO_INTERFACE", $avfoundation_video_in
 $bash_file = str_replace("!AVFOUNDATION_AUDIO_INTERFACE", $avfoundation_audio_interface, $bash_file);
 $bash_file = str_replace("!DECKLINK_DEVICE", "\"$decklink_device\"", $bash_file);
 $bash_file = str_replace("!DECKLINK_FORMAT_INDEX", $decklink_format_index, $bash_file);
+$bash_file = str_replace("!DECKLINK_VOLUME", $decklink_volume, $bash_file);
 file_put_contents("$remoteffmpeg_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remoteffmpeg_basedir/bash");
