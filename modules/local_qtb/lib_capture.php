@@ -68,14 +68,16 @@ function capture_localqtb_init(&$pid, $meta_assoc, $asset) {
         // qtbnew initializes QuickTime Broadcaster and runs a recording test
         // launched in background to save time (pid is returned to be handled by web_index.php)
         $return_val = 0;
-        system("sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid", $return_val);
+        $cmd = "sudo -u $localqtb_username $localqtb_script_qtbnew >> $localqtb_recorder_logs 2>&1 & echo $! > $tmp_dir/pid";
+        system($cmd, $return_val);
+        $logger->log(EventType::TEST, LogLevel::DEBUG, __FUNCTION__.": Init script called with cmd: $cmd", array(__FUNCTION__), $asset);
         if($return_val != 0) {
-            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Init script failed to start. Return val: $return_val", array(__FUNCTION__), $asset);
+            $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Init script failed to start. Return val: $return_val. Cmd was: $cmd", array(__FUNCTION__), $asset);
             return false;
         }
         $pid = file_get_contents("$tmp_dir/pid");
         
-        //init script will set status uppon completion
+        //init script will set status upon completion
     } else {
         error_last_message("capture_init: can't open because current status: $status");
         $logger->log(EventType::TEST, LogLevel::ERROR, __FUNCTION__.": Can't open because current of status: $status", array(__FUNCTION__), $asset);

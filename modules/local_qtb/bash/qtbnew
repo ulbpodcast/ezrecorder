@@ -19,3 +19,4 @@ wait
 $EZCASTDIR/bash/resetpositionsqtb
 #osascript $EZCASTDIR/applescript/positionqtb.scpt
 $EZCASTDIR/bash/qtbcheck $CALLS 
+exit $?
