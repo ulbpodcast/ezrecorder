@@ -43,6 +43,7 @@ $ffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShut
 
 //variables used in bash scripts. A bash config file is created from this at module init.
 $bash_env = array();
+
 $bash_env['EZCASTDIR']=$ffmpeg_basedir;
 $bash_env['RECORDDIR']=$ezrecorder_recorddir;
 $bash_env['COMMON_MOVIE_NAME']=$ffmpeg_movie_name;
@@ -57,6 +58,8 @@ $bash_env['FFMPEG_PID']=$ffmpeg_pid_file;
 $bash_env['FFMPEG_PID2']=$ffmpeg_pid2_file;
 $bash_env['AVFOUNDATION_VIDEO_INTERFACE']=$avfoundation_video_interface;
 $bash_env['AVFOUNDATION_AUDIO_INTERFACE']=$avfoundation_audio_interface;
+$bash_env['DECKLINK_DEVICE']=$decklink_device;
+$bash_env['DECKLINK_FORMAT_INDEX']=$decklink_format_index;
 
 $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 
