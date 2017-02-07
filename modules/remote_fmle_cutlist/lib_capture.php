@@ -1,31 +1,6 @@
 <?php
 
 /*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
-/*
  * This file contains all functions related to the video slide capture from a remote mac
  * It implements the "recorder interface" which is used in web_index. 
  * the function annotated with the comment "@implements" are required to make 
@@ -45,14 +20,13 @@ include_once $basedir . "/lib_error.php";
  * This function should be called before the use of the camera
  * @param associate_array $meta_assoc metadata relative to the current recording
  */
-function capture_remotefmle_init(&$pid, $meta_assoc) {
+function capture_remotefmle_init(&$pid, $meta_assoc, $asset) {
     global $remotefmle_script_init;
     global $remotefmle_recorder_logs;
     global $remotefmle_ip;
     global $remote_script_call;
     global $remotefmle_username;
 
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
 
     $xml = escapeshellarg(xml_assoc_array2metadata($meta_assoc));
@@ -218,7 +192,7 @@ function capture_remotefmle_cancel($asset) {
  * @implements
  * Processes the record before sending it to the server
  */
-function capture_remotefmle_process($meta_assoc, &$pid) {
+function capture_remotefmle_process($asset, &$pid) {
     global $remotefmle_script_stop;
     global $remotefmle_ip;
     global $remote_script_call;
@@ -229,7 +203,6 @@ function capture_remotefmle_process($meta_assoc, &$pid) {
     global $remotefmle_username;
     global $remotefmle_basedir;
 
-    $asset = $meta_assoc['record_date'] . '_' . $meta_assoc['course_name'];
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
     $status = capture_remotefmle_status_get();
 
@@ -238,6 +211,7 @@ function capture_remotefmle_process($meta_assoc, &$pid) {
         if (!in_array($remotefmle_processing_tool, $remotefmle_processing_tools))
             $remotefmle_processing_tool = $remotefmle_processing_tools[0];
 
+        $meta_assoc = xml_file2assoc_array("$tmp_dir/_metadata.xml");
         $xml = xml_assoc_array2metadata($meta_assoc);
         // put the xml string in a metadata file on the remote mac mini
         system("sudo -u $remotefmle_username $remote_script_datafile_set $remotefmle_ip " . escapeshellarg($xml) . " $remotefmle_basedir/var/_metadata.xml &");
@@ -459,5 +433,3 @@ function capture_remotefmle_tmpdir_get($asset) {
 
     return $tmp_dir;
 }
-
-?>
