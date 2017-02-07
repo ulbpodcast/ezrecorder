@@ -243,6 +243,11 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
         if ($action == 'stop') 
             break;
     }
+    //when leaving this function, if $start_time is not equals to 0, we got an unfinished segment at the end
+    if($start_time != 0) {
+        //add a segment to the end of the video
+        $ffmpeg_params[] = array($startime - $init, 9999999999);
+    }
 }
 
 function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '', $asset_name = '') {
@@ -437,7 +442,7 @@ function sound_info_available() {
 function sound_info_get_current() {
     if(!sound_info_available())
         return false;
-    
+
     return ffmpeg_get_current_sound();
 }
 
@@ -461,6 +466,7 @@ function ffmpeg_get_current_sound() {
         $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
         return false;
     }
+    
     $mean_volume = -999.0;
     $max_volume = -999.0;
     $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $mean_volume, $max_volume);
