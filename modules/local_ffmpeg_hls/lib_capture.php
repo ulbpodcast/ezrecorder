@@ -701,11 +701,7 @@ function capture_ffmpeg_recstatus_set($status) {
     $logger->log(EventType::TEST, LogLevel::DEBUG, "rectatus set to: '".$status . "'. Caller: " . debug_backtrace()[1]['function'], array(__FUNCTION__));
 }
 
-// vu-metre sur prise son macos // ffmpeg sur l'entrée son de la machine ?
-// 
-/*
-
-function get_last_movies_dir($asset) {
+function capture_ffmpeg_get_last_movies_dir($asset) {
     global $ffmpeg_movie_name;
     global $ffmpeg_module_name;
     
@@ -736,57 +732,3 @@ function get_last_movies_dir($asset) {
 
     return false;
 }
-
-function get_last_complete_part_from_dir($dir) {
-    $scanned = scandir("$dir", SCANDIR_SORT_DESCENDING);
-    if($scanned == false)
-        return false;
-    
-    $video_files = get_ordered_video_files($dir);
-    //var_dump($video_files);
-    if($video_files === false)
-        return false;
-    
-    $last = end($video_files);
-    $before_last = prev($video_files);
-    if($before_last === false)
-        return false;
-    
-    return $before_last;
-}
-
-//return ModuleSoundInfo or false on failure
-function capture_ffmpeg_sound_info_get($asset) { 
-    global $logger;
-    global $ffmpeg_cli_cmd;
-    
-    //ffmpeg -t 1 -f avfoundation -i ":0" -af 'volumedetect' -f null /dev/null 2>&1
-    //
-    //
-    //extract_volumes_from_ffmpeg_output
-    //dummy values
-    $cmd = "$ffmpeg_cli_cmd -t  -f avfoundation -i \":0\" -af 'volumedetect' -f null /dev/null 2>&1";
-    $returncode = 0;
-    $cmdoutput = "";
-    exec($cmd, $cmdoutput, $returncode);
-    if($returncode != 0) {
-        $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
-        return false;
-    }
-    
-    //get last (complete) part
-    $movie_dir = get_last_movies_dir($asset);
-    if($movie_dir === false)
-        return false;
-    
-    $video_filename = get_last_complete_part_from_dir($movie_dir);
-    if($video_filename === false)
-        return false;
-    
-    $sound_info = volume_info_from_file($video_filename);
-    if($sound_info === false)
-        return new ModuleSoundInfo();
-    
-    return $sound_info;
-}
-*/

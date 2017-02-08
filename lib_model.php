@@ -1175,7 +1175,6 @@ function view_record_screen() {
     global $redraw;
     global $already_recording;
     global $enable_vu_meter;
-    require_once "lib_ffmpeg.php"; // for sound_info_available
     
     // And finally we display the page
     require_once template_getpath('record_screen.php');
@@ -1367,56 +1366,14 @@ function status_set($status) {
     }
 }
 
-abstract class SoundStatus
-{
-    const UNKNOWN  = -1;
-    const OKAY     = 0;
-    const NOT_SURE = 1;
-    const NO_SOUND = 2;
-    const TOO_LOUD = 3;
-    // etc.
-}
-
-class SoundInfo
-{
-    public $mean_volume = -999.0;
-    //public $status; //SoundStatus, decided by server
-}
-
-/* Decides sound status with given info from modules
- * Currently only uses cam info.
- * return values from SoundStatus
- */
-/*
-function sound_status_get(ModuleSoundInfo &$cam_sound_info, ModuleSoundInfo &$slide_sound_info) {
-    global $logger;
-    
-    $cam_mean_sound = $cam_sound_info->mean_volume;
-    $status = SoundStatus::UNKNOWN;
-    if($cam_mean_sound == -999.0) {
-        $status = SoundStatus::UNKNOWN;
-    } else if($cam_mean_sound < -30.0) {
-        $status = SoundStatus::NO_SOUND;
-    } else if($cam_mean_sound < -20.0) {
-        $status = SoundStatus::NOT_SURE;
-    } else if ($cam_mean_sound >= -10.0) {
-        $status = SoundStatus::OKAY;
-    } else {
-        $status = SoundStatus::TOO_LOUD;
-    }
-    return $status;
-}
- * 
- */
-
-//TODO: tweak values
-//only support cam for now
 function controller_view_sound_status() {
     global $enable_vu_meter;
+    global $sound_detect;
+    
     if(!$enable_vu_meter)
         return false;
     
-    $sound_info = sound_info_get_current();
+    $sound_info = $sound_detect->mean_volume_get($_SESSION['asset']);
     if($sound_info === false) {
         echo "Couldn't get sound info";
         http_response_code(500);
@@ -1424,4 +1381,14 @@ function controller_view_sound_status() {
     }
     
     echo $sound_info;
+}
+
+function sound_info_available() {
+    global $enable_vu_meter;
+    global $sound_detect;
+    
+    if(!$enable_vu_meter)
+        return false;
+    
+    return $sound_detect->available();
 }

@@ -289,7 +289,7 @@
         init_vu_meter();
         
         <?php 
-        if($enable_vu_meter && sound_info_available()) { ?>
+        if(sound_info_available()) { ?>
         setInterval(function() {
             update_sound_status();
         }, 1500);

@@ -27,4 +27,10 @@ $ezcast_submit_url = "$ezcast_manager_url/recorder/index.php"; // URL to EZmanag
 
 $logger = new RecorderLogger($log_database_file, $last_log_sent_get_url, $classroom);
 
+$sound_detect = null; //sound detection object, only defined if $enable_vu_meter is set
+if($enable_vu_meter) {
+    require_once $modules_basedir.'/'.$sound_detect_lib.'/lib_sound_detect.php';
+    $sound_detect = new $sound_detect_lib();
+}
+
 require_once("custom_error_handling.php");

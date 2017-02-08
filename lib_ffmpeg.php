@@ -375,14 +375,20 @@ function ffmpeg_get_cutlist_file($module_name, $asset) {
     return "$folder/_cut_list.txt";
 }
 
-//return extraction success
+/* Returns $mean_volume and $max_volume from an ffmpeg output in the form of an array of string
+ * Return false on failure
+*/
 function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume) {
+    $found_mean = false;
+    $found_max = false;
+    
     foreach($output as $line) {
         $part = strstr($line, "mean_volume:");
         if($part == false)
             continue;
 
         $mean_volume = filter_var($part, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $found_mean = true;
         break;
     }
     
@@ -392,86 +398,8 @@ function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume
             continue;
 
         $max_volume = filter_var($part, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+        $found_max = true;
         break;
     }
-}
-
-//move this to a common defines file?
-class FileSoundInfo {
-    public $max_volume = -999.0; //dummy value
-    public $mean_volume = -999.0;
-}
-
-//return FileSoundInfo or false on failure
-function volume_info_from_file($filename, $time_from = null, $time_to = null) {
-    global $ffmpeg_cli_cmd;
-    global $logger;
-    
-    $from_str = $time_from !== null ? "-ss $time_from" : "";
-    $to_str = $time_to !== null ? "-to $time_to" : "";
-    $cmd = "$ffmpeg_cli_cmd -i $filename $from_str $to_str -af 'volumedetect' -f null /dev/null 2>&1";
-    $returncode = 0;
-    $cmdoutput = "";
-    exec($cmd, $cmdoutput, $returncode);
-    if($returncode != 0) {
-        $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
-        return false;
-    }
-
-   //extract mean volume from output
-    $mean_volume = -1.0;
-    $max_volume = -1.0;
-    $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $mean_volume, $max_volume);
-    if($ok === false)
-        return false;
-    
-    $sound_info = new FileSoundInfo();
-    $sound_info->max_volume = $max_volume;
-    $sound_info->mean_volume = $mean_volume;
-    
-    return $sound_info;
-}
-
-function sound_info_available() {
-    //any conditions we can put here? Check avfoundation support?
-    
-    return true;
-}
-
-//return mean volume for the last second, or false on failure
-function sound_info_get_current() {
-    if(!sound_info_available())
-        return false;
-
-    return ffmpeg_get_current_sound();
-}
-
-//return current volume in decibel, or false on failure/not supported
-function ffmpeg_get_current_sound() {
-    //+ how to detect avfoundation support?
-    //prendre le bon adapter ? C'est réglé dans local_ffmpeg_hls pour le moment
-
-    global $timeout_script;
-    global $ffmpeg_cli_cmd;
-    global $logger;
-    global $vu_meter_avfoundation_index;
-    
-    $audio_interface = $vu_meter_avfoundation_index;
-    $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i \":$audio_interface\" -af 'volumedetect' -f null /dev/null 2>&1";
-    $returncode = 0;
-    $cmdoutput = "";
-    //return rand(-70, -10);
-    exec($cmd, $cmdoutput, $returncode);
-    if($returncode != 0) {
-        $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
-        return false;
-    }
-    
-    $mean_volume = -999.0;
-    $max_volume = -999.0;
-    $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $mean_volume, $max_volume);
-    if($ok === false)
-        return false;
-    
-    return $mean_volume;
+    return $found_mean && $found_max;
 }
