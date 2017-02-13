@@ -456,7 +456,7 @@ function capture_remoteffmpeg_thumbnail() {
         system($cmd, $return_val);
         
         //if command failed or remote script did not actually create image file
-        if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
+        if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 60)) {
             //print "could not take a screencapture";
             copy("./nopic.jpg", "$remoteffmpeg_capture_file");
         } else {

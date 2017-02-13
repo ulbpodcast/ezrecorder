@@ -604,7 +604,7 @@ function capture_ffmpeg_thumbnail() {
     // Camera screenshot
     $diff = time() - filemtime($ffmpeg_capture_file);
     if (!file_exists($ffmpeg_capture_file) || ($diff > 1)) { //if last used capture is more than 1 sec old
-        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 3)) { //if last ffmpeg thumbnail is older than 3 secs
+        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 60)) { //if last ffmpeg thumbnail is older than 60 secs
             //print "could not take a screencapture";
             copy("./nopic.jpg", $ffmpeg_capture_file);
         } else { //use ffmpeg thumbnail to generate final thumbnail (resize + add status on it)
