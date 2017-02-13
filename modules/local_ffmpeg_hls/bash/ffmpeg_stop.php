@@ -15,7 +15,7 @@ $log_context = basename(__FILE__, '.php');
 
 if ($argc != 3) {
     echo 'Usage: php ffmpeg_stop.php <asset> <videofile_name>' . PHP_EOL;
-    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, __FILE__ . " called with wrong arg count", array($log_context));
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, basename(__FILE__) . " called with wrong arg count", array($log_context));
     exit(1);
 }
 

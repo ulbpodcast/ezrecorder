@@ -263,17 +263,21 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $cutlist_file = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
     $log_file = $working_dir . '/pause_resume.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
+    //$cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $asset $action >> $log_file 2>&1";
     system($cmd, $return_val);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
     
-    $set_status = $pause ? 'paused' : 'resumed';
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::DEBUG, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array(__FUNCTION__), $asset);
+    
+    $set_status = $pause ? 'paused' : 'recording';
     capture_ffmpeg_status_set($set_status);
     capture_ffmpeg_recstatus_set($set_status);
-    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
+    $set_status_str = $pause ? 'paused' : 'resumed';
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status_str by user", array(__FUNCTION__), $asset);
     
     echo "OK";
     return true;
@@ -318,10 +322,10 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     }
     
     // pauses the current recording (while user chooses the way to publish the record)
-    $cut_list = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $log_file = $working_dir . '/stop.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
+    //$cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $asset stop >> $log_file 2>&1";
     $return_var = 0;
     system($cmd, $return_var);
     if($return_var != 0) {
