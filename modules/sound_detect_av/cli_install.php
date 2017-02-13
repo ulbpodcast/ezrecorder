@@ -14,12 +14,12 @@ echo           "******************************************" . PHP_EOL;
 
 $config = file_get_contents(__DIR__ ."/config_sample.inc");
 
-$value = read_line("Remote username (ssh) [default: '$vu_meter_avfoundation_remote_username']: ");
+$value = read_line("Remote username (ssh) (leave empty if no remote) [default: '$vu_meter_avfoundation_remote_username']: ");
 if ($value != "")
     $vu_meter_avfoundation_remote_username = $value;
 //else keep default
 
-$value = read_line("Remote IP (ssh) [default: '$vu_meter_avfoundation_remote_ip']: ");
+$value = read_line("Remote IP (ssh) (leave empty if no remote) [default: '$vu_meter_avfoundation_remote_ip']: ");
 if ($value != "")
     $vu_meter_avfoundation_remote_ip = $value;
 //else keep default
