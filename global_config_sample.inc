@@ -67,6 +67,7 @@ $sound_detect_lib = "sound_detect_av";
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console
 $send_debug_logs_to_server = false; //by default, events of type debug are not sent to ezcast
+$disable_logs_sync = false;
 
 global $in_install;
 //load static variables

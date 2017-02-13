@@ -103,11 +103,15 @@ class LoggerSyncDaemon {
         self::write_PID();
 
         global $logger;
+        global $disable_logs_sync;
 
         $process_start_time = time();
         $failure_in_a_row = 0;
         
         while (true) {
+            if($disable_logs_sync)
+                break;
+            
             $current_sync_start_time = time();
             
             //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Syncing...", array(basename(__FILE__)));
