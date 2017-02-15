@@ -7,6 +7,18 @@ include __DIR__."/global_config.inc";
 
 Logger::$print_logs = true;
 
+/*
+ * Pour résumer la vue générale :
+- ffmpeg crée des .ts dans <asset_dir>/remoteffmpeg/ffmpegmovie_X/high/
+- S’il est tué il recommence dans un dossier avec X incrémenté de 1
+- Le merge (movie_join_parts) :
+   - Rassemble tous les .ts de ffmpegmovie_X en des fichiers joinparts_tmpdir/partX.mov
+   - S’il y a plusieurs parties, on les concat en un seul merge.mov, sinon part0 est renommé en merge.mov
+- La cutlist: (movie_extract_cutlist)
+   - A partir du fichier merge.mov et de cutlist.txt on crée des segments vidéos : cutlist_tmpdir/part-X.mov
+   - On merge tous les segments en slide.mov / cam.mov
+ */
+
 //handles an offlineqtb recording: multifile recording on podcv and podcs
 if ($argc != 6) {
     echo "Usage: " . $argv[0] . " <root_movies_directory> <commonpartname> <output_movie_filename> <cutlist_file> <asset_name>" . PHP_EOL;
