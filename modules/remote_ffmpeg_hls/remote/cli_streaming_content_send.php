@@ -131,21 +131,29 @@ function get_next($asset) {
                     if ($previous_status != '' && $previous_status != $status) {
                         $m3u8_string = "#EXT-X-DISCONTINUITY" . PHP_EOL . $m3u8_string;
                     }
-                    $previous_status = $status;
-
-                    switch ($status) {
+                     $previous_status = $status;
+					 switch ($status) {
                         case 'open' :
-                            $m3u8_segment = "@$remoteffmpeg_basedir/resources/videos/${quality}_init.ts";
+                            $m3u8_segment = "$remoteffmpeg_basedir/resources/videos/${quality}_init.ts";
                             break;
                         case 'paused' :
-                            $m3u8_segment = "@$remoteffmpeg_basedir/resources/videos/${quality}_pause.ts";
+                            $m3u8_segment = "$remoteffmpeg_basedir/resources/videos/${quality}_pause.ts";
                             break;
                         case 'stopped':
-                            $m3u8_segment = "@$remoteffmpeg_basedir/resources/videos/${quality}_stop.ts";
+                            $m3u8_segment = "$remoteffmpeg_basedir/resources/videos/${quality}_stop.ts";
                             break;
                         default :
-                            $m3u8_segment = "@$remoteffmpeg_moviesdir/${remoteffmpeg_movie_name}_$file_index/$quality/" . $m3u8_filename;
+                            $m3u8_segment = "$remoteffmpeg_moviesdir/${remoteffmpeg_movie_name}_$file_index/$quality/" . $m3u8_filename;
                             break;
+                    }
+					
+					 $php_version = explode('.', phpversion());
+                    $php_version = ($php_version[0] * 10000 + $php_version[1] * 100 + $php_version[2]);
+                    if ($php_version >= 50500){
+                        // uses new class CURLFile instead of deprecated @ notation
+                        $m3u8_segment = new CURLFile($m3u8_segment);
+                    } else {
+                        $m3u8_segment = '@' . $m3u8_segment;
                     }
 
                     array_push($segments_array, array(
