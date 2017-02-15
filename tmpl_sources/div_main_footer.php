@@ -11,7 +11,7 @@
             </li>
             <li>
                 <div class="footertext">
-                    Copyright © 2017
+                    Copyright © <?php echo date('Y'); ?>
                 </div>
             </li>
         </ul>
