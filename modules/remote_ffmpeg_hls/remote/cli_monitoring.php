@@ -39,7 +39,7 @@ while (true) {
 
     // or the status is not set (should be open / recording / paused / stopped)
     $status = status_get();
-    if($status = '' || $status = 'launch_failure')
+    if($status == '' || $status == 'launch_failure')
         die;
     
     // FMLE check

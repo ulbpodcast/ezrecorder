@@ -124,7 +124,7 @@ function xml_assoc_array2metadata($assoc_array) {
     $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
     $xml = new SimpleXMLElement($xmlstr);
     foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
+        $xml->addChild($key,  str_replace('&','&amp;',$value));
     }
     $xml_txt = $xml->asXML();
     return $xml_txt;
