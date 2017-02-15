@@ -45,7 +45,7 @@ while (true) {
     
     // or the status is not set (should be open / recording / paused / stopped)
     $status = capture_ffmpeg_status_get();
-    if($status = '' || $status = 'launch_failure')
+    if($status == '' || $status == 'launch_failure')
         die;
 
     clearstatcache();
