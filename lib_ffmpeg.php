@@ -306,7 +306,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             $more_params = ($try >= 1) ? ' -probesize 1000000 -analyzeduration 1000000 ' : ''; // increase analyze duration
             $more_params .= ($try >= 2) ? ' -pix_fmt yuv420p ' : ''; // defines pixel format, which is often lacking
             $part_file = "$tmp_dir/part-$index.mov";
-            $cmd = "$ffmpeg_cli_cmd -i $movie_path/$movie_in -ss " . $part_start_second . " -t " . $desired_part_duration . $more_params . " -c copy -y $part_file; wait";
+            $cmd = "$ffmpeg_cli_cmd -ss " . $part_start_second . " -i $movie_path/$movie_in  -t " . $desired_part_duration . $more_params . " -c copy -y $part_file; wait";
             print "*************************************************************************" . PHP_EOL .
                     $cmd . PHP_EOL .
                     "*************************************************************************" . PHP_EOL;
