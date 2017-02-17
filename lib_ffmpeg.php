@@ -295,6 +295,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         // sometimes, ffmpeg doesn't extract the recording segment properly
         // This results in a shortened segment which may cause problems in the final rendering 
         // We then loop on segment extraction to make sure it has the expected duration
+        // Expected duration will probably always fail if ffmpeg was restarted by monitoring
         $try_count = 3;
         while ($try < $try_count && abs($part_duration - $desired_part_duration) > 1) { //allow one second difference max
             // extracts the recording segment from the full recording
@@ -304,7 +305,8 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             // -y  : the segment is replaced if already existing
             $more_params = ($try >= 1) ? ' -probesize 1000000 -analyzeduration 1000000 ' : ''; // increase analyze duration
             $more_params .= ($try >= 2) ? ' -pix_fmt yuv420p ' : ''; // defines pixel format, which is often lacking
-			$cmd = "$ffmpeg_cli_cmd -ss " . $part_start_second . " -i $movie_path/$movie_in  -t " . $desired_part_duration . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
+            $part_file = "$tmp_dir/part-$index.mov";
+            $cmd = "$ffmpeg_cli_cmd -ss " . $part_start_second . " -i $movie_path/$movie_in  -t " . $desired_part_duration . $more_params . " -c copy -y $part_file; wait";
             print "*************************************************************************" . PHP_EOL .
                     $cmd . PHP_EOL .
                     "*************************************************************************" . PHP_EOL;
@@ -315,7 +317,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             }
             
             // the segment has been extracted, we verify here its duration
-            $cmd = "$ffmpeg_cli_cmd -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
+            $cmd = "$ffmpeg_cli_cmd -i $part_file 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
             $cmdoutput = system($cmd, $return_code); // duration in HH:MM:SS
             if($return_code != 0) {
                 return '3/' . $cmdoutput;
@@ -323,10 +325,12 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             
             list($hours, $minutes, $seconds) = sscanf($cmdoutput, "%d:%d:%d");
             $part_duration = $hours * 3600 + $minutes * 60 + $seconds; // duration in seconds
+            
+            if($try >= 1) {
+                $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration, array("movie_extract_cutlist"), $asset_name);
+            }
+            
             $try++;
-            print   "--------------------------------------------------------------------------"     . PHP_EOL .
-                    "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration . PHP_EOL .
-                    "--------------------------------------------------------------------------"     . PHP_EOL;
         }
         if($try == $try_count) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
