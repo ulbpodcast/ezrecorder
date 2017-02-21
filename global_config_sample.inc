@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/common_static.inc');
 
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
-$config_version = "20161003"; 
+$config_version = "2017022101"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
