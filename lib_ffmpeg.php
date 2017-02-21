@@ -244,7 +244,7 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
             break;
     }
     //when leaving this function, if $start_time is not equals to 0, we got an unfinished segment at the end
-    if($start_time != 0) {
+    if($startime != 0) {
         //add a segment to the end of the video
         $ffmpeg_params[] = array($startime - $init, 9999999999);
     }
