@@ -71,6 +71,11 @@ if($err != 0) {
     exit(5);
 }
 
+// syncrhonise from audio if the module is enabled
+if($enable_audio_sync){
+	include($audio_sync_lib);
+}
+
 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"), $asset_name);
 unlink($merge_file);
 

@@ -31,6 +31,8 @@ $ezcast_manager_url = "http://your.ezcast.server/ezmanager/";
 $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZrecorder alerts
 $php_cli_cmd = "/usr/bin/php"; // PHP binary
 $ffmpeg_cli_cmd = "/usr/local/bin/ffmpeg"; //FFMPEG binary
+$ffprobe_cli_cmd = "/usr/local/bin/ffprobe"; //FFPROBE binary
+$praat_cli_cmd = "/usr/local/bin/praat"; // praat binary
 
 $title_max_length = 70; // Max. number of characters
 
@@ -65,6 +67,10 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 // sound detection
 $enable_vu_meter = false;
 $sound_detect_lib = "sound_detect_av";
+
+//audio synchronisation
+$enable_audio_sync = false;
+$audio_sync_lib= "$basedir/modules/audio_sync/lib_audio_sync.php";
 
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console
