@@ -53,72 +53,79 @@ function controller_recording_submit_infos() {
     global $dir_date_format;
     global $recorder_session;
     global $logger;
+    global $already_recording;
 
-    // Sanity checks
-    if (!isset($input['title']) || empty($input['title'])) {
-        error_print_message(template_get_message('title_not_defined', get_lang()), false);
-        die;
+    if($already_recording)
+    {
+        // Sanity checks
+        if (!isset($input['title']) || empty($input['title'])) {
+            error_print_message(template_get_message('title_not_defined', get_lang()), false);
+            return false;
+        }
+
+        if (!isset($input['record_type']) || empty($input['record_type'])) {
+            error_print_message(template_get_message('type_not_defined', get_lang()), false);
+            return false;
+        }
+
+        $valid_record_type = validate_allowed_record_type($input['record_type'], get_allowed_record_type());
+        if($valid_record_type == false) {
+            $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::CRITICAL, "Invalid record type given (".$input['record_type']."), cannot continue", array(__FUNCTION__));
+            error_print_message(template_get_message('type_not_valid', get_lang()), false);
+            return false;
+        }
+
+        $streaming = (isset($input['streaming']) && $input['streaming'] == 'enabled') ? 'true' : 'false';
+
+        // authorization check
+        $fct_user_has_course = "auth_" . $auth_module . "_user_has_course";
+        if (!$fct_user_has_course($_SESSION['user_login'], $input['course'])) {
+            error_print_message('You do not have permission to access course ' . $input['course'], false);
+            $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
+            log_append('warning', $msg);
+            $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array(__FUNCTION__));
+            return false;
+        }
+        $_SESSION['recorder_course'] = $input['course'];
+        $_SESSION['recorder_type'] = $valid_record_type;
+
+        $datetime = date($dir_date_format);
+
+        // Now we create and store the metadata
+        $record_meta_assoc = array(
+            'course_name' => $input['course'],
+            'origin' => $classroom,
+            'title' => trim($input['title']),
+            'description' => $input['description'],
+            'record_type' => $valid_record_type,
+            'moderation' => 'true',
+            'author' => $_SESSION['user_full_name'],
+            'netid' => $_SESSION['user_login'],
+            'record_date' => $datetime,
+            'streaming' => $streaming,
+            'super_highres' => false
+        );
+
+
+        $fct_metadata_save = "session_" . $session_module . "_metadata_save";
+        $res = $fct_metadata_save($record_meta_assoc);
+
+        if ($res == false) {
+            error_print_message('submit_record_infos: something went wrong while saving metadata');
+            return false;
+        }
+
+        log_append("submit info from recording form");
+
+        $_SESSION['asset'] = get_asset_name($record_meta_assoc['course_name'], $record_meta_assoc['record_date']);
+        file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
+    } else {
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, "User ".$_SESSION['user_login']. " tried to re submit infos while we were already recording, ignoring submitted infos...", array(__FUNCTION__));
     }
-
-    if (!isset($input['record_type']) || empty($input['record_type'])) {
-        error_print_message(template_get_message('type_not_defined', get_lang()), false);
-        die;
-    }
-    
-    $valid_record_type = validate_allowed_record_type($input['record_type'], get_allowed_record_type());
-    if($valid_record_type == false) {
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::CRITICAL, "Invalid record type given (".$input['record_type']."), cannot continue", array(__FUNCTION__));
-        error_print_message(template_get_message('type_not_valid', get_lang()), false);
-        die;
-    }
-    
-    $streaming = (isset($input['streaming']) && $input['streaming'] == 'enabled') ? 'true' : 'false';
-
-    // authorization check
-    $fct_user_has_course = "auth_" . $auth_module . "_user_has_course";
-    if (!$fct_user_has_course($_SESSION['user_login'], $input['course'])) {
-        error_print_message('You do not have permission to access course ' . $input['course'], false);
-        $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
-        log_append('warning', $msg);
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array(__FUNCTION__));
-        die;
-    }
-    $_SESSION['recorder_course'] = $input['course'];
-    $_SESSION['recorder_type'] = $valid_record_type;
-
-    $datetime = date($dir_date_format);
-
-    // Now we create and store the metadata
-    $record_meta_assoc = array(
-        'course_name' => $input['course'],
-        'origin' => $classroom,
-        'title' => trim($input['title']),
-        'description' => $input['description'],
-        'record_type' => $valid_record_type,
-        'moderation' => 'true',
-        'author' => $_SESSION['user_full_name'],
-        'netid' => $_SESSION['user_login'],
-        'record_date' => $datetime,
-        'streaming' => $streaming,
-        'super_highres' => false
-    );
-
-
-    $fct_metadata_save = "session_" . $session_module . "_metadata_save";
-    $res = $fct_metadata_save($record_meta_assoc);
-
-    if ($res == false) {
-        error_print_message('submit_record_infos: something went wrong while saving metadata');
-        die;
-    }
-
-    log_append("submit info from recording form");
-    
-    $_SESSION['asset'] = get_asset_name($record_meta_assoc['course_name'], $record_meta_assoc['record_date']);
-    file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
 
     // And finally we can display the main screen! This will init the recorders (blocking call)
     view_init_record_screen();
+    return true;
 }
 
 /** Update record_type in metadata file according to allowed cam/slide
@@ -169,6 +176,19 @@ function update_metadata_file_with_allowed_types($metadata_file, $allow_cam, $al
     return true;
 }
 
+function get_asset_from_session() {
+    global $session_module;
+    
+    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
+    $metadata = $fct_metadata_get();
+    if(!$metadata)
+        return false;
+    
+        
+    $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
+    return $asset;
+}
+
 /**
  * Starts a new recording
  */
@@ -204,17 +224,23 @@ function controller_recording_start() {
 
     // saves the start time
     $datetime = date($dir_date_format);
-    $startrec_info = "$datetime\n";
-    $startrec_info.=$_SESSION['recorder_course'] . "\n";
+    $startrec_info  = "$datetime\n";
+    $startrec_info .= $_SESSION['recorder_course'] . "\n";
     $fct_recstarttime_set = "session_" . $session_module . "_recstarttime_set";
     $fct_recstarttime_set($startrec_info);
 
     $asset_dir = get_asset_dir($asset, "local_processing");
     if (!file_exists($asset_dir)) {
-        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
-        return false;
+        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Asset dir $asset_dir not found. Invalid asset? Trying to restore asset from session module.", array(__FUNCTION__), $asset);
+        $asset = get_asset_from_session();
+        $asset_dir = get_asset_dir($asset, "local_processing");
+        if (!file_exists($asset_dir)) {
+            $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
+            return false;
+        }
     }
     
+        
     $metadata_file = $asset_dir . '/_metadata.xml';
     $meta_assoc = xml_file2assoc_array($metadata_file);
     if($meta_assoc == false) {
