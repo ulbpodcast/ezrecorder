@@ -489,6 +489,7 @@ function capture_remoteffmpeg_thumbnail() {
  */
 function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $remote_recorder_ip;
+    global $external_remote_recorder_ip;
     global $remoteffmpeg_download_protocol;
     global $remoteffmpeg_streaming_protocol;
     global $remote_recorder_username;
@@ -500,6 +501,10 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $logger;
     global $remoteffmpeg_module_name;
     global $ezrecorder_username;
+    
+    $ip = $remote_recorder_ip;
+    if($external_remote_recorder_ip != "")
+        $ip = $external_remote_recorder_ip;
     
     switch ($action) {
         case 'download':
@@ -516,7 +521,7 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
             //Todo: check file existence on remote server
             
             // rsync requires ssh protocol is set (key sharing) on the remote server
-            $download_info_array = array("ip" => $remote_recorder_ip,
+            $download_info_array = array("ip" => $ip,
                 "protocol" => $remoteffmpeg_download_protocol,
                 "username" => $remote_recorder_username,
                 "filename" => $filename);
@@ -542,7 +547,7 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
                 return false;
             
             $streaming_info_array = array(
-                "ip" => $remote_recorder_ip, 
+                "ip" => $ip, 
                 "submit_url" => $ezcast_submit_url,
                 "protocol" => $remoteffmpeg_streaming_protocol,
                 "course" => $meta_assoc['course_name'],

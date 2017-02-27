@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/common_static.inc');
 
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
-$config_version = "20161003"; 
+$config_version = "2017022101"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -15,6 +15,8 @@ $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
 $ezrecorder_recorddir = "/Users/podclient/Movies/"; // basedir for the local video storage
 $remote_recorder_ip = "";
+//Optional override $remote_recorder_ip for requests from ezmanager. Use this is you need a different ip to connect to the same server from this recorder and from the manager.
+$external_remote_recorder_ip = "";
 $remote_recorder_username = "";
 
 //list of supported timezones: http://php.net/manual/en/timezones.europe.php

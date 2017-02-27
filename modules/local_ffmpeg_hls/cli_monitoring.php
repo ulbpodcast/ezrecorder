@@ -35,7 +35,7 @@ fwrite(fopen($ffmpeg_monitoring_file, 'w'), $pid);
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
-
+  
     // We stop if the file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
     if (!file_exists($ffmpeg_monitoring_file) 
@@ -47,25 +47,25 @@ while (true) {
     $status = capture_ffmpeg_status_get();
     if($status == '' || $status == 'launch_failure')
         die;
-
+  
     clearstatcache();
-
+  
     $movie_count = trim(system("ls -la $working_dir/ | grep $ffmpeg_movie_name | wc -l"));
     $files = glob("$working_dir/${ffmpeg_movie_name}_" . ($movie_count - 1) . "/high/$ffmpeg_movie_name*.ts");
     $status = capture_ffmpeg_recstatus_get();
     if ($status == '')
         capture_ffmpeg_recstatus_set('recording');
-
+  
     // Checking when was the last modif
     // (remember: QTB-FFMPEG uses several fmlemovie files)
     $last_modif = 0;
     foreach ($files as $file) {
         $last_modif = max($last_modif, filemtime($file));
     }
-
+  
     // Compares with current microtime
     $now = time();
-
+  
     if (($now - $last_modif) > $recovery_threshold) {
         capture_ffmpeg_recstatus_set('stopped');
         
