@@ -61,6 +61,9 @@ function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, 
     return $return_val;
 }
 
+/* Return true if remote fill exists
+Also returns exact command return value by reference
+ *  */
 function check_remote_file_existence($remote_file, &$return_val) {
     
     $cmd = "test -f $remote_file";
@@ -509,17 +512,10 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     switch ($action) {
         case 'download':
             $filename = $remoteffmpeg_upload_dir . '/' . $asset . "/slide.mov";
-            
-            $cmd = "sudo -u $ezrecorder_username ssh -o ConnectTimeout=5 $remote_recorder_username@$remote_recorder_ip 'test -e $filename'";
-            $return_val = 0;
-            system($cmd, $return_val);
+            $return_val = 0; //unused
+            if(!check_remote_file_existence($filename, $return_val))
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. Or maybe ssh command failed? File: $filename", array(__FUNCTION__), $asset);
 
-            if($return_val != 0)  {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. Or maybe ssh command failed? File: $filename. Cmd: $cmd", array(__FUNCTION__), $asset);
-            }
-
-            //Todo: check file existence on remote server
-            
             // rsync requires ssh protocol is set (key sharing) on the remote server
             $download_info_array = array("ip" => $ip,
                 "protocol" => $remoteffmpeg_download_protocol,
