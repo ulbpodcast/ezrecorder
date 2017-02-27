@@ -1,8 +1,9 @@
 <?php
 /*
- * This is a CLI script that launches the local processing of the recordings 
+ * This is a CLI script that launches the local processing of the recordings. 
  * By default, the data about the record to process is retrieved from the session module.
- * Alternatively, you can provide
+ * This STOPS the current recording !
+ * Alternatively, you can specify the asset:
  * Usage: cli_post_process.php [asset_name]
  * 
  */
