@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__.'/../../global_config.inc';
-
 // generate audio files
 function get_wav_from_video($input, $output,$asset_name){
 	global $logger;
@@ -64,11 +63,11 @@ function sync_video($movies_path,$asset_name){
 				
 			 
 			// create new temp files
-			$cmd=$ffmpeg_cli_cmd.' -ss '.$diff_time.' -i '.$slidepath.' '.$movies_path.'/../slidetemp.mov';
+			$cmd=$ffmpeg_cli_cmd.' -ss '.$diff_time.' -i '.$slidepath.' -vcodec copy -acodec copy '.$movies_path.'/../slidetemp.mov';
 			exec($cmd,$err,$return);
 			if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "creation of ".$movies_path."/../slidetemp.mov failed. ",array("merge_movies"), $asset_name);
 
-			$cmd=$ffmpeg_cli_cmd.' -ss 0 -i '.$campath.' -t '.($duration-$diff_time).' '.$movies_path.'/../camtemp.mov';
+			$cmd=$ffmpeg_cli_cmd.' -ss 0 -i '.$campath.' -vcodec copy -acodec copy -t '.($duration-$diff_time).' '.$movies_path.'/../camtemp.mov';
 			exec($cmd,$err,$return);
 			if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "creation of ".$movies_path."/../camtemp.mov failed. ",array("merge_movies"), $asset_name);
 			 
@@ -77,7 +76,14 @@ function sync_video($movies_path,$asset_name){
 		 	if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "Move ".$slidepath." from ".$movies_path."/../slidetemp.mov failed. ",array("merge_movies"), $asset_name);
 			exec('mv '.$movies_path.'/../camtemp.mov '.$campath,$err,$return);
 		 	if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "Move ".$campath." from ".$movies_path."/../camtemp.mov failed. ",array("merge_movies"), $asset_name);
+			
+			// Delete audio files
+			exec('rm '.$campath.'.wav ',$err,$return);
+		 	if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "DELETE ".$campath.".wav failed. ",array("merge_movies"), $asset_name);
+			exec('rm '.$slidepath.'.wav ',$err,$return);
+		 	if($return!= 0) $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::WARNING, "DELETE ".$slidepath.".wav failed. ",array("merge_movies"), $asset_name);
 		
+			$logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "AUDIO_SYNCHRONISATION SUCCEED ",array("merge_movies"), $asset_name);
 		}
 	}
 }
