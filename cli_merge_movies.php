@@ -4,6 +4,7 @@
 
 include __DIR__."/lib_ffmpeg.php";
 include __DIR__."/global_config.inc";
+include($audio_sync_lib);
 
 Logger::$print_logs = true;
 
@@ -73,7 +74,7 @@ if($err != 0) {
 
 // syncrhonise from audio if the module is enabled
 if($enable_audio_sync){
-	include($audio_sync_lib);
+	sync_video($movies_path,$asset_name);
 }
 
 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"), $asset_name);
