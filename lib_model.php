@@ -398,9 +398,9 @@ function controller_recording_cancel() {
     $metadata = $fct_metadata_get();
     if($metadata) {
         $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record cancelled at user request", array(__FUNCTION__), $asset);
+        $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Record cancelled at user request", array(__FUNCTION__), $asset);
     } else {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Cancelling current record, but we could not get asset name. It may be that there is no current recording.", array(__FUNCTION__));
+        $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Cancelling current record, but we could not get asset name. It may be that there is no current recording.", array(__FUNCTION__));
     }
         
     // stops the timeout monitoring
@@ -420,7 +420,7 @@ function controller_recording_cancel() {
     
     // something wrong happened while cancelling the recording
     if (!$result) {
-        $logger->log(EventType::ASSET_RECORD_END, LogLevel::ERROR, "Something wrong happened while cancelling record. Destroying session and status anway." . error_last_message(), array(__FUNCTION__));
+        $logger->log(EventType::ASSET_CANCELED, LogLevel::ERROR, "Something wrong happened while cancelling record. Destroying session and status anway." . error_last_message(), array(__FUNCTION__));
         error_print_message(error_last_message());
     }
     
@@ -604,7 +604,7 @@ function controller_recording_force_quit() {
     $session = explode(';', file_get_contents($recorder_session));
     $asset = $session[0];
 
-    $logger->log(EventType::ASSET_RECORD_END, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
+    $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
     $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
 
     $fct_current_user_get = "session_" . $session_module . "_current_user_get";
