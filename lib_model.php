@@ -55,7 +55,7 @@ function controller_recording_submit_infos() {
     global $logger;
     global $already_recording;
 
-    if($already_recording)
+    if($already_recording == false)
     {
         // Sanity checks
         if (!isset($input['title']) || empty($input['title'])) {
