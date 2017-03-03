@@ -28,11 +28,11 @@ $asset = $argv[1];
 
 $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
 if($working_dir == false) {
-    $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Could not find ffmpge working dir for asset $asset", array(basename(__FILE__)), $asset);
+    $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Could not find ffmpeg working dir for asset $asset", array(basename(__FILE__)), $asset);
     exit(2);
 }
 
-$logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::DEBUG, "Started ffmpeg module monit", array(basename(__FILE__)), $asset);
+$logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::DEBUG, "Started ffmpeg module monit with working dir $working_dir", array(basename(__FILE__)), $asset);
         
 // Delays, in seconds
 $recovery_threshold = 20; // Threshold before we start worrying about missing files
@@ -78,6 +78,7 @@ while (true) {
             //reset to recording so that we check again if relaunch worked
         }
     } else if ($rec_status == 'stopped') {
+        echo "Found recent videos files";
         capture_ffmpeg_recstatus_set('recording');
     }
 
@@ -86,7 +87,6 @@ while (true) {
 
 function last_modif_file_too_old() {
     global $recovery_threshold;
-    global $working_dir;
     
     $last_modif = get_last_modif_time();
     $now = time();
