@@ -256,7 +256,7 @@ else # currently recording
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list.txt
 
     #start monitoring 
-    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $WORKING_DIR" | at now
+    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $ASSET > $WORKING_DIR/monit.txt" | at now
 
     echo -n "open" > $STATUS_FILE
     exit 0
