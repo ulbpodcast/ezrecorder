@@ -117,6 +117,7 @@ fi
                 -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
                 -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
                 -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+                 
             fi ;;
          *)
             #no valid input source specified
@@ -194,6 +195,6 @@ else # currently recording
     fi
 
     #start monitoring 
-    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $WORKING_DIR" | at now
+    echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $ASSET > ${WORKING_DIR}/monit.txt" | at now
     exit 0
 fi
