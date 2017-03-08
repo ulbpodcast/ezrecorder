@@ -30,7 +30,7 @@
  * All path should be absolute
  */
 
-require_once dirname(__FILE__) . '/../../config.inc';
+require_once __DIR__ . '/../../config.inc';
 
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)

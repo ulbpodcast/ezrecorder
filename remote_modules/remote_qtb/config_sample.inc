@@ -25,7 +25,7 @@
  */
 
 // used by cli_monitoring.php when a recording has timed out
-$remoteqtb_basedir = dirname(__FILE__).'/';
+$remoteqtb_basedir = __DIR__.'/';
 $remoteqtb_recorddir = '~/Movies/';
 $remoteqtb_movie_name = "qtbmovie";
 $metadata_file = $remoteqtb_basedir . 'var/_metadata.xml';

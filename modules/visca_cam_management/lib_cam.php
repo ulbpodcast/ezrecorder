@@ -27,7 +27,7 @@
 
 include_once "lib_visca.php";
 include_once "config.inc";
-$ptzposdir = dirname(__FILE__) . "/ptzposdir";
+$ptzposdir = __DIR__ . "/ptzposdir";
 
 /**
  * @implements

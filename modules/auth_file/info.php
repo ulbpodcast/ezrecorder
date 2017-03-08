@@ -27,7 +27,7 @@
 $module_title = "auth_file";
 $module_description = "This module is designed to authenticate users, using files";
 $module_name = "file";
-$module_path = dirname(__FILE__);
+$module_path = __DIR__;
 $module_type = "authentication";
 $module_lib = "$module_path/lib_auth.php";
 ?>

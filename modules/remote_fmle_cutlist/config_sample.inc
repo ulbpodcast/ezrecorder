@@ -28,7 +28,7 @@
  * Every var name should be preceded by the 'remotefmle' prefix to avoid conflict 
  * in web_index.php (two different vars with same name)
  */
-require_once dirname(__FILE__)."/../../global_config.inc";
+require_once __DIR__."/../../global_config.inc";
 
 $remotefmle_features = array('recording');
 $remotefmle_ip = "127.0.0.1"; // ip address of the remote recorder
@@ -37,7 +37,7 @@ $remotefmle_username = "podclient"; // username on the local recorder
 
 $remote_basedir = "/path/to/ezrecorder"; // basedir on the remote recorder
 $remotefmle_basedir = $basedir . 'remote_modules/remote_fmle_cutlist/'; // remote_fmle module on the remote recorder
-$remotefmle_local_basedir = dirname(__FILE__).'/'; // basedir on this machine
+$remotefmle_local_basedir = __DIR__.'/'; // basedir on this machine
 $remotefmle_recorddir = '~/Movies/';
 $remotefmle_upload_dir = $remotefmle_recorddir . '/upload_to_server/';
 

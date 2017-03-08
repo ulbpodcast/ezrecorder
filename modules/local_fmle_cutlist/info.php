@@ -27,7 +27,7 @@
 $module_title = "local_fmle_cutlist";
 $module_description = "Record videos using Adobe Flash Media Live Encoder. It records as soon as the recording form has been submitted and uses cutlist to deliver the final video file.";
 $module_name = "localfmle";
-$module_path = dirname(__FILE__);
+$module_path = __DIR__;
 $module_type = "recording";
 $module_lib = "$module_path/lib_capture.php";
 ?>

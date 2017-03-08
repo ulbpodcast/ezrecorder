@@ -25,7 +25,7 @@
  */
 
 // used by cli_monitoring.php when a recording has timed out
-$remotefmle_basedir = dirname(__FILE__).'/';
+$remotefmle_basedir = __DIR__.'/';
 $remotefmle_recorddir = '~/Movies/';
 $remotefmle_movie_name = "fmlemovie";
 $remotefmle_monitoring_file = $remotefmle_basedir . 'var/_monitoring_pid';
