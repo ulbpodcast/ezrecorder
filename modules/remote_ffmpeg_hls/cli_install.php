@@ -29,7 +29,11 @@ file_put_contents("$remoteffmpeg_local_basedir/config.inc", $config);
 
 echo PHP_EOL . "Changing values in setperms.sh" . PHP_EOL;
 
-$perms_file = file_get_contents("$remoteffmpeg_local_basedir/setperms_sample.sh");
+if (strtoupper(php_uname('s'))==='LINUX'){
+	$perms_file = file_get_contents("$remoteffmpeg_local_basedir/setperms_samplinux.sh");
+}else{
+	$perms_file = file_get_contents("$remoteffmpeg_local_basedir/setperms_sample.sh");
+}
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$remoteffmpeg_local_basedir/setperms.sh", $perms_file);

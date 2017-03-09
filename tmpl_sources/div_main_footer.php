@@ -3,7 +3,7 @@
 <div class="footer">
     <div class="footer_wrapper">
         <div class="logos"> 
-            <a href="http://podcast.ulb.ac.be"><img src="./images/Generale/logoPodcast.png"/></a>
+            <a href="http://podcast.ulb.ac.be"><img src="./images/Generale/LogoPodcast.png"/></a>
         </div>
         <ul>
             <li>

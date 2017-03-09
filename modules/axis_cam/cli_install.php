@@ -61,7 +61,11 @@ $bash_file = str_replace("!RECORD_PATH", $ezrecorder_recorddir, $bash_file);
 $bash_file = str_replace("!FFMPEG_PATH", $ffmpegpath, $bash_file);
 file_put_contents("$modules_basedir/axis_cam/bash/localdefs", $bash_file);
 
-$perms_file = file_get_contents("$modules_basedir/axis_cam/setperms_sample.sh");
+if (strtoupper(php_uname('s'))==='LINUX'){
+	$perms_file = file_get_contents("$modules_basedir/axis_cam/setperms_samplinux.sh");
+}else{
+	$perms_file = file_get_contents("$modules_basedir/axis_cam/setperms_sample.sh");
+}
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$modules_basedir/axis_cam/setperms.sh", $perms_file);
