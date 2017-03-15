@@ -27,7 +27,6 @@
 $module_title = "title"; // name of the directory containing the module
 $module_description = "Description"; // description of the module
 $module_name = "modulename"; // prefix of the module (replaced in lib_interface.php)
-$module_path = dirname(__FILE__);
+$module_path = __DIR__;
 $module_type = "type"; // type of module ['recording' | 'cam_management' | 'authentication' | 'session']
 $module_lib = "$module_path/lib_....php";
-?>

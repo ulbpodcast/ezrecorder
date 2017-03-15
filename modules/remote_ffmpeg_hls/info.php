@@ -27,6 +27,6 @@
 $module_title = "remote_ffmpeg_hls";
 $module_description = "Record videos using FFMPEG on a remote recorder. It allows the user to both record and live stream the video.";
 $module_name = "remoteffmpeg";
-$module_path = dirname(__FILE__);
+$module_path = __DIR__;
 $module_type = "recording";
 $module_lib = "$module_path/lib_capture.php";

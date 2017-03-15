@@ -27,7 +27,7 @@
 $module_title = "axis_cam_management";
 $module_description = "This module is designed to control Axis PTZ camera. It should be used only if the axis_cam module is enabled.";
 $module_name = "axis_ptz";
-$module_path = dirname(__FILE__);
+$module_path = __DIR__;
 $module_type = "cam_management";
 $module_lib = "$module_path/lib_cam.php";
 ?>

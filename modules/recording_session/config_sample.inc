@@ -24,7 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require_once dirname(__FILE__).'/../../global_config.inc';
+require_once __DIR__.'/../../global_config.inc';
 
 $session_basedir = $modules_basedir . '/recording_session/';
 $metadata_file = $session_basedir . 'var/metadata.xml'; // Where to temporarily store the metadata
@@ -32,5 +32,3 @@ $lock_file = $session_basedir . 'var/_current_user'; // Exclusive lock file
 $recstarttime_file = $session_basedir . 'var/recstarttime'; // The file containing the start time and album
 $initstarttime_file = $session_basedir . 'var/initstarttime'; // The file containing the moment when the recording has been init
 $last_request_file = $session_basedir . 'var/last_request'; // The time of the last request from user
-
-?>

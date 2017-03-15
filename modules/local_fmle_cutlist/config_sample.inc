@@ -24,13 +24,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require_once dirname(__FILE__).'/../../global_config.inc';
+require_once __DIR__.'/../../global_config.inc';
 
 $localfmle_features = array('recording');
 $localfmle_ip = $ezrecorder_ip;
 $localfmle_username = $ezrecorder_username;
 
-$localfmle_basedir = dirname(__FILE__).'/';
+$localfmle_basedir = __DIR__.'/';
 $localfmle_recorddir = $ezrecorder_recorddir;
 $localfmle_movie_name = 'fmlemovie';
 

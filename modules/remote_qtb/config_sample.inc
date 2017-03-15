@@ -28,7 +28,7 @@
  * Every var name should be preceded by the 'remoteqtb' prefix to avoid conflict 
  * in web_index.php (two different vars with same name)
  */
-require_once dirname(__FILE__)."/../../global_config.inc";
+require_once __DIR__."/../../global_config.inc";
 
 $remoteqtb_features = array('recording');
 $remoteqtb_ip = "127.0.0.1"; // ip address of the remote recorder
@@ -65,4 +65,3 @@ $remote_script_datafile_set = $remoteqtb_local_basedir . 'bash/dataset';
 $remote_script_datafile_get = $remoteqtb_local_basedir . 'bash/dataget';
 $remote_script_call = $remoteqtb_local_basedir . 'bash/remotecall';
 $remote_script_thumbnail_create = $remoteqtb_local_basedir . 'bash/thumbnailcreate';
-?>

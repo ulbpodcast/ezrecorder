@@ -26,7 +26,7 @@
 
 //include_once "lib_curl.php";
 include_once "config.inc";
-$ptzposdir = dirname(__FILE__) . "/ptzposdir";
+$ptzposdir = __DIR__ . "/ptzposdir";
 
 /**
  * @implements

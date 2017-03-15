@@ -30,4 +30,3 @@ $module_name = "axiscam";
 $module_path = dirname(__FILE__);
 $module_type = "recording";
 $module_lib = "$module_path/lib_capture.php";
-?>

@@ -19,7 +19,7 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
     $img_path['broadcasting'] = dirname(__FILE__) . '/img/broadcasting.png';
     $img_path['connection'] = dirname(__FILE__) . '/img/connection.png';
     $img_path['error'] = dirname(__FILE__) . '/img/error.png';
-    $img_path['pending'] = dirname(__FILE__) . '/img/pending.png';
+    $img_path['pending'] = __DIR__ . '/img/pending.png';
 
     $img = imagecreatefromjpeg($input);
 //or imagecreatefrompng,imagecreatefromgif,etc. depending on user's uploaded file extension
