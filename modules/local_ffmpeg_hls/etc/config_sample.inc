@@ -1,5 +1,7 @@
 <?php
 
+$config_version = "2017031601";
+
 require_once __DIR__.'/../../../global_config.inc';
 
 $ffmpeg_mono = true; // determines whether the input audio channel is mono or stereo
