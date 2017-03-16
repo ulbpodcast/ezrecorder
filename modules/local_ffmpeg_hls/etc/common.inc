@@ -37,6 +37,7 @@ $ffmpeg_script_start = $ffmpeg_basedir.'bash/ffmpeg_start';
 $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
+$ffmpeg_script_process = $ffmpeg_basedir.'bash/ffmpeg_process.php';
 
 $ffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io", "rtsp");
 
