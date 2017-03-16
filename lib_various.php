@@ -16,9 +16,9 @@ require_once "lib_install.php";
 function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_file = true) {
 
     $img_path = array();
-    $img_path['broadcasting'] = dirname(__FILE__) . '/img/broadcasting.png';
-    $img_path['connection'] = dirname(__FILE__) . '/img/connection.png';
-    $img_path['error'] = dirname(__FILE__) . '/img/error.png';
+    $img_path['broadcasting'] = __DIR__ . '/img/broadcasting.png';
+    $img_path['connection'] = __DIR__ . '/img/connection.png';
+    $img_path['error'] = __DIR__ . '/img/error.png';
     $img_path['pending'] = __DIR__ . '/img/pending.png';
 
     $img = imagecreatefromjpeg($input);
@@ -480,7 +480,7 @@ function move_remote_asset($asset, $target) {
     $return_val = 0;
     system($local_cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd", array(__FUNCTION__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd. Return val: $return_val", array(__FUNCTION__), $asset);
         return false;
     }
     $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FUNCTION__), $asset);
