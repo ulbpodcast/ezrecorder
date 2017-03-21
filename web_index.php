@@ -25,6 +25,19 @@ template_repository_path($template_folder . get_lang());
 template_load_dictionnary('translations.xml');
 
 
+// At this point of the code, we know the user is logged in.
+// So now, we must see what action they wanted to perform, and do it.
+$action = '';
+if(isset($input['action']))
+    $action = $input['action'];
+
+
+if($action == 'recording_force_quit')
+{
+    controller_recording_force_quit();
+    die();
+}
+
 //
 // Controller
 //
@@ -61,12 +74,6 @@ if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
     }
 }
 
-
-// At this point of the code, we know the user is logged in.
-// So now, we must see what action they wanted to perform, and do it.
-$action = '';
-if(isset($input['action']))
-    $action = $input['action'];
 
 global $service; //true if we're currently running a service. 
 $service = false;
@@ -135,10 +142,11 @@ switch ($action) {
         break;
 
     // Case when someone asks to log in while someone else was recording
+    /*
     case 'recording_force_quit':
         controller_recording_force_quit();
         break;
-
+*/
     case 'camera_move':
         controller_camera_move();
         break;

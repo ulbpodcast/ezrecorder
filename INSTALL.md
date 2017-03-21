@@ -98,7 +98,7 @@ Change <true/> tag at Disabled key
 sudo launchctl load –w /System/Library/LaunchDaemons/com.apple.atrun.plist 
 ``` 
 
-* (Optional) Activate Internet Sharing
+* (MacOS Optional) Activate Internet Sharing
 
 Depending on your needs, you may have to use Internet Sharing to provide an access to the recorder.
 

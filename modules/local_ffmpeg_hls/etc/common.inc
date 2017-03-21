@@ -1,5 +1,8 @@
 <?php
 
+if(isset($config_version) && $config_version != "2017031601")
+    trigger_error("local_ffmpeg_hls config.inc file is not up to date", E_USER_WARNING);
+
 $ffmpeg_features = array('recording', 'streaming');
 
 $ffmpeg_basedir = dirname(__DIR__).'/';
@@ -37,6 +40,7 @@ $ffmpeg_script_start = $ffmpeg_basedir.'bash/ffmpeg_start';
 $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
+$ffmpeg_script_process = $ffmpeg_basedir.'bash/ffmpeg_process.php';
 
 $ffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io", "rtsp");
 

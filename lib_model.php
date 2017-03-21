@@ -922,6 +922,7 @@ function user_login($login, $passwd) {
         if ($_SESSION['user_login'] == $current_user) {
             // We retrieve the recorder page
             log_append('reconnecting', $_SESSION['user_login'] . ' trying to log in but was already using recorder. Retrieving lost session.');
+            $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, $_SESSION['user_login'] . ' trying to log in but was already using recorder. Retrieving lost session.', array(__FUNCTION__));
 
             $redraw = true;
             $status = status_get();
@@ -933,9 +934,10 @@ function user_login($login, $passwd) {
             else
                 controller_view_record_form(); //ask metadata again
             die;
-        }
-        // Case where someone else is trying to connect while someone is already using the recorder
-        else {
+            
+        } else {
+            $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "User " . $_SESSION['user_login'] . " tried to login but session was locked, asking him if he wants to interrupt the current record", array(__FUNCTION__));
+            
             // We ask the user if they want to stop the current recording and save it.
             // Various information we want to display
             $fct_current_user_get = "session_" . $session_module . "_current_user_get";
