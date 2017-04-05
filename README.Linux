@@ -3,9 +3,10 @@
 #####################################
 
 Package needed by EZrecorder:
-apt-get install apache2 openssh-server, at, apache2, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite3, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
+apt-get install apache2 openssh-server, at, apache2, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite3, php7.0-sqlite3, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
 cd /usr/lib/x86_64-linux-gnu
 sudo ln -s libzip.so.4.0.0 libzip.so.2
+cd ~
 
 Remove previous installation of ffmpeg (apt-get remove ffmpeg)
 
