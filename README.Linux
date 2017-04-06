@@ -50,7 +50,7 @@ Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on ezrec
 			chmod 600 ~/.ssh/authorized_keys
 test ssh ezrecorder@ezrecorderXX and ssh ezrecorder@Replace_with_ip_address
 
-Adapt the "organization layout" section and create needed items in htdocs/images
+In global_config_sample.inc file, adapt the "organization layout" section and create needed items in htdocs/images
 
 Run installation: sudo /usr/local/ezrecorder/install.sh
 NB: for one PC installation, first modure is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io
