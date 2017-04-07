@@ -182,10 +182,8 @@ function template_parse($file, $lang, $output_folder) {
     //calls template_get_label for each match and replace keywork with translated value in the text
     $data = preg_replace_callback('!®(\S+)®!iU', create_function('$matches', 'return template_get_label($matches[1], \''.$lang.'\');'), $data);
     
-    echo ">>>$organization<<<\n";
     //customize fot organization
     if (strcmp($organization,"Generale") !== 0){
-		echo "in\n";
 		$data = str_replace('Generale',$organization,$data);
 		$data = str_replace('http://www.ulb.ac.be',$organisation_url,$data);
 		$data = str_replace('http://podcast.ulb.ac.be',$organization_ezcast_url,$data);

@@ -3,7 +3,7 @@
 #####################################
 
 Package needed by EZrecorder:
-apt-get install apache2 openssh-server, at, apache2, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite3, php7.0-sqlite3, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
+apt-get install apache2 openssh-server, at, apache2, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite, php7.0-sqlite, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
 cd /usr/lib/x86_64-linux-gnu
 sudo ln -s libzip.so.4.0.0 libzip.so.2
 cd ~
@@ -51,9 +51,13 @@ Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on ezrec
 test ssh ezrecorder@ezrecorderXX and ssh ezrecorder@Replace_with_ip_address
 
 In global_config_sample.inc file, adapt the "organization layout" section and create needed items in htdocs/images
-
+In translations.xml, adapte text to your organization.
+ 
 Run installation: sudo /usr/local/ezrecorder/install.sh
-NB: for one PC installation, first modure is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io
+
+Run remote ffmpeg configuration: sudo php /usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote/cli_install.php
+
+NB: for one PC installation, first module is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io
 
 Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezrecorder (user) on ezrecorder (computer)
 	 - Without passphrase
