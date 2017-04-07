@@ -3,7 +3,7 @@
 #####################################
 
 Package needed by EZrecorder:
-apt-get install apache2 openssh-server, at, apache2, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite, php7.0-sqlite, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
+apt-get install apache2 openssh-server, at, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite, php7.0-sqlite, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
 cd /usr/lib/x86_64-linux-gnu
 sudo ln -s libzip.so.4.0.0 libzip.so.2
 cd ~
@@ -24,7 +24,7 @@ ffmpeg installation:
 Library needed: 
 	apt-get install build-essential libmp3lame-dev libvorbis-dev libtheora-dev libspeex-dev yasm pkg-config libfaac-dev libopenjpeg-dev libx264-dev libfdk-aac-dev libasound2-dev
 	wget http://ffmpeg.org/releases/ffmpeg-3.2.4.tar.bz2
-	tar xfvj http://ffmpeg.org/releases/ffmpeg-3.2.4.tar.bz2
+	tar xfvj ffmpeg-3.2.4.tar.bz2
 	cd ffmpeg-3.2.4
 	./configure --enable-libpulse --enable-gpl --enable-postproc --enable-swscale --enable-avfilter --enable-libmp3lame --enable-libvorbis --enable-libtheora --enable-libx264 --enable-libspeex --enable-shared --enable-pthreads --enable-libopenjpeg --enable-libfdk-aac --extra-libs=-lasound --enable-nonfree --enable-pic --enable-shared
 	make
@@ -36,20 +36,21 @@ Run ffmpeg to validate this step.
 Download EZrecorder files from github repository:
 git clone https//github.com/ulbpodcast/ezrecorder.git ./ezrecorder
 
-Copy as root EZrecorder files/folders in /usr/local/ (cp -R ~/ezrecorder -t /usr/local/)
+Copy as root EZrecorder files/folders in /usr/local/ : sudo cp -R ~/ezrecorder -t /usr/local/
 Move to /usr/local/ezrecorder
-Change permissions for install.sh: chmod 755 install.sh
+Change permissions for install.sh: sudo chmod 755 install.sh
 cd ~
 
 Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on ezrecorderXX (computer)
 	 - Without passphrase
 			ssh-keygen -t rsa
-			ssh-copy-id -i ~/.ssh/id_rsa.pub ezrecorder@ezrecorderXX
+			ssh-copy-id -i ~/.ssh/id_rsa.pub ezrecorder@hostname
 	Authorisation :
 			chmod 700 ~/.ssh
 			chmod 600 ~/.ssh/authorized_keys
-test ssh ezrecorder@ezrecorderXX and ssh ezrecorder@Replace_with_ip_address
+test: ssh ezrecorder@hostname and ssh ezrecorder@host_ip
 
+Go back into /usr/local/ezrecorder.
 In global_config_sample.inc file, adapt the "organization layout" section and create needed items in htdocs/images
 In translations.xml, adapte text to your organization.
  
