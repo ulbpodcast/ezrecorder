@@ -41,7 +41,7 @@ Move to /usr/local/ezrecorder
 Change permissions for install.sh: sudo chmod 755 install.sh
 cd ~
 
-Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on ezrecorderXX (computer)
+Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on/as itself
 	 - Without passphrase
 			ssh-keygen -t rsa
 			ssh-copy-id -i ~/.ssh/id_rsa.pub ezrecorder@hostname
@@ -60,7 +60,7 @@ Run remote ffmpeg configuration: sudo php /usr/local/ezrecorder/modules/remote_f
 
 NB: for one PC installation, first module is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io
 
-Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezrecorder (user) on ezrecorder (computer)
+Allow ssh connection from ezcast for www-data to ezrecorder (computer) as ezrecorder (user)
 	 - Without passphrase
 			ssh-keygen -t rsa
 			ssh-copy-id -i ~/.ssh/id_rsa.pub username@computer
