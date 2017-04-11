@@ -22,7 +22,7 @@ mkdir -p -m777 $TARGET_DIR
 mkdir -p -m777 $HIGH_DIR
 mkdir -p -m777 $LOW_DIR
 
-if [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]
+if [ "$(expr substr $(uname -s) 1 5)" = "Linux" -a "$INPUT" = "AV.io" ]
 then	
 	date > ${TARGET_DIR}/modprobe.log
 	/usr/bin/sudo /sbin/modprobe -v -r uvcvideo 2>&1 >> ${TARGET_DIR}/modprobe.log
