@@ -61,7 +61,7 @@ make sure $courselist is set and is an array of all courses available for the us
 
         <!-- TEXT FIELDS - DESCRIPTION -->
         <label>®Description®:</label>
-        <textarea  name="description" rows="4" id="description"><?php echo $_SESSION['description']; ?></textarea>
+        <textarea  name="description" rows="2" id="description"><?php echo $_SESSION['description']; ?></textarea>
         <!-- TEXT FIELDS - DESCRIPTION [END] -->
         <div class="spacer"></div>
     </div>
@@ -75,7 +75,7 @@ make sure $courselist is set and is an array of all courses available for the us
     </div>
     
     <?php
-        //default record type if not any already defined
+        //set a default record type if not any already defined
         if(!isset($_SESSION['recorder_type'])) {
             $default_type = "";
             if ($cam_enabled && $slide_enabled)
@@ -99,8 +99,14 @@ make sure $courselist is set and is an array of all courses available for the us
 
     <!-- CANCEL BUTTON / CONTINUE -->
     <div id="btn">   
-        <label class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>><input type="checkbox" name="streaming" value="enabled"> Streaming LIVE</label>
-        <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
-        <a class="continuer" id="submit_button" href="#">®Continue®</a></div>
+        <label id="streamform" class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>>
+            <input type="checkbox" name="streaming" value="enabled">
+            <span class="tooltip" id="streamtext">®Enable_streaming® 
+                <span class="tooltiptext" id="stream_popup">®Stream_help®</span>
+            </span>
+        </label>
+         <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
+        <a class="continuer" id="submit_button" href="#">®Continue®</a>
+    </div>
 </form>
 <!-- CANCEL BUTTON / CONTINUE [END] -->

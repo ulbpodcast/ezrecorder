@@ -38,6 +38,10 @@
         <label id="Start_time" lang="en">Date/time</label>
         <label id="Deconnection" lang="fr">Annuler</label>
         <label id="Deconnection" lang="en">Cancel</label>
+        <label id="Enable_streaming" lang="fr">Diffusion en direct</label>
+        <label id="Enable_streaming" lang="en">Streaming Live</label>
+        <label id="Stream_help" lang="fr">L'enregistrement sera diffusé et accessible en direct depuis l'album public du cours</label>
+        <label id="Stream_help" lang="en">The record will be live streamed and available from the public album of the course</label>
         <label id="Back" lang="fr">Retour</label>
         <label id="Back" lang="en">Back</label>
         <label id="Continue" lang="fr">Continuer</label>

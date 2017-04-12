@@ -311,12 +311,16 @@ p{
 }
 
 #WrapRadio{
-    width: 353px;
+    width: 373px;
     height: 136px;
     margin-bottom: 20px;
     margin-left: 233px;
-    border: 1px solid #505050;
-    background-color:#202020;
+}
+
+.radio {
+    border: 1px solid;
+    border-radius: 15px;
+    border-color: #8a8585;
 }
 
 #loading{
@@ -341,12 +345,11 @@ p{
 
 #btn{
     height:25px;
-    margin-top:50px;
 }
 
 #btn label.stream {
     margin-left: 235px;
-    margin-right: 70px;
+    margin-right: 50px;
 }
 
 #btn a{
@@ -608,6 +611,52 @@ p{
     color:#ffffff;
     margin-left:30px;
     line-height:40px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+        
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }
 
 /*-Page 3 boutons [Fin] -*/
