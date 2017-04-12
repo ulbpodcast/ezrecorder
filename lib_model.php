@@ -6,10 +6,13 @@ require_once 'lib_template.php';
 require_once 'lib_error.php';
 require_once $auth_lib;
 require_once $session_lib;
+
 if ($cam_enabled)
-    require_once $cam_lib; // defined in global_config
+    require_once $cam_lib; 
 if ($slide_enabled)
-    require_once $slide_lib; // defined in global_config
+    require_once $slide_lib; 
+if ($sound_backup_enabled)
+    require_once $sound_backup_lib; 
 if ($cam_management_enabled)
     require_once $cam_management_lib;
 
@@ -768,6 +771,7 @@ function controller_camera_move() {
  */
 function controller_view_login_form() {
     global $url;
+    
     session_destroy();
     require_once template_getpath('login.php');
     die;
@@ -796,9 +800,10 @@ function controller_view_record_form() {
 
     if (isset($_SESSION['asset']) && isset($input['reset_player']) && $input['reset_player'] == 'true') {
         $asset = $_SESSION['asset'];
+        $logger->log(EventType::RECORDER_CANCEL, LogLevel::NOTICE, "Input has 'reset_player' argument, cancelling record", array(__FUNCTION__), $asset);
         $result = cancel_current_record($asset, true);
         if(!$result) {
-            $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Something wrong happened while cancelling current record. Trying to continue anyway.", array('controller_view_record_form'), $asset);
+            $logger->log(EventType::RECORDER_CANCEL, LogLevel::ERROR, "Something wrong happened while cancelling current record. Trying to continue anyway.", array(__FUNCTION__), $asset);
         }
 
         status_set('');
@@ -1019,6 +1024,8 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
+    global $sound_backup_enabled;
+    global $sound_backup_module;
     global $logger;
     
     $error = "";
@@ -1082,6 +1089,17 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         if ($slide_ok == false) {
             $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Slides capture module reported init failure", array(__FUNCTION__), $asset);
             log_append('error', "view_record_screen: Slides capture init failed.");
+        }
+    }
+    
+    if($sound_backup_enabled) {
+        $fct = 'capture_' . $sound_backup_module . '_init';
+        $pid = 0;
+        $success = $fct($pid, $metadata, $asset);
+        if(!$success) {
+            $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Failed to start sound_backup", array(basename(__FILE__)), $asset);
+        } else if ($slide_pid == 0) {
+            $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "sound backup module was successfully started", array(basename(__FILE__)), $asset);
         }
     }
 

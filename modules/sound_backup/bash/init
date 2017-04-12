@@ -1,0 +1,5 @@
+#!/bin/bash -x
+
+# This script must be sudo authorized for _www to run as podclient
+
+php $(dirname $0)/init.php "$@"

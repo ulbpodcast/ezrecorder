@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/common_static.inc');
 
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
-$config_version = "2017022101"; 
+$config_version = "2017041201"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -53,6 +53,10 @@ $cam_lib = "$basedir/modules/local_ffmpeg_hls/lib_capture.php";
 $slide_enabled = false;
 $slide_module = "remoteffmpeg";
 $slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
+
+$sound_backup_enabled = false;
+$sound_backup_module = "sound_backup";
+$sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";
 
 // session data
 $session_module = "xml";
