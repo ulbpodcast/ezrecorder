@@ -36,7 +36,7 @@ class sound_detect_av implements sound_detect {
        
         $audio_interface = $this->avfoundation_index;
         
-        $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i \":$audio_interface\" -af 'volumedetect' -f null /dev/null 2>&1";
+        $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i \\\":$audio_interface\\\" -af 'volumedetect' -f null /dev/null 2>&1";
         
         if($this->remote_ip && $this->remote_username)
             $cmd = "sudo -u ".$ezrecorder_username." ssh -o ConnectTimeout=10 -o BatchMode=yes ". $this->remote_username.'@'.$this->remote_ip." \"$cmd\"";

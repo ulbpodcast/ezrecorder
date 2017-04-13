@@ -27,7 +27,7 @@ if(file_exists($sound_backup_pid_file))
       
 
 $return_val = 0;
-$cmd = "$ffmpeg_cli_cmd -f avfoundation -i \":$avfoundation_audio_interface\" $working_dir/$backup_filename";
+$cmd = "$ffmpeg_cli_cmd -f avfoundation -i \":$avfoundation_audio_interface\" -acodec libfdk_aac -ac 1 $working_dir/$backup_filename";
 system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_SOUND_BACKUP, LogLevel::ERROR, "Failed to start ffmpeg command $cmd", array($log_context));

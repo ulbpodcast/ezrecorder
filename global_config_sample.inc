@@ -54,6 +54,7 @@ $slide_enabled = false;
 $slide_module = "remoteffmpeg";
 $slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
 
+// sound backup
 $sound_backup_enabled = false;
 $sound_backup_module = "sound_backup";
 $sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";

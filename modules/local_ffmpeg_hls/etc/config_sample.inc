@@ -16,7 +16,7 @@ $ffmpeg_rtsp_media_low_uri = "rtsp://xxx.xxx.xxx.xxx:xxx/yy";
 // --
 
 // -- If source is "avfoundation" or "AV.io"
-//avfoundations input indexes. You can list them with:   ffmpeg -f avfoundation -list_devices true -i ""
+//avfoundation input indexes or device names. You can list them with:   ffmpeg -f avfoundation -list_devices true -i ""
 $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
 // --
