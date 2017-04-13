@@ -1,8 +1,12 @@
 <?php
 
-//htdocs version warning, will warn if the htdocs were updated in the code but not applied to the web server. (The isset is there to allow running this file from elsewhere than the web space)
-if(isset($htdocs_version) && $htdocs_version != "2017041301") {
-    trigger_error("Documents in web space are not up to date, please run cli_install_htdocs.php", E_USER_ERROR);
+//htdocs version warning, will warn if the htdocs were updated in the code but not applied to the web server.
+if(isset($htdocs_version)) { //if this is set, this file was included from the web space
+    $current_version = $htdocs_version;
+    require_once(__DIR__ . "/htdocs/htdocs_version.php");
+    $source_version = $htdocs_version;
+    if($current_version != $source_version)
+        trigger_error("Documents in web space are not up to date, please run cli_install_htdocs.php", E_USER_ERROR);
 }
 
 /* ezcast recorder main program (MVC controller)

@@ -1,6 +1,5 @@
 <?php
 
 chdir("!PATH/");
-//htdocs version, change me if you make any changes in this folder + in web_index as well
-$htdocs_version = "2017041301";
+require_once(__DIR__ . "/htdocs_version.php");
 include "web_index.php";
