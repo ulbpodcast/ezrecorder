@@ -1,5 +1,5 @@
 <?php
-require("global_config.inc");
+require_once("global_config.inc");
 
 system("mkdir -p $web_basedir");
 

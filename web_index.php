@@ -1,12 +1,17 @@
 <?php
 
+//htdocs version warning, will warn if the htdocs were updated in the code but not applied to the web server. (The isset is there to allow running this file from elsewhere than the web space)
+if(isset($htdocs_version) && $htdocs_version != "2017041301") {
+    trigger_error("Documents in web space are not up to date, please run cli_install_htdocs.php", E_USER_ERROR);
+}
+
 /* ezcast recorder main program (MVC controller)
  *
  */
 // Inits
 //
 include_once 'global_config.inc';
-include_once 'common.inc';
+require_once 'common.inc';
 
 session_register_shutdown(); // By default, calls to die() do not write session on shutdown. This makes it so that it does.
 session_start();
