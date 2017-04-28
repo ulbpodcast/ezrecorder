@@ -5,9 +5,6 @@
 #include localdefs
 source $(dirname $0)/../etc/localdefs
 
-#pulse input for Linux
-PULSE_INPUT=alsa_input.pci-0000_00_1f.3.analog-stereo
-
 WORKING_DIR=$1
 INPUT=$2
 
@@ -96,7 +93,7 @@ case "$INPUT" in
 				then 
 					# streaming is enabled. We prepare low and high resolution
 					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
-					-i $AV_INPUT -f pulse -thread_queue_size 5120 -i $PULSE_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 -i $ALSA_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
 					-bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
 					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
 					-vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
@@ -106,7 +103,7 @@ case "$INPUT" in
 				else 
 					# streaming is disabled. We prepare high resolution only
 					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 \
-					-i $AV_INPUT -f pulse -thread_queue_size 5120 -i $PULSE_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 -i $ALSA_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
 					-pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
 					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
 					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
