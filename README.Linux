@@ -1,78 +1,135 @@
-#####################################
-# EZrecorder install (ubuntu 16.04) #
-#####################################
-
-Package needed by EZrecorder:
-apt-get install apache2 openssh-server, at, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite, php7.0-sqlite, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4
-cd /usr/lib/x86_64-linux-gnu
-sudo ln -s libzip.so.4.0.0 libzip.so.2
-cd ~
-
-Remove previous installation of ffmpeg (apt-get remove ffmpeg)
-
-Add in /etc/sudoers (sudo visudo)
-- Add to the end of section: # Members of the admin group may gain root privileges
-		www-data ALL=(ezrecorder) NOPASSWD: ALL
-- Add to the end of section: # Allow members of group sudo to execute any command
-		ezrecorder ALL= NOPASSWD: /sbin/modprobe
-
-
-Make working folder: mkdir ~/src
-	cd src
-
-ffmpeg installation:
-Library needed: 
-	apt-get install build-essential libmp3lame-dev libvorbis-dev libtheora-dev libspeex-dev yasm pkg-config libfaac-dev libopenjpeg-dev libx264-dev libfdk-aac-dev libasound2-dev
-	wget http://ffmpeg.org/releases/ffmpeg-3.2.4.tar.bz2
-	tar xfvj ffmpeg-3.2.4.tar.bz2
-	cd ffmpeg-3.2.4
-	./configure --enable-libpulse --enable-gpl --enable-postproc --enable-swscale --enable-avfilter --enable-libmp3lame --enable-libvorbis --enable-libtheora --enable-libx264 --enable-libspeex --enable-shared --enable-pthreads --enable-libopenjpeg --enable-libfdk-aac --extra-libs=-lasound --enable-nonfree --enable-pic --enable-shared
-	make
-	sudo make install
-	sudo sh -c "echo '/usr/local/lib' >> /etc/ld.so.conf"
-	sudo ldconfig
-Run ffmpeg to validate this step.
-
-Download EZrecorder files from github repository:
-git clone https//github.com/ulbpodcast/ezrecorder.git ./ezrecorder
-
-Copy as root EZrecorder files/folders in /usr/local/ : sudo cp -R ~/ezrecorder -t /usr/local/
-Move to /usr/local/ezrecorder
-Change permissions for install.sh: sudo chmod 755 install.sh
-cd ~
-
-Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on/as itself
-	 - Without passphrase
-			ssh-keygen -t rsa
-			ssh-copy-id -i ~/.ssh/id_rsa.pub ezrecorder@hostname
-	Authorisation :
-			chmod 700 ~/.ssh
-			chmod 600 ~/.ssh/authorized_keys
-test: ssh ezrecorder@hostname and ssh ezrecorder@host_ip
-
-Go back into /usr/local/ezrecorder.
-In global_config_sample.inc file, adapt the "organization layout" section and create needed items in htdocs/images
-In translations.xml, adapte text to your organization.
+Install (ubuntu 16.04) # 
+##################################### 
  
-Run installation: sudo /usr/local/ezrecorder/install.sh
+# Adapt network configuration (internal and usb adapter)
+sample:
+		# interfaces(5) file used by ifup(8) and ifdown(8)
+		auto lo
+		iface lo inet loopback
 
-Run remote ffmpeg configuration: sudo php /usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote/cli_install.php
+		auto interface_name_1
+		iface interface_name_1 inet static
+		address xxx.xxx.xxx.xxx
+		netmask xxx.xxx.xxx.xxx
+		gateway xxx.xxx.xxx.xxx
+		dns-nameservers xxx.xxx.xxx.xxx xxx.xxx.xxx.xxx
 
-NB: for one PC installation, first module is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io
+		auto interface_name_2
+		iface interface_name_2 inet static
+		address xxx.xxx.xxx.xxx
+		netmask xxx.xxx.xxx.xxx
 
-Allow ssh connection from ezcast for www-data to ezrecorder (computer) as ezrecorder (user)
-	 - Without passphrase
-			ssh-keygen -t rsa
-			ssh-copy-id -i ~/.ssh/id_rsa.pub username@computer
+		iface wlp2s0 inet manual
+
+# Allow user to access /dev/video0
+	sudo adduser ezrecorder_user video
+	sudo usermod -a -G video ezrecorder_user
+
+# Allow user to access audio device
+	sudo adduser ezrecorder_user audio
+	sudo usermod -a -G audio ezrecorder_user
+
+# To enable direct access to ALSA
+Disable Pulse, modify: /etc/pulse/client.conf
+	autospawn=no
+
+#To tale into account the new setup, reboot
+	sudo reboot
+	
+# Package needed by EZrecorder: 
+	apt-get install apache2 openssh-server, at, php7.0, php7.0-xml libapache2-mod-php7.0, sqlite, php7.0-sqlite, git, curl, php-curl, php-mysql, php-gd, libpulse-dev, alsa-utils, libzip4 
+	cd /usr/lib/x86_64-linux-gnu 
+	sudo ln -s libzip.so.4.0.0 libzip.so.2 
+	cd ~ 
+ 
+# Remove previous installation of ffmpeg (apt-get remove ffmpeg) 
+ 
+# Add in /etc/sudoers (sudo visudo) 
+- Add to the end of section: # Members of the admin group may gain root privileges 
+        www-data ALL=(ezrecorder) NOPASSWD: ALL 
+- Add to the end of section: # Allow members of group sudo to execute any command 
+        ezrecorder ALL= NOPASSWD: /sbin/modprobe 
+ 
+ 
+# Make working folder: mkdir ~/src 
+    cd src 
+ 
+# ffmpeg installation: 
+	Library needed:  
+			apt-get install build-essential libmp3lame-dev libvorbis-dev libtheora-dev libspeex-dev yasm pkg-config libfaac-dev libopenjpeg-dev libx264-dev libfdk-aac-dev libasound2-dev 
+			wget http://ffmpeg.org/releases/ffmpeg-3.2.4.tar.bz2 
+			tar xfvj ffmpeg-3.2.4.tar.bz2 
+			cd ffmpeg-3.2.4 
+			./configure --enable-libpulse --enable-gpl --enable-postproc --enable-swscale --enable-avfilter --enable-libmp3lame --enable-libvorbis --enable-libtheora --enable-libx264 --enable-libspeex --enable-shared --enable-pthreads --enable-libopenjpeg --enable-libfdk-aac --extra-libs=-lasound --enable-nonfree --enable-pic --enable-shared 
+			make 
+			sudo make install 
+			sudo sh -c "echo '/usr/local/lib' >> /etc/ld.so.conf" 
+			sudo ldconfig 
+	Run ffmpeg to validate this step. 
+ 
+# Download EZrecorder files from github repository: 
+	cd ~ 
+	git clone https//github.com/ulbpodcast/ezrecorder.git ./ezrecorder 
+	Mons fork: https://github.com/oliroux/ezrecorder.git
+ 
+# Allow ssh connection from  ezrecorder (localhost) for ezrecorder (user) on itself 
+    - Without passphrase 
+            ssh-keygen -t rsa 
+            ssh-copy-id -i ~/.ssh/id_rsa.pub ezrecorder@hostname 
+    Authorisation : 
+            chmod 700 ~/.ssh 
+            chmod 600 ~/.ssh/authorized_keys 
+	test: ssh ezrecorder@localhost_name and ssh ezrecorder@localhost_ip 
+
+################################################################################################
+# On EZCast server 
+Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezrecorder (user) on ezrecorder (computer)
 	Authorisation :
 			chmod 700 ~/.ssh
 			chmod 600 ~/.ssh/authorized_keys
+################################################################################################
 
-Add the new ezrecorder to EZadmin (see step 5 of install guide)
+# EZrecorder installation
+	Copy as root EZrecorder files/folders in /usr/local/ : sudo cp -R ~/ezrecorder -t /usr/local/ 
+	Move to /usr/local/ezrecorder 
+	Change permissions for install.sh: sudo chmod 755 install.sh 
+  
+	In global_config_sample.inc file, adapt the "organization layout" section and create needed items in htdocs/images 
+		//organization layout
+		$organization="ORG_NAME";
+		$organisation_url="ORG_URL";
+		$organization_ezcast_url="EZ_URL";
+  
+	In translations.xml, adapte text to your organization. 
+		Ex: ULB -> ORG_NAME, help informations
+		With vim: %s/ULB/ORG_NAME/g
+		
+	Nota: for one PC installation, first module is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io 
+	Run installation: sudo ./install.sh 
+  cd /usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote
+	Run remote ffmpeg configuration: 
+		sudo php ./cli_install.php 
+ 
+	Adapt audio catur device for AV.io (remote)
+		In:
+			/usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote/bash/localdefs
+		Add:
+			ALSA_INPUT="ALSA Device"
+		NB: to list device: arecord -l
+
+################################################################################################
+# On EZCast server 
+		Add the new ezrecorder to EZadmin (see step 5 of install guide) 
+################################################################################################
+
 NB:
-Audio source must be changed according to your configuration.
-To liste audio devices:
-	pacmd list-sources|awk '/index:/ {print $0}; /name:/ {print $0}; /device\.description/ {print $0}'
+ 
+	Audio source must be changed according to your configuration. 	
+	To liste audio devices: 
+    pacmd list-sources|awk '/index:/ {print $0}; /name:/ {print $0}; /device\.description/ {print $0}' 
+     
+	Epiphan configuration software : https://www.epiphan.com/downloads/products/AVioConfig-Ubuntu64.r31352.tar.bz2 
 	
-Epiphan configuration software : https://www.epiphan.com/downloads/products/AVioConfig-Ubuntu64.r31352.tar.bz2
-List detected device by ffmpeg : ffmpeg -device true -dshow -i dummy
+	List detected device by ffmpeg : ffmpeg -device true -dshow -i dummy 
+
+
