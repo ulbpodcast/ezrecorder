@@ -54,11 +54,6 @@ $slide_enabled = false;
 $slide_module = "remoteffmpeg";
 $slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
 
-// sound backup
-$sound_backup_enabled = false;
-$sound_backup_module = "sound_backup";
-$sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";
-
 // session data
 $session_module = "xml";
 $session_lib = "$basedir/modules/recording_session/lib_recording_session.php";
@@ -70,6 +65,11 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 // sound detection
 $enable_vu_meter = false;
 $sound_detect_lib = "sound_detect_av";
+
+// sound backup
+$sound_backup_enabled = false;
+$sound_backup_module = "sound_backup";
+$sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";
 
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console
