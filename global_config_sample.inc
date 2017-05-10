@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/common_static.inc');
 
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
-$config_version = "2017022101"; 
+$config_version = "2017041201"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -31,8 +31,6 @@ $ezcast_manager_url = "http://your.ezcast.server/ezmanager/";
 $mailto_admins = "ezrecorder@your.domain"; // Email address aimed to receive EZrecorder alerts
 $php_cli_cmd = "/usr/bin/php"; // PHP binary
 $ffmpeg_cli_cmd = "/usr/local/bin/ffmpeg"; //FFMPEG binary
-$ffprobe_cli_cmd = "/usr/local/bin/ffprobe"; //FFPROBE binary
-$praat_cli_cmd = "/usr/local/bin/praat"; // praat binary
 
 $title_max_length = 70; // Max. number of characters
 
@@ -68,9 +66,10 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 $enable_vu_meter = false;
 $sound_detect_lib = "sound_detect_av";
 
-//audio synchronisation
-$enable_audio_sync = false;
-$audio_sync_lib= "$basedir/modules/audio_sync/lib_audio_sync.php";
+// sound backup
+$sound_backup_enabled = false;
+$sound_backup_module = "sound_backup";
+$sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";
 
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console

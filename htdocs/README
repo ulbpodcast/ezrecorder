@@ -1,0 +1,2 @@
+If you make any changes in this folder, please update the $htdocs_version variable in htdocs_version.php
+This will allow to enforce that any changes in this folder are applied before using the recorder, thus making the update process a bit more forget-proof.

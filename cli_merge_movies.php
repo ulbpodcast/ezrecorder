@@ -4,7 +4,6 @@
 
 include __DIR__."/lib_ffmpeg.php";
 include __DIR__."/global_config.inc";
-include($audio_sync_lib);
 
 Logger::$print_logs = true;
 
@@ -70,11 +69,6 @@ if($err != 0) {
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Movie cut ($movies_path) failed with error: $err. Move $merge_file to $outputfilename instead.", array("merge_movies"), $asset_name);
     rename("$movies_path/$merge_file", "$movies_path/$outputfilename");
     exit(5);
-}
-
-// syncrhonise from audio if the module is enabled
-if($enable_audio_sync){
-	sync_video($movies_path,$asset_name);
 }
 
 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::INFO, "Movie cut succeeded ($movies_path)", array("merge_movies"), $asset_name);

@@ -4,7 +4,7 @@ require 'etc/config.inc';
 require_once __DIR__ . '/../../global_config.inc';
 require_once $basedir . '/common.inc';
 require_once $basedir . '/lib_various.php';
-require_once 'create_bash_configs.php';
+require_once __DIR__ . '/../../create_bash_configs.php';
 require_once $basedir . '/lib_error.php';
 require_once $basedir . '/lib_model.php';
 require_once __DIR__ . '/info.php';

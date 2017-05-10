@@ -433,7 +433,7 @@ function get_asset_from_dir($dir) {
  */
 function move_asset($asset, $target, $move_on_remote = false) {
     global $logger;
-    global $slide_enabled;
+    global $remote_recorder_ip;
     
     $valid_targets = array("local_processing", "upload_to_server", "upload_ok");
     if(!in_array($target, $valid_targets)) {
@@ -461,7 +461,7 @@ function move_asset($asset, $target, $move_on_remote = false) {
 
     $logger->log(EventType::TEST, LogLevel::INFO, "Local asset moved from $current_dir to $target_dir dir", array(__FUNCTION__), $asset);
     
-    if($slide_enabled && $move_on_remote) { //move only if remote exists
+    if($remote_recorder_ip && $move_on_remote) { //move only if remote exists
         return move_remote_asset($asset, $target);
     } else {
         return true;

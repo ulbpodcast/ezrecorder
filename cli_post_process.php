@@ -13,9 +13,13 @@ $service = true;
 
 require_once 'global_config.inc';
 
-require_once $cam_lib;
+if($cam_enabled)
+    require_once $cam_lib;
 if($slide_enabled)
     require_once $slide_lib;
+if($sound_backup_enabled)
+    require_once $sound_backup_lib;
+
 require_once $session_lib;
 require_once 'lib_error.php';
 require_once 'lib_various.php';
@@ -92,6 +96,18 @@ if ($slide_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
     }
 }
+
+if($sound_backup_enabled) {
+    $fct = 'capture_' . $sound_backup_module . '_process';
+    $pid = 0;
+    $success = $fct($asset, $pid);
+    if(!$success) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Failed to stop sound_backup", array(basename(__FILE__)), $asset);
+    } else if ($slide_pid == 0) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "sound backup module was successfully stopped", array(basename(__FILE__)), $asset);
+    }
+}
+
 
 if(!$cam_pid && !$slide_pid) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Both cam and slides post processing failed or disabled, stopping now.", array(basename(__FILE__)), $asset);
