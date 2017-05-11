@@ -11,4 +11,6 @@ $remoteffmpeg_input_source = "AV.io"; //see $remoteffmpeg_input_source_list for 
 //$avfoundation_audio_interface = 1;
 // --
 
+//TODO: Decklink variables also here
+
 require_once __DIR__."/common.inc";
