@@ -48,7 +48,7 @@ if($return_val != 0) {
 }
 
 //if merge movies return 2, merge has been successfully but cutting failed. Let's continue with what we got.
-if($return_val == 2) {
+if($return_val == 5) {
     $logger->log(EventType::RECORDER_FFMPEG_PROCESS, LogLevel::ERROR, 
             "Parts merge succeeded but cutting failed. This is BAD, but let's continue with what we got.", array($log_context));
     //at this point, merge movie script should still have produced a cam.mov file

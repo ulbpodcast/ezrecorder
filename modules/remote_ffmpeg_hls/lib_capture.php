@@ -663,7 +663,7 @@ function capture_remoteffmpeg_recstatus_set($status) {
  * It also seems post_process does not properly wait on slide processing. 
  * See "!! Slides processing ($slide_pid) NOT running at this point" error. Maybe it's just not put in background there.
  * 
- * 
+ */
 function capture_remoteffmpeg_process_result($asset) {
     global $remote_recorder_ip;
     global $remote_script_datafile_get;
@@ -681,11 +681,10 @@ function capture_remoteffmpeg_process_result($asset) {
         return false;
     }
 
-    if($result) 
+    if($result)
         $result = trim($result);
     
     $success = $result !== false && $result == "0";
-    $logger->log(EventType::TEST, LogLevel::DEBUG, "File was found ($result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "File was found ($result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
     return $success;
 }
-*/
