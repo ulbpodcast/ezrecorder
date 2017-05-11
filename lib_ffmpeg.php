@@ -339,31 +339,40 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         }
     }
 
+    if(sizeof($ffmpeg_params) > 1)
+    {
     $join_file = "$tmp_dir/concat1.txt";
-    if(file_exists($join_file))
-        unlink($join_file); //cleanup before starting
-    // creates a temporary text file containing all video files to join
-    $cmd = "for f in $tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
-    $return_code = 0;
-    $cmdoutput = system($cmd, $return_code);
-    if($return_code != 0) {
-        return '5/' . $cmdoutput;
-    }
-    // uses the temporary text file to concatenate the video files
-    // -f concat : option for concatenation
-    // -i file : input is the list of files
-    // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpeg_cli_cmd -f concat -safe 0 -i $join_file -c copy -y $movie_path/$movie_out";
-    print $cmd . PHP_EOL;
-    $return_code = 0;
-    $cmdoutput = system($cmd, $return_code);
-    if($return_code != 0) {
-        return "6/ Command $cmd failed with output:" . $cmdoutput;
-    }
-    
-    // deletes the temporary text file
-    unlink($join_file);
+        if(file_exists($join_file))
+            unlink($join_file); //cleanup before starting
+        // creates a temporary text file containing all video files to join
+        $cmd = "for f in $tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
+        $return_code = 0;
+        $cmdoutput = system($cmd, $return_code);
+        if($return_code != 0) {
+            return '5/' . $cmdoutput;
+        }
+        // uses the temporary text file to concatenate the video files
+        // -f concat : option for concatenation
+        // -i file : input is the list of files
+        // -c copy : copy the existing codecs (no reencoding)
+        $cmd = "$ffmpeg_cli_cmd -f concat -safe 0 -i $join_file -c copy -y $movie_path/$movie_out";
+        print $cmd . PHP_EOL;
+        $return_code = 0;
+        $cmdoutput = system($cmd, $return_code);
+        if($return_code != 0) {
+            return "6/ Command $cmd failed with output:" . $cmdoutput;
+        }
 
+        // deletes the temporary text file
+        unlink($join_file);
+    } else { //only one part, just move it
+        $ok = rename("$tmp_dir/part-0.mov", "$movie_path/$movie_out");
+        if(!$ok) {
+            return "7/ Failed to move part-0.mov to $movie_path/$movie_out";
+        }
+    }
+
+    //cleanup. Note that we don't do it if we failed previously, this is intentional.
     if ($tmp_dir != '')
         exec("rm -rf $tmp_dir", $cmdoutput, $errno);
     
