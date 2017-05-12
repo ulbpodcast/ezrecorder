@@ -10,6 +10,7 @@ $remoteffmpeg_streaming_info = $remoteffmpeg_basedir . 'var/streaming.xml';
 $remoteffmpeg_cli_streaming = $remoteffmpeg_basedir . 'cli_streaming_content_send.php';
 $remoteffmpeg_pid_file = $remoteffmpeg_basedir.'var/ffmpeg_pid';
 $ffmpeg_movie_name = 'ffmpegmovie';
+$process_result_filename = "process_result.txt";
 
 //IntensityShuttle, IntensityShuttleThunderbolt and UltraStudioMiniRecorder are deprecated and you should use DeckLink instead. They're only kept for compat
-$remoteffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io");
+$remoteffmpeg_input_source_list = array("DeckLink", "avfoundation", "AV.io");

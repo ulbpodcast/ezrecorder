@@ -6,7 +6,7 @@ require_once __DIR__.'/../../../global_config.inc';
 
 $ffmpeg_mono = true; // determines whether the input audio channel is mono or stereo
 
-$ffmpeg_input_source = "rtsp"; // specifies the input source. Valid values are: DeckLink | IntensityShuttle | UltraStudioMiniRecorder | avfoundation | rtsp | AV.io | IntensityShuttleThunderbolt
+$ffmpeg_input_source = "rtsp"; // specifies the input source. Valid values are: DeckLink | avfoundation | rtsp | AV.io
 // you might have to adapt the 'bash/ffmpeg_init' script
 $ffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highlow | high | low | none)
 

@@ -35,7 +35,7 @@ if(!file_exists($asset_dir)) {
     exit(2);
 }
     
-file_put_contents($process_result_file, "2"); //error by default in result file
+process_result_write('2'); //error by default in result file, in case we're somehow stopped before gettint to the end
 
 #stop monitoring
 if(file_exists($remoteffmpeg_monitoring_file))
@@ -50,7 +50,7 @@ system($cmd, $return_val);
 if($return_val != 0) {
     $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::WARNING, 
             "Call to merge movies failed, error code: $return_val. Check merge_movies.log. Cmd: $cmd", array($log_context));
-    file_put_contents($process_result_file, $return_val); 
+    process_result_write($return_val);
 }
 
 if($return_val != 0) {
@@ -72,9 +72,21 @@ $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG,
 rename("$process_dir/$video_file_name", "$asset_dir/$video_file_name");
 
 #all okay, write success
-file_put_contents($process_result_file, "0"); 
+process_result_write('0');
 
 $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::INFO, 
         "ffmpeg_stop finished successfully", array($log_context));
 
 exit(0);
+
+
+function process_result_write($result) {
+    global $process_result_file;
+    global $log_context;
+    global $logger;
+    
+    $ok = file_put_contents($process_result_file, $result); 
+    if($ok === false)
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, 
+            "Could not write process result file: $process_result_file", array($log_context));
+}
