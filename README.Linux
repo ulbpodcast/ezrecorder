@@ -118,6 +118,8 @@ Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezr
 			ALSA_INPUT="ALSA Device"
 		NB: to list device: arecord -l
 
+NB: Control right of the logs.sqlite file in var folder, user and group must have write permission.
+
 ################################################################################################
 # On EZCast server 
 		Add the new ezrecorder to EZadmin (see step 5 of install guide) 
