@@ -81,3 +81,4 @@ if(!isset($in_install)) {
 $organization="Generale";
 $organisation_url="http://www.ulb.ac.be/";
 $organization_ezcast_url="http://podcast.ulb.ac.be/";
+$organisation_help="(02/650) 29 26";

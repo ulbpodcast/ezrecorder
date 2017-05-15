@@ -100,17 +100,18 @@ Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezr
 		$organization="ORG_NAME";
 		$organisation_url="ORG_URL";
 		$organization_ezcast_url="EZ_URL";
-  
-	In translations.xml, adapte text to your organization. 
-		Ex: ULB -> ORG_NAME, help informations
-		With vim: %s/ULB/ORG_NAME/g
-		
+		$organisation_help="ORG_PHONE";
+  		
 	Nota: for one PC installation, first module is local ffmpeg for CAM with rtsp, second module is remote ffmpeg for video (slide) input with AV.io 
 	Run installation: sudo ./install.sh 
   cd /usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote
 	Run remote ffmpeg configuration: 
 		sudo php ./cli_install.php 
  
+	To adpt message for organization:
+	cd /usr/local/ezrecorder
+	php cli_customize.php
+
 	Adapt audio catur device for AV.io (remote)
 		In:
 			/usr/local/ezrecorder/modules/remote_ffmpeg_hls/remote/bash/localdefs
