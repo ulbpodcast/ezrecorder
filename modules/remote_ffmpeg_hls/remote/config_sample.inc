@@ -12,5 +12,7 @@ $remoteffmpeg_input_source = "AV.io"; //see $remoteffmpeg_input_source_list for 
 // --
 
 //TODO: Decklink variables also here
+//TODO: H264 variables here
+//this should be done when we stop using those bash files
 
 require_once __DIR__."/common.inc";
