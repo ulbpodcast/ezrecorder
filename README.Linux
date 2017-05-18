@@ -118,6 +118,14 @@ Allow ssh connection from ezcast for www-data and ezrecorder (localhost) for ezr
 		Add:
 			ALSA_INPUT="ALSA Device"
 		NB: to list device: arecord -l
+		
+		For the recording device gauge, copy the config_sample.inc to config.inc in modules/sound_detect_av
+		and adapte parameters
+			$vu_meter_avfoundation_index = "ALSA_Device";
+			$vu_meter_avfoundation_remote_username = "ezrecorder_user";
+			$vu_meter_avfoundation_remote_ip = "ezrecoder_ip";
+		and in global_config modify:
+			$enable_vu_meter = true;
 
 NB: Control right of the logs.sqlite file in var folder, user and group must have write permission.
 
