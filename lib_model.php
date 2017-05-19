@@ -38,7 +38,9 @@ function reconnect_active_session() {
         view_record_screen();
     } else if ($status == 'stopped') {
         //stopped means we have already clicked on stop
-        controller_view_record_submit();
+        $ok = controller_view_record_submit();
+        if(!$ok) //something was wrong with the submit form
+            controller_recording_force_quit();
     } else
         controller_view_record_form(); //none of the above cases to this is a first form screen
 }
@@ -314,11 +316,11 @@ function controller_stop_and_publish() {
     global $session_module;
     global $recorder_monitoring_pid;
 
-    $asset = $_SESSION['asset'];
-    if(!$asset) {
-        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "controller_stop_and_publish called without asset in session", array(__FUNCTION__), $asset);
+    if(!isset($_SESSION['asset']) || $_SESSION['asset'] == "") {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "controller_stop_and_publish called without asset in session", array(__FUNCTION__));
         return false;
     }
+    $asset = $_SESSION['asset'];
     
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
@@ -596,7 +598,6 @@ function controller_recording_force_quit() {
     global $notice;
     global $session_module;
     global $recorder_session;
-    global $basedir;
     global $logger;
     global $recorder_monitoring_pid;
 
@@ -1252,9 +1253,12 @@ function controller_stop_and_view_record_submit() {
 }
 
 function controller_view_record_submit() {
-
+    if(!isset($_SESSION['asset']))
+        return false;
+    
     // And displaying the submit form
     require_once template_getpath('record_submit.php');
+    return true;
 }
 
 function controller_view_screenshot_iframe() {
@@ -1437,4 +1441,8 @@ function sound_info_available() {
         return false;
     
     return $sound_detect->available();
+}
+
+function debug_checks() {
+    
 }
