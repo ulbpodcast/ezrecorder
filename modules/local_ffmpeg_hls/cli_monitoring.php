@@ -65,7 +65,7 @@ while (true) {
     $rec_status = capture_ffmpeg_recstatus_get();
   
     if (last_modif_file_too_old()) {
-        $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Last video file is older than $recovery_threshold! Trying to relaunch.", array(basename(__FILE__)), $asset);
+        $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Last video file is older than $recovery_threshold! Trying to relaunch.", array(basename(__FILE__), 'local_ffmpeg_hls'), $asset);
         capture_ffmpeg_recstatus_set('stopped');
         
         $log_file = "$working_dir/relaunch.log";

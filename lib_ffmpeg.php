@@ -333,7 +333,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             $try++;
         }
         if($try == $try_count) {
-            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Part duration didn't match expected duration. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
         } else if ($try == 0) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::CRITICAL, "WHAT? We didn't even loop once, there is a logic error here.", array("movie_extract_cutlist"), $asset_name);
         }
