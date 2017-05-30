@@ -177,14 +177,10 @@ function session_xml_lock($username) {
     global $logger;
     
     if (session_xml_is_locked()) {
-        //  TODO 
-        //        capture_last_error('Recorder is already in use');
         $logger->log(EventType::TEST, LogLevel::ERROR, "Cannot lock recorder, recorder already is use", array(__FUNCTION__));
         return false;
     }
     if (empty($username)) {
-        //  TODO
-        //        capture_last_error('capture_lock: empty username!');
         $logger->log(EventType::TEST, LogLevel::ERROR, "Empty user name given", array(__FUNCTION__));
         return false;
     }

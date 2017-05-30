@@ -233,7 +233,7 @@ then
 	    if [ $timer == 0 ]; then
 		check=0
             	echo -e "${R}AT does not seem to be installed or its path is not set in PATH var${N}"
-                echo -e "You may need to enable it by executing: 'sudo launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist'"
+                echo -e "You may need to enable it by executing (on MacOS): 'sudo launchctl load -F /System/Library/LaunchDaemons/com.apple.atrun.plist'"
                 exit
     	    fi
 	else
