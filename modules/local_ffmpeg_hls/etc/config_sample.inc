@@ -26,4 +26,9 @@ $decklink_format_index = 14;
 $decklink_device = "UltraStudio Mini Recorder";
 // --
 
+// -- h264 defines
+$h264_preset = "medium";
+$h264_profile = "main";
+// --
+
 require_once __DIR__."/common.inc";

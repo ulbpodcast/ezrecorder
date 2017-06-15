@@ -71,4 +71,5 @@ $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 $bash_env['FFMPEG_RTSP_MEDIA_HIGH_URI']=$ffmpeg_rtsp_media_high_uri;
 $bash_env['FFMPEG_RTSP_MEDIA_LOW_URI']=$ffmpeg_rtsp_media_low_uri;
 
-
+$bash_env['H264_PROFILE']=$h264_profile;
+$bash_env['H264_PRESET']=$h264_preset;
