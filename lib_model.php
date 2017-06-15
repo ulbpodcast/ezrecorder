@@ -821,7 +821,9 @@ function controller_view_record_form() {
         $slide_features = $fct_capture_features_get();
     }
 
-    if ($cam_enabled && in_array('streaming', $cam_features) && $slide_enabled && in_array('streaming', $slide_features)) {
+    $cam_stream_ok = !$cam_enabled || in_array('streaming', $cam_features);
+    $slide_stream_ok = !$slide_enabled || in_array('streaming', $slide_features);
+    if ($cam_stream_ok || $slide_stream_ok) {
         $streaming_available = true;
     }
 
@@ -1284,7 +1286,6 @@ function controller_view_screenshot_image() {
     // updates the last_request time
     $fct_last_request_set = 'session_' . $session_module . '_last_request_set';
     $fct_last_request_set();
-
 
     if (isset($input['source']) && in_array($input['source'], array('cam', 'slides'))) {
         if ($input['source'] == 'cam' && $cam_enabled) {
