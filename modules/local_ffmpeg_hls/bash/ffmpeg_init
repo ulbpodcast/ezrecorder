@@ -155,7 +155,7 @@ do
                     -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
                     -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 \
                     -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH \
-                    >/dev/null 2> $TARGET_DIR/ffmpeg2.log & echo $! > $FFMPEG_PID2
+                    >/dev/null 2> $TARGET_DIR/ffmpeg_low.log & echo $! > $FFMPEG_PID2
                 fi
             else 
                 # streaming is disabled. We prepare high resolution only

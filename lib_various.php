@@ -90,7 +90,7 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         imagecopymerge($newimg, $img_status, 5, 130, 0, 0, 225, 25, 75);
 
     imagejpeg($newimg, $output); //$output file is the path/filename where you wish to save the file.  
-//Have to figure that one out yourself using whatever rules you want.  Can use imagegif() or imagepng() or whatever.
+    //Have to figure that one out yourself using whatever rules you want.  Can use imagegif() or imagepng() or whatever.
     return true;
 }
 
