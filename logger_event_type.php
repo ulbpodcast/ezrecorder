@@ -44,7 +44,7 @@ class EventType {
     const RECORDER_SOUND_DETECTION           = "recorder_sound_detection";
     const RECORDER_FFMPEG_CUTLIST            = "recorder_ffmpeg_cutlist";
     const RECORDER_FFMPEG_PROCESS            = "recorder_ffmpeg_process";
-    const RECORDER_MODULE_MONIT              = "recorder_module_monit";
+    const RECORDE_MODULE_MONIT               = "recorder_module_monit";
     const RECORDER_SOUND_BACKUP              = "recorder_sound_backup";
     
     // EZAdmin
@@ -62,12 +62,12 @@ class EventType {
     const MANAGER_BOOKMARKS                  = "manager_bookmarks";
     const MANAGER_SCHEDULING                 = "manager_scheduling";
     const MANAGER_RENDERING                  = "manager_rendering";
-    const MANAGER_ASSET_COPY                 = "manager_asset_copy";
+    const MANAGER_EXTERNAL_STREAM            = "manager_external_stream";
     
     // EZRenderer
     
     // EZPlayer
-    
+    const EZPLAYER_STREAMING                 = "ezplayer_external_stream";
     
     // index by EventType. Do NOT change already existing values unless you're ready to loose the EventType of all previous logs
     public static $event_type_id = array(
@@ -111,7 +111,7 @@ class EventType {
        EventType::RECORDER_SOUND_DETECTION                   => 1027,
        EventType::RECORDER_FFMPEG_CUTLIST                    => 1028,
        EventType::RECORDER_FFMPEG_PROCESS                    => 1029,
-       EventType::RECORDER_MODULE_MONIT                      => 1030,
+       EventType::RECORDE_MODULE_MONIT                       => 1030,
        EventType::RECORDER_SOUND_BACKUP                      => 1031,
         
        // EZAdmin: 2000->2999
@@ -129,10 +129,11 @@ class EventType {
        EventType::MANAGER_BOOKMARKS                          => 3009,
        EventType::MANAGER_SCHEDULING                         => 3010,
        EventType::MANAGER_RENDERING                          => 3011,
-       EventType::MANAGER_ASSET_COPY                         => 3012,
+       EventType::MANAGER_EXTERNAL_STREAM                    => 3012,
         
        // EZRenderer: 4000->4999
         
        // EZPlayer: 5000->5999
+       EventType::EZPLAYER_STREAMING                         => 5000,
     );
 }

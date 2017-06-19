@@ -30,7 +30,7 @@ $asset = get_asset_name($course, $asset_time);
 
 $meta_assoc = xml_file2assoc_array($remoteffmpeg_streaming_info);
 if($meta_assoc == false) {
-    $logger->log(EventType::RECORDER_STREAMING, LogLevel::WARNING, "Could not read from file $remoteffmpeg_streaming_info, cannot start streaming" . print_r($argv, true), array("remote_ffmpeg_hls",basename(__FILE__)));
+    $logger->log(EventType::RECORDER_STREAMING, LogLevel::WARNING, "Could not read from file $remoteffmpeg_streaming_info, cannot start streaming. This file should have been sent by the init() fonction of the module." . print_r($argv, true), array("remote_ffmpeg_hls",basename(__FILE__)));
     exit(2);
 }
 
