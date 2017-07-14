@@ -112,7 +112,8 @@
         <label id="Ongoing_recording" lang="en">Caution: ongoing recording.\nDo you want to stop the current recording and start your own?</label>
         <label id="offline_from_podc" lang="fr">Attention: Cette action n'a pas pu être éxécutée.\n\n Vérifiez que vous êtes toujours connecté au réseau wifi 'PODC' et rafraichissez la page de votre navigateur (ctrl+R / cmd+R) avant de réessayer.</label>
         <label id="offline_from_podc" lang="en">Warning: This action could not be executed.\n\n Verify that you are still connected to PODC and refresh the page in your web browser (ctrl+R / cmd+R) before retrying.</label>
-
+        <label id="support_phone_number" lang="fr">ULBPodcast: (2 650) 2926</label>
+        <label id="support_phone_number" lang="en">ULBPodcast: (2 650) 2926</label>
     </labels>
         
     <messages>

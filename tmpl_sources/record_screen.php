@@ -23,7 +23,6 @@
         <script type="text/javascript" src="js/httpRequest.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
         <script type="text/javascript" src="js/loading_popup.js"></script>
-        <script type="text/javascript" src="js/footer.js"></script>
     </head>
 
     <body onload="MM_preloadImages('images/page3/BsupEnr.png', 'images/page3/BpubEnr.png', 'images/page3/BpubDEnr.png', 'images/page2/BDemEnrg.png', 'images/page2/BStopEnr.png', 'images/page2/BPauseEnr.png', 'images/page2/BReprendreEnr.png')">

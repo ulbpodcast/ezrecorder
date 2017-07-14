@@ -17,4 +17,12 @@
         </ul>
     </div>
 </div>
+<script>
+$(document).ready(function () {
+    $( "#assistance_button" ).click(function() {
+      alert( "®support_phone_number®" );
+    });
+});
+</script>
+
 <!-- FOOTER - COPYRIGHT INFOS [END] -->
