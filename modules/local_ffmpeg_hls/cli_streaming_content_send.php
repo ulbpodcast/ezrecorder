@@ -71,10 +71,13 @@ while (true) {
             if($count % 10 == 0)
                 $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, date("h:i:s") . ": [${asset}_$album] curl error occured ($result)", array(basename(__FILE__)), $asset);
             $count++;
+        } else {
+            echo "Sent segment " . $m3u8_segment['filename'] . PHP_EOL;
         }
+    } else {
+        //else wait a bit before retrying
+        sleep(1);
     }
-
-    sleep(2); // 2 s
 }
 
 /**
@@ -103,6 +106,7 @@ function get_next($asset) {
     global $status;
     global $quality;
     global $module_name;
+    global $logger;
     
     static $file_index = 0;
     static $len = 0;
@@ -116,10 +120,9 @@ function get_next($asset) {
     if (file_exists("$ffmpeg_moviesdir/${ffmpeg_movie_name}_" . ($file_index + 1) . "/$quality/$ffmpeg_movie_name.m3u8")) {
         $file_index++;
     }
-
     $m3u8_file = "$ffmpeg_moviesdir/${ffmpeg_movie_name}_$file_index/$quality/$ffmpeg_movie_name.m3u8";
 
-    echo $m3u8_file .PHP_EOL;
+//    echo $m3u8_file .PHP_EOL;
     if (file_exists($m3u8_file)) {
         clearstatcache(false, $m3u8_file);
         // verifies that the m3u8 file has been modified
@@ -130,8 +133,10 @@ function get_next($asset) {
         } elseif ($len > $lastpos) {
             // reads the file from the last position
             $f = fopen($m3u8_file, "rb");
-            if ($f === false)
+            if ($f === false) {
+                $logger->log(EventType::RECORDER_STREAMING, LogLevel::ERROR, "Could not read file $m3u8_file", array(basename(__FILE__)), $asset);
                 die();
+            }
             fseek($f, $lastpos);
             while (!feof($f)) {
                 $buffer = fread($f, 4096);
@@ -139,7 +144,6 @@ function get_next($asset) {
             }
             $lastpos = ftell($f);
             fclose($f);
-
             // parses the new content of the m3u8 file
             $m3u8_array = explode(PHP_EOL, $buffer);
             $array_len = count($m3u8_array);
@@ -183,6 +187,7 @@ function get_next($asset) {
                             $m3u8_segment = "$ffmpeg_moviesdir/${ffmpeg_movie_name}_$file_index/$quality/" . $m3u8_filename;
                             break;
                     }
+                    echo "h";
                     $php_version = explode('.', phpversion());
                     $php_version = ($php_version[0] * 10000 + $php_version[1] * 100 + $php_version[2]);
                     if ($php_version >= 50500){
@@ -203,7 +208,6 @@ function get_next($asset) {
             }
         }
     }
-
     // returns the first segment from the array
     return array_shift($segments_array);
 }

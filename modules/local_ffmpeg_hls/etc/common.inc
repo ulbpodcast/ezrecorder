@@ -1,5 +1,7 @@
 <?php
 
+//this file is included in config.inc
+
 if(isset($config_version) && $config_version != "2017031601")
     trigger_error("local_ffmpeg_hls config.inc file is not up to date", E_USER_WARNING);
 
@@ -64,6 +66,7 @@ $bash_env['AVFOUNDATION_VIDEO_INTERFACE']=$avfoundation_video_interface;
 $bash_env['AVFOUNDATION_AUDIO_INTERFACE']=$avfoundation_audio_interface;
 $bash_env['DECKLINK_DEVICE']=$decklink_device;
 $bash_env['DECKLINK_FORMAT_INDEX']=$decklink_format_index;
+$bash_env['STREAMING_QUALITY']=$ffmpeg_streaming_quality;
 
 $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 

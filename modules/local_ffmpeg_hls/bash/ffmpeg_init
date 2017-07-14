@@ -66,14 +66,13 @@ fi
 while [ $CALLS -le $MAXCALLS -a \( $EXISTS_VIDEO -eq 0 \) ]
 do 
 
-
     case "$INPUT" in
         "DeckLink" )
           DECKLINK_INPUT="${DECKLINK_DEVICE}@${DECKLINK_FORMAT_INDEX}"
           if [ -e $STREAMING_INFO ]
             then 
                 # streaming is enabled. We prepare low and high resolution
-                nice $FFMPEG_PATH -t $LIMIT_DURATION -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 28 $PRESET_STR $PROFILE_STR -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                nice $FFMPEG_PATH -t $LIMIT_DURATION -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 28 $PRESET_STR $PROFILE_STR -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 15 -crf 18 -acodec libfdk_aac $PRESET_STR $PROFILE_STR -maxrate 512k -bufsize 512k -pix_fmt yuv420p -b:v 256k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             else 
                 # streaming is disabled. We prepare high resolution only
                 nice $FFMPEG_PATH -t $LIMIT_DURATION -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 28 $PRESET_STR $PROFILE_STR -acodec libfdk_aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
