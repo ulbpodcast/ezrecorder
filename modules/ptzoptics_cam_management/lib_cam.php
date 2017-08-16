@@ -51,7 +51,6 @@ function cam_ptzoptics_pos_save($name) {
     $presets[$new_preset_id] = $name;
     cam_ptzoptics_set_presets($presets);
     
-    
     return 0;
 }
 
@@ -70,6 +69,7 @@ function cam_ptzoptics_pos_delete($name) {
         
     unset($presets[$existing_key]);
     cam_ptzoptics_set_presets($presets);
+    return true;
 }
 
 /**
