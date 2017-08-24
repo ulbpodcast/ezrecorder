@@ -1295,6 +1295,7 @@ function controller_view_screenshot_image() {
  */
 function user_logout() {
     RecordingSession::instance()->metadata_delete();
+    RecordingSession::instance()->unlock();
     close_session();
 
     // Displaying the logout message
