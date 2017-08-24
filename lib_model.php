@@ -107,7 +107,7 @@ function controller_recording_submit_infos() {
         $description = $input['description'];
         
         $user_extended_info = UserExtendedInfo::get($user_id);
-        $full_name = $user_extended_info !== null ? $user_extended_info['full_name'] : '';
+        $full_name = $user_extended_info !== null ? $user_extended_info->full_name : '';
         
         // Now we create and store the metadata
         $record_meta_assoc = array(
@@ -909,6 +909,7 @@ function user_login($login, $passwd) {
     // then we display the recording screen again. If not, then we stop the current recording
     // and display the record_form.    
     if (RecordingSession::is_locked()) {
+
         //change language if specified an init rempository path
         if(isset($input['lang']))
             set_lang($input['lang']);
@@ -1433,18 +1434,32 @@ function debug_checks() {
 
 class UserExtendedInfo
 {
-    static public function write($user_id, $full_name, $email)
+    public $full_name = null;
+    public $email = null;
+    
+    function __construct($name, $email) 
     {
-        // TODO //write to DB
+        $this->full_name = $name;
+        $this->email = $email;
     }
     
+    //write given info to DB
+    static public function write($user_id, $full_name, $email)
+    {
+         global $database;
+         $database->user_info_write($user_id, $full_name, $email);
+    }
+    
+    //get a UserExtendedInfo object for user_id, or null if not found
     static public function get($user_id)
     {
-        //TODO, get from db
-        return null;
-        /*return [
-            'full_name' => '?',
-            'email'     => 'mail',
-        ];*/
+        global $database;
+        $full_name = null;
+        $email = null;
+        $ok = $database->user_info_get($user_id, $full_name, $email);
+        if(!$ok)
+            return null;
+        
+        return new UserExtendedInfo($full_name, $email);
     }
 }

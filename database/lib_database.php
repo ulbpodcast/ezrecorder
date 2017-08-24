@@ -22,7 +22,8 @@ class SQLiteDatabase
     //Structure used to create database. If changing this structure, don't forget to update log(...) function
     const LOG_TABLE_NAME = "logs";
     const SESSION_TABLE_NAME = "session";
-    const RECORDS_START_INFOS = "records_form_data";
+    const RECORDS_START_INFOS_TABLE_NAME = "records_form_data";
+    const USER_INFO_TABLE_NAME = "user_info";
     
     private $db_structure = [
         self::LOG_TABLE_NAME => [
@@ -50,7 +51,7 @@ class SQLiteDatabase
             'closed'           => 'TINYINT(1) DEFAULT 0 NOT NULL',
             'last_request'     => 'DATETIME',
         ],
-        self::RECORDS_START_INFOS => [
+        self::RECORDS_START_INFOS_TABLE_NAME => [
             'id'               => 'INTEGER PRIMARY KEY AUTOINCREMENT',
             'author'           => 'VARCHAR(50) NOT NULL',
             'course_id'        => 'VARCHAR(50) NOT NULL',
@@ -58,6 +59,11 @@ class SQLiteDatabase
             'description'      => 'TEXT NOT NULL',
             'record_type'      => 'VARCHAR(25) NOT NULL',
             'submit_time'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        ],
+        self::USER_INFO_TABLE_NAME => [
+            'user_id'          => 'VARCHAR(50) PRIMARY KEY',
+            'full_name'        => 'VARCHAR(100) NOT NULL',
+            'email'            => 'VARCHAR(100) NOT NULL',
         ],
     ];
      
@@ -126,12 +132,17 @@ class SQLiteDatabase
              */
             
             // RECORDS START INFOS
-            'form_data_get_all'                   => 'SELECT course_id, title, description, record_type, submit_time FROM '.self::RECORDS_START_INFOS.' WHERE author = :author',
-            'form_data_get_data_for_last_month'   => 'SELECT course_id, title, description, record_type, submit_time FROM '.self::RECORDS_START_INFOS
+            'form_data_get_all'                   => 'SELECT course_id, title, description, record_type, submit_time FROM '.self::RECORDS_START_INFOS_TABLE_NAME.' WHERE author = :author',
+            'form_data_get_data_for_last_month'   => 'SELECT course_id, title, description, record_type, submit_time FROM '.self::RECORDS_START_INFOS_TABLE_NAME
                                                      . ' WHERE author = :author AND submit_time > datetime(\'now\', \'-1 month\')'
                                                      . ' ORDER BY submit_time',
-            'form_data_insert'                    => 'INSERT INTO '.self::RECORDS_START_INFOS.'(author, course_id, title, description, record_type)'
+            'form_data_insert'                    => 'INSERT INTO '.self::RECORDS_START_INFOS_TABLE_NAME.'(author, course_id, title, description, record_type)'
                                                      . ' VALUES (:author, :course, :title, :description, :record_type)',
+            
+            // USER INFO
+            
+            'user_info_get'                       => 'SELECT full_name, email FROM '.self::USER_INFO_TABLE_NAME.' WHERE user_id = :user_id',
+            'user_info_write'                     => 'REPLACE INTO '.self::USER_INFO_TABLE_NAME.'(user_id, full_name, email) VALUES (:user_id, :full_name, :email)',
         ];
     }
 
@@ -244,6 +255,77 @@ class SQLiteDatabase
         trigger_error("Created database with starting id $starting_id - " . $this->database_file);
     }
     
+    public function exec_query_first_value()
+    {
+        $results = call_user_func_array('self::exec_query', func_get_args());
+        if($results === false)
+            return false;
+        if(empty($results))
+            return false;
+        
+        //print_r($results);
+        return $results[0][0];
+    }
+    
+    public function exec_query_first_row()
+    {
+        $results = call_user_func_array('self::exec_query', func_get_args());
+        if($results === false)
+            return false;
+        if(empty($results))
+            return false;
+        
+        //print_r($results);
+        return $results[0];
+    }
+    
+    //return all results, or false
+    public function exec_query($statement_id /*, ...*/) 
+    {
+        global $logger;
+        
+        if(!isset(self::$statements[$statement_id])) {
+            //print_r(self::$statements);
+            trigger_error("No statement with id: $statement_id"); //probably a typo somewhere in this class
+            return false;
+        }
+        
+        $statement_str = self::$statements[$statement_id];
+        //echo "$statement_str </br>";
+        $statement = $this->db->prepare($statement_str);
+        
+        if($statement == false) {
+            print_r($this->db->errorInfo());
+            $logger->log(EventType::TEST, LogLevel::ERROR, "DB error while executing query $statement_str", array(__FUNCTION__));
+           
+            return false;
+        }
+        $sql_args = array_slice(func_get_args(), 1);
+        /*echo $statement_id . '</br>';
+        echo "<pre>";
+        print_r($sql_args);
+        echo "</pre>";
+        */
+        foreach($sql_args as $args) {
+            $statement->bindParam($args[0], $args[1]);
+        }
+
+        try {
+           $success = $statement->execute();
+            if(!$success) {
+               trigger_error( __FUNCTION__ . " failed for query with id: $statement_id");
+               return false;
+            }
+         
+            //normal exit point
+            return $statement->fetchAll();
+        } catch (Exception $ex) {
+            trigger_error("Database exception while executing statement with id $statement_id: ". $ex->getMessage());
+            //something went wrong. How to report this ?
+            return false;
+        }
+        return false;
+    }
     
     // LOGS //
     // 
@@ -375,105 +457,46 @@ class SQLiteDatabase
     }
     
     // SESSION //
-    public function exec_query_first()
-    {
-        $results = call_user_func_array('self::exec_query', func_get_args());
-        if($results === false)
-            return false;
-        if(empty($results))
-            return false;
-        
-        //print_r($results);
-        return $results[0][0];
-    }
-    
-    //return all results, or false
-    public function exec_query($statement_id /*, ...*/) 
-    {
-        global $logger;
-        
-        if(!isset(self::$statements[$statement_id])) {
-            //print_r(self::$statements);
-            trigger_error("No statement with id: $statement_id"); //probably a typo somewhere in this class
-            return false;
-        }
-        
-        $statement_str = self::$statements[$statement_id];
-        //echo "$statement_str </br>";
-        $statement = $this->db->prepare($statement_str);
-        
-        if($statement == false) {
-            print_r($this->db->errorInfo());
-            $logger->log(EventType::TEST, LogLevel::ERROR, "DB error while executing query $statement_str", array(__FUNCTION__));
-           
-            return false;
-        }
-        $sql_args = array_slice(func_get_args(), 1);
-        /*echo $statement_id . '</br>';
-        echo "<pre>";
-        print_r($sql_args);
-        echo "</pre>";
-        */
-        foreach($sql_args as $args) {
-            $statement->bindParam($args[0], $args[1]);
-        }
-
-        try {
-           $success = $statement->execute();
-            if(!$success) {
-               trigger_error( __FUNCTION__ . " failed for query with id: $statement_id");
-               return false;
-            }
-         
-            //normal exit point
-            return $statement->fetchAll();
-        } catch (Exception $ex) {
-            trigger_error("Database exception while executing statement with id $statement_id: ". $ex->getMessage());
-            //something went wrong. How to report this ?
-            return false;
-        }
-        return false;
-    }
     
     public function session_rec_time_get($session_id)
     {
-        return self::exec_query_first('session_get_rec_time', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_rec_time', array(':session_id', $session_id));
     }
     
     public function session_init_time_get($session_id)
     {
-         return self::exec_query_first('session_get_init_time', array(':session_id', $session_id));
+         return self::exec_query_first_value('session_get_init_time', array(':session_id', $session_id));
     }
     
     public function session_admin_get($session_id)
     {
-        return self::exec_query_first('session_get_admin', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_admin', array(':session_id', $session_id));
     }
     
     public function session_user_get($session_id)
     {
-        return self::exec_query_first('session_get_user', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_user', array(':session_id', $session_id));
     }
     
     
     public function session_asset_get($session_id)
     {
-        return self::exec_query_first('session_get_asset', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_asset', array(':session_id', $session_id));
     }
     
     public function session_record_type_get($session_id)
     {
-        return self::exec_query_first('session_get_record_type', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_record_type', array(':session_id', $session_id));
     }
     
     public function session_course_id_get($session_id)
     {
-        return self::exec_query_first('session_get_course_id', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_course_id', array(':session_id', $session_id));
     }
     
     public function session_lang_get($session_id)
     {
-        return self::exec_query_first('session_get_lang', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_lang', array(':session_id', $session_id));
     }
     
     public function session_lang_set($session_id, $lang) 
@@ -519,13 +542,14 @@ class SQLiteDatabase
     
     public function session_get_lock_info($session_id, &$lock_user, &$lock_course, &$lock_admin)
     {
-        $results = self::exec_query('session_get_lock_info', array(':session_id', $session_id));
+        $results = self::exec_query_first_row('session_get_lock_info', array(':session_id', $session_id));
         if($results === false)
             return false;
         
-        $lock_user = $results[0]['lock_user'];
-        $lock_admin = $results[0]['lock_user_admin'];
-        $lock_course = $results[0]['course_id'];
+        $lock_user = $results['lock_user'];
+        $lock_admin = $results['lock_user_admin'];
+        $lock_course = $results['course_id'];
+        return true;
     }
     
     public function session_last_request_set($session_id)
@@ -536,17 +560,17 @@ class SQLiteDatabase
     public function session_last_request_get($session_id, $timestamp = true)
     {
         //$timestamp == False not handled, implement if it if you need it
-        return self::exec_query_first('session_get_last_request', array(':session_id', $session_id));
+        return self::exec_query_first_value('session_get_last_request', array(':session_id', $session_id));
     }
     
     public function session_get_open_session()
     {
-        return self::exec_query_first('session_get_open_session');
+        return self::exec_query_first_value('session_get_open_session');
     }
     
     // RECORD FORM DATA
-//            'form_data_get_all'            => 'SELECT course_id, title, description, record_type FROM '.self::RECORDS_START_INFOS.' WHERE id = :session_id',
-//            'form_data_insert'             => 'INSERT INTO '.self::RECORDS_START_INFOS.'(course_id, title, description, record_type) VALUES (:course, :title, :description, :record_type)',
+//            'form_data_get_all'            => 'SELECT course_id, title, description, record_type FROM '.self::RECORDS_START_INFOS_TABLE_NAME.' WHERE id = :session_id',
+//            'form_data_insert'             => 'INSERT INTO '.self::RECORDS_START_INFOS_TABLE_NAME.'(course_id, title, description, record_type) VALUES (:course, :title, :description, :record_type)',
     
     //get first found form data for a record done on given day of the week (max 1 month backward). If not found return null
     public function form_data_get_data_for_day_of_week($author, $timestamp) 
@@ -586,6 +610,29 @@ class SQLiteDatabase
     {
         // (:course, :title, :description, :record_type)',
         $ok = self::exec_query('form_data_insert', array(':author', $author), array(':course', $course), array(':title', $title), array(':description', $decription), array(':record_type', $record_type));
+        if($ok === false)
+            return false;
+        
+        return true;
+    }
+    
+    // USER INFO
+    
+    public function user_info_get($user_id, &$full_name, &$email)
+    {
+        $results = self::exec_query_first_row('user_info_get', array(':user_id', $user_id));
+        if($results === false)
+            return false;
+        
+        $full_name = $results['full_name'];
+        $email = $results['email'];
+        
+        return true;
+    }
+    
+    public function user_info_write($user_id, $full_name, $email)
+    {
+        $ok = self::exec_query('user_info_write', array(':user_id', $user_id), array(':full_name', $full_name), array(':email', $email));
         if($ok === false)
             return false;
         
