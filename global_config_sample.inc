@@ -55,8 +55,8 @@ $slide_module = "remoteffmpeg";
 $slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
 
 // session data
-$session_module = "xml";
-$session_lib = "$basedir/modules/recording_session/lib_recording_session.php";
+$session_class = "SessionSQLite";
+$session_lib = "$basedir/modules/session_sqlite/lib_recording_session.php";
 
 // authentication
 $auth_module = "file";

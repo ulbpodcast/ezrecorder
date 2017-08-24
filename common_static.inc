@@ -29,7 +29,7 @@ $cli_post_process = "$basedir/cli_post_process.php";
 $cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php";
 
 // logging
-$log_database_file = "$basedir/var/logs.sqlite";
+$database_file = "$basedir/var/db.sqlite";
 $cam_file_name = "cam.mov";
 $slide_file_name = "slide.mov";
 

@@ -91,6 +91,7 @@ function template_getpath($tmpl_name) {
     $path = template_repository_path();
     if($path === false) {
         template_last_error("Error: template repository not found");
+        trigger_error("Error: template repository not found");
     }
     
     if(!file_exists($path.'/'.$tmpl_name)) {

@@ -11,7 +11,7 @@ require_once 'global_config.inc';
 require_once $cam_lib;
 if($slide_enabled)
     require_once $slide_lib;
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 require_once 'lib_error.php';
 require_once 'lib_various.php';
 require_once 'lib_model.php';
@@ -44,8 +44,7 @@ if(isset($argv[1]))
     
 } else {
     //get session metadata to find last course
-    $fct = "session_" . $session_module . "_metadata_get";
-    $meta_assoc = $fct();
+    $meta_assoc = RecordingSession::instance()->metadata_get();
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_UPLOAD_WRONG_METADATA, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue (2)", array(basename(__FILE__)));
         exit(1);

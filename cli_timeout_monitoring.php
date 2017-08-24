@@ -16,7 +16,7 @@
 require_once 'global_config.inc';
 require_once $basedir . 'lib_model.php';
 
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 
 global $service;
 $service = true;
@@ -26,9 +26,7 @@ Logger::$print_logs = true;
 $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring started", array(basename(__FILE__)));
 
 // Saves the time when the recording has been init
-$init_time = time();
-$fct_initstarttime_set = "session_" . $session_module . "_initstarttime_set";
-$fct_initstarttime_set($init_time);
+$init_time = RecordingSession::instance()->session_init_time_get();
 
 // Delays, in seconds
 $threshold_timeout = 7200; // Threshold before we start worrying about the user
@@ -46,8 +44,6 @@ fwrite(fopen($recorder_monitoring_pid, 'w'), $pid);
 // This is the main loop. Runs until the lock file disappears
 while (true) {
 
-    $fct_is_locked = "session_" . $session_module . "_is_locked";
-
     //Stop conditions:
     // We stop if the pid file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
@@ -60,16 +56,14 @@ while (true) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Could not read monitoring file", array(basename(__FILE__)));
         die;
     }
-    if (!$fct_is_locked()) {
+    
+    if(!RecordingSession::is_locked()) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Recorder is not locked anymore", array(basename(__FILE__)));
         die;
     }
 
     // Timeout check
-
-    $fct_last_request_get = "session_" . $session_module . "_last_request_get";
-
-    $lastmod_time = $fct_last_request_get();
+    $lastmod_time = RecordingSession::instance()->session_last_request_get(true);
     $now = time();
 
     // if record was started at least $threshold_timeout seconds ago
