@@ -40,9 +40,9 @@ make sure $courselist is set and is an array of all courses available for the us
                         foreach ($courselist as $course_name => $course_description) {
                             if ($course_name == $_SESSION['recorder_course']) {
                                 ?>
-                                <option selected="selected" value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>
+                                <option selected="selected" value="<?php echo $course_name; ?>"><?php echo $course_description; ?></option>
                             <?php } else { ?>
-                                <option value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>
+                                <option value="<?php echo $course_name; ?>"><?php echo $course_description; ?></option>
                                 <?php
                             }
                         }
