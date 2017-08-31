@@ -1,14 +1,15 @@
 <?php
 
 
-class PTZOptics_CGI_API {
-    
+class PTZOptics_CGI_API 
+{
     var $api_url = null;
     var $_ch = null;
     var $debug = false;
     const PRESET_MAX = 255; //Not 100% sure about this one
     
-    function __construct($ip) {
+    function __construct($ip) 
+    {
         $this->_ch = curl_init();
         
         $this->api_url = "http://$ip/cgi-bin/ptzctrl.cgi";
@@ -19,7 +20,8 @@ class PTZOptics_CGI_API {
         curl_setopt($this->_ch, CURLOPT_VERBOSE, 1);
     }
     
-    function send_action($action, $params = array()) {
+    function send_action($action, $params = array()) 
+    {
         if($this->debug) {
             echo "Sending action $action with params:" . PHP_EOL;
             print_r($params);
@@ -32,7 +34,8 @@ class PTZOptics_CGI_API {
         return self::get_request($url);
     }
     
-    function move($direction, $panspeed = 5, $tiltspeed = 5) {
+    function move($direction, $panspeed = 5, $tiltspeed = 5) 
+    {
         if($this->debug) {
             echo "Moving to $direction with speed $panspeed : $tiltspeed" . PHP_EOL;
         }
@@ -40,15 +43,18 @@ class PTZOptics_CGI_API {
         return self::send_action($direction, array($panspeed, $tiltspeed));
     }
     
-    function stop() {
+    function stop() 
+    {
         return self::send_action('ptzstop'); 
     }
     
-    function move_home() {
+    function move_home() 
+    {
         return self::send_action('home'); 
     }
     
-    function preset_go_to($i) {
+    function preset_go_to($i) 
+    {
         if($i < 0 || $i > self::PRESET_MAX)
             return false;
         
@@ -56,7 +62,8 @@ class PTZOptics_CGI_API {
         return self::get_request($url);
     }
     
-    function preset_save($i) { 
+    function preset_save($i) 
+    { 
         if($i < 0 || $i > self::PRESET_MAX)
             return false;
         
@@ -64,23 +71,28 @@ class PTZOptics_CGI_API {
         return self::get_request($url);
     }
     
-    function zoom_in($speed) {
+    function zoom_in($speed) 
+    {
         return self::send_action('zoomin', array($speed)); 
     }
     
-    function zoom_out($speed) {
+    function zoom_out($speed) 
+    {
         return self::send_action('zoomout', array($speed)); 
     }
        
-    function focus_in($speed) {
+    function focus_in($speed) 
+    {
         return self::send_action('focusin', array($speed)); 
     }
     
-    function focus_out($speed) {
+    function focus_out($speed) 
+    {
         return self::send_action('focusout', array($speed)); 
     }
     
-    function get_request($url) {
+    function get_request($url) 
+    {
         curl_setopt($this->_ch, CURLOPT_URL, $url);
         $out = curl_exec($this->_ch);
         if($this->debug) {

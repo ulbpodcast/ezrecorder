@@ -531,7 +531,6 @@ class SQLiteDatabase
         $ok = self::exec_query('session_new', array(':id', $session_id), array(':user', $user_id), array(':admin', $admin_id));
         if($ok === false)
             return false;
-        
         return $session_id;
     }
     
