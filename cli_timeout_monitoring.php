@@ -80,7 +80,7 @@ while (true) {
              . ($diff_lastmod) . ' seconds ago. Time: ' . date($date_format,$now) . ' .Last request: ' . date($date_format, $lastmod_time)
              . ' Start time: ' . date($date_format,$init_time) . '');
 
-        controller_recording_force_quit();
+        recording_force_quit();
     }
     
     //$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(basename(__FILE__)));

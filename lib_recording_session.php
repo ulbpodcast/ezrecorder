@@ -16,13 +16,18 @@ class RecordingSession
     private static $session_id = null;
     private static $meta_file = __DIR__ . '/var/metadata.xml';
     
-    //can throw if called 
+    //can throw if called . $user_id can be left out if 
     private function __construct($user_id = null, $admin_id = null) 
     {
         global $database;
-        global $basedir;
-        if(self::$session_id === null && $user_id !== null)
-            self::$session_id = $database->session_new($user_id, $admin_id);
+        
+        //if self::$session_id has already been defined, we're in a restore case, no need to create a new session
+        if(self::$session_id === null && $user_id !== null) {
+            $ok = self::$session_id = $database->session_new($user_id, $admin_id);
+            if(!$ok)
+                throw new Exception("Failed to init new sessio for user $user_id");
+        }
+        //if we still don't have a session id at this point, something is wrong
         if(self::$session_id === null)
             throw new Exception("Could not initialized session, could not get a session id");
         
@@ -62,7 +67,6 @@ class RecordingSession
             if(!self::can_access_lock($user_id))
                 throw new Exception("User $user_id cannot access already existing lock, cannot lock session. Unlock it fist.");
         }
-        
         return self::$instance;
     }
     

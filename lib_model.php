@@ -45,7 +45,7 @@ function reconnect_active_session() {
         //stopped means we have already clicked on stop
         $ok = controller_view_record_submit();
         if(!$ok) //something was wrong with the submit form
-            controller_recording_force_quit();
+            recording_force_quit();
     } else
         controller_view_record_form(); //none of the above cases to this is a first form screen
 }
@@ -59,9 +59,7 @@ function controller_recording_submit_infos() {
     global $input;
     global $classroom;
     global $auth_module;
-    global $session_module;
     global $dir_date_format;
-    global $recorder_session;
     global $logger;
     global $already_recording;
 
@@ -480,7 +478,6 @@ function start_post_process($asset) {
 }
 
 function stop_current_record($start_post_process = true) {
-    global $recorder_session;
     global $logger;
     global $cam_enabled;
     global $cam_module;
@@ -489,34 +486,21 @@ function stop_current_record($start_post_process = true) {
     
     $logger->log(EventType::RECORDER_STOP, LogLevel::DEBUG, "stop_current_record called with post process: $start_post_process.", array(__FUNCTION__));
 
-    if(!file_exists($recorder_session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called but no current recorder session file found", array(__FUNCTION__));
-        return false;
-    }
-        
-    $recorder_session_file = file_get_contents($recorder_session);
-    if($recorder_session_file == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session file could not be read ", array(__FUNCTION__));
+    if(!RecordingSession::is_locked()) {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called recorder was not currently locked", array(__FUNCTION__));
         return false;
     }
     
-    $session = explode(';', $recorder_session_file);
-    if($session == false || empty($session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session was invalid. File contained: $recorder_session_file", array(__FUNCTION__));
-        return false;
-    }
-    
-    $asset = $session[0];
-    //$asset = get_asset_from_dir($asset_dir_name);
-    if(!$asset) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session. Session file containted $recorder_session_file", array(__FUNCTION__));
+    $asset = RecordingSession::instance()->get_current_asset();
+    if(!$asset || $asset == "") {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session", array(__FUNCTION__));
         return false;
     }
     
     
     $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!$asset_dir) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not find asset dir for asset $asset. Session file containted $recorder_session_file. exploded array: " . print_r($session, true), array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not find asset dir for asset $asset", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -565,27 +549,19 @@ function stop_current_record($start_post_process = true) {
     return true;
 }
 
-/**
- * Interrupts current recording
- * (example: this is called when someone tries to log in, but someone else was already recording)
- */
-function controller_recording_force_quit() {
-    global $notice;
-    global $recorder_session;
+function recording_force_quit() 
+{
     global $logger;
     global $recorder_monitoring_pid;
-
+    
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
-    $session = explode(';', file_get_contents($recorder_session));
-    $asset = $session[0];
-
+    $asset = RecordingSession::instance()->get_current_asset();
+    
     $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
     $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
-
-    $user_id = RecordingSession::instance()->get_current_user();
 
     $status = status_get();
     if ($status == '' || $status == 'open') {
@@ -605,15 +581,39 @@ function controller_recording_force_quit() {
 
     // releases the recording session. Someone else can now record
     RecordingSession::unlock();
+}
+
+/**
+ * Interrupts current recording
+ * (example: this is called when someone tries to log in, but someone else was already recording)
+ */
+function controller_recording_force_quit() 
+{
+    global $notice;
+    global $logger;
+    
+    if(RecordingSession::is_locked() === false)
+        return false; //nothing to do
+
+    $old_asset = RecordingSession::instance()->get_current_asset();
+    //$old_user_id = RecordingSession::instance()->get_current_user();
+    
+    recording_force_quit();
 
     template_load_dictionnary('translations.xml');
     $notice = template_get_message('ongoing_record_interrupted_message', get_lang()); // Message to display on top of the page, warning the user that they just stopped someone else's record*/
 
+    if(!isset($_SESSION['user_login']) || $_SESSION['user_login'] == "") {
+        echo "No user given";
+        return false;
+    }
+    
+    $new_user = $_SESSION['user_login'];
     try {
-        RecordingSession::lock($user_id);
+        RecordingSession::lock($new_user);
     } catch (Exception $e) {
         error_print_message('lib_model: recording_force_quit: Could not lock recorder: ' . $e->getMessage());
-        $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Could not lock recorder: " . $e->getMessage(), array('controller_recording_force_quit'), $asset);
+        $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Could not lock recorder: " . $e->getMessage(), array('controller_recording_force_quit'), $old_asset);
         return false;
     }
 
@@ -903,6 +903,7 @@ function user_login($login, $passwd) {
     }
 
     $user = $res['user_login'];
+    $_SESSION['user_login'] = $user;
         
     // 3) Now we have to check whether or not there is still a recording ongoing.
     //  If the user who started the recording is the one trying to log in again,
@@ -921,8 +922,7 @@ function user_login($login, $passwd) {
             $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, $user . ' trying to log in but was already using recorder. Retrieving lost session.', array(__FUNCTION__));
 
             $_SESSION['recorder_logged'] = true; // "Boolean" telling that we're logged in
-            $_SESSION['user_login'] = $user;
-            
+           
             $redraw = true;
             $status = status_get();
             $already_recording = ($status == 'recording' || $status == 'paused');
