@@ -25,15 +25,22 @@ Logger::$print_logs = true;
 
 $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring started", array(basename(__FILE__)));
 
+RecordingSession::restore_session_if_any();
+if(RecordingSession::is_locked() === false) {
+    echo "No current recording session, nothing to do";
+    die;
+}
+
 // Saves the time when the recording has been init
-$init_time = RecordingSession::instance()->session_init_time_get();
+$init_time = RecordingSession::instance()->init_time_get();
 
 // Delays, in seconds
-$threshold_timeout = 7200; // Threshold before we start worrying about the user
-//$threshold_timeout = 120; // Threshold before we start worrying about the user
-$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-//$timeout = 30;
-$sleep_time = 60; // Duration of the sleep between two checks
+//$threshold_timeout = 7200; // Threshold before we start worrying about the user
+$threshold_timeout = 60; // Threshold before we start worrying about the user
+//$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
+$timeout = 61;
+//$sleep_time = 60; // Duration of the sleep between two checks
+$sleep_time = 10; // Duration of the sleep between two checks
 
 set_time_limit(0);
 $pid = getmypid();
@@ -63,7 +70,7 @@ while (true) {
     }
 
     // Timeout check
-    $lastmod_time = RecordingSession::instance()->session_last_request_get(true);
+    $lastmod_time = RecordingSession::instance()->get_last_request();
     $now = time();
 
     // if record was started at least $threshold_timeout seconds ago

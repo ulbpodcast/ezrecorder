@@ -121,7 +121,7 @@ class SQLiteDatabase
             'session_new'                  => 'INSERT INTO '.self::SESSION_TABLE_NAME. '(id, lock_user, lock_user_admin) VALUES(:id, :user, :admin)',
             'session_get_lock_info'        => 'SELECT lock_user, lock_user_admin, course_id FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             'session_set_last_request'     => 'UPDATE '.self::SESSION_TABLE_NAME.' SET last_request = DATETIME(\'now\') WHERE id = :session_id',
-            'session_get_last_request'     => 'SELECT TIMESTAMP(last_request) FROM '.self::SESSION_TABLE_NAME.'WHERE id = :session_id',
+            'session_get_last_request'     => 'SELECT TIMESTAMP(last_request) FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             
             /*
              *   'id'               => 'INTEGER PRIMARY KEY AUTOINCREMENT',
@@ -556,7 +556,8 @@ class SQLiteDatabase
         return self::exec_query('session_set_last_request', array(':session_id', $session_id));
     }
     
-    public function session_last_request_get($session_id, $timestamp = true)
+    //return timestamp
+    public function session_last_request_get($session_id)
     {
         //$timestamp == False not handled, implement if it if you need it
         return self::exec_query_first_value('session_get_last_request', array(':session_id', $session_id));

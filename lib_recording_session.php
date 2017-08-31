@@ -179,10 +179,16 @@ class RecordingSession
         $database->session_init_record(self::$session_id, $asset_name, $course_name, $record_type);
     }
     
-    public function recstarttime_get()
+    public function rec_start_time_get()
     {
         global $database;
         return $database->session_rec_time_get(self::$session_id);
+    }
+    
+    public function init_time_get()
+    {
+        global $database;
+        return $database->session_init_time_get(self::$session_id);
     }
     
     public function get_current_user()
@@ -233,5 +239,11 @@ class RecordingSession
     {
         global $database;
         return $database->session_last_request_set(self::$session_id);
+    }
+    
+    public function get_last_request()
+    {
+        global $database;
+        return $database->session_last_request_get(self::$session_id);
     }
 }
