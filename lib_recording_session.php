@@ -115,6 +115,7 @@ class RecordingSession
         global $database;
         $database->session_close(self::instance()->get_session_id());
         self::$instance = null;
+        self::$session_id = null;
     }
     
     //return the recording session if it already exists, else return null
