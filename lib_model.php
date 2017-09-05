@@ -823,7 +823,7 @@ function controller_view_record_form() {
 
     $cam_stream_ok = !$cam_enabled || in_array('streaming', $cam_features);
     $slide_stream_ok = !$slide_enabled || in_array('streaming', $slide_features);
-    if ($cam_stream_ok || $slide_stream_ok) {
+    if ($cam_stream_ok && $slide_stream_ok) {
         $streaming_available = true;
     }
 
