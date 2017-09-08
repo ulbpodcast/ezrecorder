@@ -185,7 +185,7 @@ class RecordingSession
         return $database->session_rec_time_get(self::$session_id);
     }
     
-    public function init_time_get()
+    public function get_init_time()
     {
         global $database;
         return $database->session_init_time_get(self::$session_id);

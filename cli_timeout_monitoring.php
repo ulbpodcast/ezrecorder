@@ -32,7 +32,7 @@ if(RecordingSession::is_locked() === false) {
 }
 
 // Saves the time when the recording has been init
-$init_time = RecordingSession::instance()->init_time_get();
+$init_time = RecordingSession::instance()->get_init_time();
 
 // Delays, in seconds
 //$threshold_timeout = 7200; // Threshold before we start worrying about the user

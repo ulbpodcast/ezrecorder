@@ -100,8 +100,8 @@ class SQLiteDatabase
             //SESSION
             
             'session_get_open_session'     =>  'SELECT id FROM '.self::SESSION_TABLE_NAME.' WHERE id = (SELECT MAX(id) FROM '.self::SESSION_TABLE_NAME.') AND closed = 0', //get last session, only if it's not closed
-            'session_get_rec_time'         =>  'SELECT rec_start_time_ts FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
-            'session_get_init_time'        =>  'SELECT rec_init_time_ts FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
+            'session_get_rec_time'         =>  'SELECT strftime(\'%s\',rec_start_time_ts) FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
+            'session_get_init_time'        =>  'SELECT strftime(\'%s\',rec_init_time_ts) FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             'session_get_user'             =>  'SELECT lock_user FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             'session_get_admin'            =>  'SELECT lock_user_admin FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             'session_get_asset'            =>  'SELECT asset FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
