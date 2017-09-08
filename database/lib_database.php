@@ -121,7 +121,7 @@ class SQLiteDatabase
             'session_new'                  => 'INSERT INTO '.self::SESSION_TABLE_NAME. '(id, lock_user, lock_user_admin) VALUES(:id, :user, :admin)',
             'session_get_lock_info'        => 'SELECT lock_user, lock_user_admin, course_id FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             'session_set_last_request'     => 'UPDATE '.self::SESSION_TABLE_NAME.' SET last_request = DATETIME(\'now\') WHERE id = :session_id',
-            'session_get_last_request'     => 'SELECT TIMESTAMP(last_request) FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
+            'session_get_last_request'     => 'SELECT strftime(\'%s\',last_request) FROM '.self::SESSION_TABLE_NAME.' WHERE id = :session_id',
             
             /*
              *   'id'               => 'INTEGER PRIMARY KEY AUTOINCREMENT',

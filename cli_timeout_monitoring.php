@@ -71,6 +71,11 @@ while (true) {
 
     // Timeout check
     $lastmod_time = RecordingSession::instance()->get_last_request();
+    if($lastmod_time == false) {
+        //failed to get time
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Monitoring stopped because we couldn't get the last request time", array(basename(__FILE__)));
+        die;
+    }
     $now = time();
 
     // if record was started at least $threshold_timeout seconds ago

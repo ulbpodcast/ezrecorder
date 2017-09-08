@@ -32,7 +32,7 @@ if($working_dir == false) {
 $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::DEBUG, "Started remoteffmpeg module monit with working dir $working_dir", array(basename(__FILE__)), $asset);
        
 // Delays, in seconds
-$recovery_threshold = 20; // Threshold before we start worrying about FMLE
+$recovery_threshold = 20; // Threshold before we start worrying about ffmpeg
 $sleep_time = 20; // Duration of the sleep between two checks
 $pid = getmypid();
 
