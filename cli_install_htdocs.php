@@ -16,3 +16,5 @@ $root_file = $web_basedir . "/services/root.inc";
 $web_file = file_get_contents($root_file);
 $web_file = str_replace("!ROOT", $basedir, $web_file);
 file_put_contents($root_file, $web_file);
+
+echo "Finished." . PHP_EOL;
