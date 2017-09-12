@@ -23,9 +23,11 @@ class RecordingSession
         
         //if self::$session_id has already been defined, we're in a restore case, no need to create a new session
         if(self::$session_id === null && $user_id !== null) {
-            $ok = self::$session_id = $database->session_new($user_id, $admin_id);
-            if(!$ok)
-                throw new Exception("Failed to init new sessio for user $user_id");
+            $id = $database->session_new($user_id, $admin_id);
+            if($id === false)
+                throw new Exception("Failed to init new session for user $user_id");
+            
+            self::$session_id = $id;
         }
         //if we still don't have a session id at this point, something is wrong
         if(self::$session_id === null)
