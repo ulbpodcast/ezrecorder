@@ -285,7 +285,7 @@ function controller_recording_start() {
     return true;
 }
 
-function close_session() {
+function destroy_session() {
     // releases the recording session
 
     //re open session to destroy it if needed
@@ -296,13 +296,10 @@ function close_session() {
     session_destroy();
 }
 
-/**
- * Stops the recording and processes it
- */
-function controller_stop_and_publish() {
+function try_stopping() 
+{
     global $logger;
     global $input;
-    global $session_module;
     global $recorder_monitoring_pid;
     
     $asset = RecordingSession::instance()->get_current_asset();
@@ -330,14 +327,14 @@ function controller_stop_and_publish() {
     $meta_assoc = RecordingSession::instance()->metadata_get();
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get metadata from session for publishing, stopping now", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
 
     $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!file_exists($asset_dir)) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
     
@@ -351,7 +348,7 @@ function controller_stop_and_publish() {
     $meta_xml_string = RecordingSession::instance()->metadata_save($meta_assoc);
     if($meta_xml_string == false) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not write metadata to session.", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
     
@@ -361,8 +358,25 @@ function controller_stop_and_publish() {
     // launches the video processing in background
     start_post_process($asset);
     
-    close_session();
+    destroy_session();
+    return true;
+}
 
+/**
+ * Stops the recording and processes it
+ */
+function controller_stop_and_publish() {
+    global $logger;
+    
+    $ok = try_stopping();
+    destroy_session();
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "Something went wrong while publishing record, reseting recorder state to avoid locking users in publish menu", array(__FUNCTION__));
+        status_set('');
+        error_print_message("Failure");
+        return;
+    } 
+  
     // Displaying a confirmation message
     require_once template_getpath('div_record_submitted.php');
 }
@@ -1296,7 +1310,7 @@ function controller_view_screenshot_image() {
 function user_logout() {
     RecordingSession::instance()->metadata_delete();
     RecordingSession::instance()->unlock();
-    close_session();
+    destroy_session();
 
     // Displaying the logout message
     include_once template_getpath('logout.php');
