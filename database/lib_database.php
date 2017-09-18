@@ -388,7 +388,7 @@ class SQLiteDatabase
             $where .= " AND loglevel < " . LogLevel::$log_levels[LogLevel::DEBUG];
         
         $statement = $this->db->prepare('SELECT `id`, `event_time`, `asset`, `course`, `author`, `cam_slide`, `context`, `type_id`, `loglevel`, `message` FROM '.
-                RecorderLogger::LOG_TABLE_NAME." $where ORDER BY id LIMIT 0,$limit");
+                self::LOG_TABLE_NAME." $where ORDER BY id LIMIT 0,$limit");
         
         $success = $statement->execute();
         if(!$success) {
@@ -409,7 +409,7 @@ class SQLiteDatabase
     //return last event id in local database. return 0 on error.
     public function logs_get_last_local_event_id() 
     {
-        $statement = $this->db->prepare('SELECT MAX(id) FROM '.RecorderLogger::LOG_TABLE_NAME);
+        $statement = $this->db->prepare('SELECT MAX(id) FROM '.self::LOG_TABLE_NAME);
         $success = $statement->execute();
         if(!$success) {
             $this->log(EventType::LOGGER, LogLevel::CRITICAL, __FUNCTION__ . " failed", array("RecorderLogger"));

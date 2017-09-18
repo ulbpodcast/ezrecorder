@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/global_config.inc';
 require_once __DIR__.'/lib_various.php';
+require_once __DIR__.'/lib_recording_session.php';
 
 class LoggerSyncDaemon {
     // Log sync with server interval, in seconds
@@ -31,9 +32,10 @@ class LoggerSyncDaemon {
     public function sync_logs() {
         global $logger;
         global $log_push_url;
+        global $database;
         
         $last_id_sent = 0;
-        $ok = $logger->get_last_log_sent($last_id_sent);
+        $ok = $database->get_last_log_sent($last_id_sent);
         if(!$ok) {
             $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array(basename(__FILE__)));
             return 1;

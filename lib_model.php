@@ -928,6 +928,7 @@ function user_login($login, $passwd) {
         //change language if specified an init rempository path
         if(isset($input['lang']))
             set_lang($input['lang']);
+        
         template_repository_path($template_folder . get_lang());
     
         if (RecordingSession::instance()->can_access_lock($user)) {
