@@ -316,8 +316,11 @@ function capture_localqtb_finalize($asset) {
     // launches finalization bash script
     $cmd = 'sudo -u ' . $localqtb_username . ' ' . $localqtb_script_qtbfinalize . ' ' . $asset . ' >> ' . $localqtb_recorder_logs . ' 2>&1  & echo $!';
     log_append("finalizing: execute cmd '$cmd'");
-    exec($cmd);
+    $output = array();
+    $return_val = 0;
+    exec($cmd, $output, $return_val);
     $logger->log(EventType::TEST, LogLevel::INFO, __FUNCTION__.": Finished finalization", array(__FUNCTION__), $asset);
+    return $return_val == 0;
 }
 
 
