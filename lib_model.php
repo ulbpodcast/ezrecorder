@@ -369,6 +369,8 @@ function controller_stop_and_publish() {
     global $logger;
     
     $ok = try_stopping();
+    // releases the recording session. Someone else can now record
+    RecordingSession::unlock();
     destroy_session();
     if(!$ok) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "Something went wrong while publishing record, reseting recorder state to avoid locking users in publish menu", array(__FUNCTION__));
@@ -1310,8 +1312,8 @@ function controller_view_screenshot_image() {
  * Logs the user out, i.e. destroys all the data stored about them
  */
 function user_logout() {
-    RecordingSession::instance()->metadata_delete();
-    RecordingSession::instance()->unlock();
+    RecordingSession::metadata_delete();
+    RecordingSession::unlock();
     destroy_session();
 
     // Displaying the logout message
