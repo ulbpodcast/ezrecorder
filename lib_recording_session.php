@@ -181,12 +181,14 @@ class RecordingSession
         $database->session_init_record(self::$session_id, $asset_name, $course_name, $record_type);
     }
     
-    public function rec_start_time_get()
+    //return timestamp
+    public function get_rec_start_time()
     {
         global $database;
         return $database->session_rec_time_get(self::$session_id);
     }
     
+    //return timestamp
     public function get_init_time()
     {
         global $database;

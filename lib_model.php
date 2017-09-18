@@ -317,7 +317,7 @@ function try_stopping()
         $moderation = 'true';
 
     // Logging the operation
-    $rec_start_time = RecordingSession::instance()->rec_start_time_get();
+    $rec_start_time = RecordingSession::instance()->get_rec_start_time();
     $course = RecordingSession::instance()->get_course_id();
 
     log_append('recording_stop', 'Stopped recording by user request (course ' . $course . ', started on ' . $rec_start_time . ', moderation: ' . $moderation . ')');
@@ -410,7 +410,7 @@ function controller_recording_cancel() {
         unlink($recorder_monitoring_pid);
 
     // Logging the operation
-    $rec_start_time = RecordingSession::instance()->rec_start_time_get();
+    $rec_start_time = RecordingSession::instance()->get_rec_start_time();
     $course = RecordingSession::instance()->get_course_id();
     log_append('recording_cancel', 'Deleted recording by user request (course ' . $course . ', started on ' . $rec_start_time . ')');
 
@@ -955,7 +955,8 @@ function user_login($login, $passwd) {
             // 
             // Various information we want to display
             $current_user =  RecordingSession::instance()->get_current_user();
-            $start_time = $recstarttime = RecordingSession::instance()->rec_start_time_get();
+            $start_time_ts = RecordingSession::instance()->get_init_time();
+            $start_time = date('Y-m-d H:i:s', $start_time_ts);
             $course = RecordingSession::instance()->get_course_id();
             
             require_once template_getpath('div_error_recorder_in_use.php');
