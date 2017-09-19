@@ -53,7 +53,7 @@ class sound_detect_av implements sound_detect {
         $cmdoutput = "";
         exec($cmd, $cmdoutput, $returncode);
         if($returncode != 0) {
-            $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
+            $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::WARNING, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
             return false;
         }
 
