@@ -625,6 +625,7 @@ function controller_recording_force_quit()
     }
     
     $new_user = $_SESSION['user_login'];
+    
     try {
         RecordingSession::lock($new_user);
     } catch (Exception $e) {
@@ -633,6 +634,8 @@ function controller_recording_force_quit()
         return false;
     }
 
+    //make sure the user is considered as logged
+    $_SESSION['recorder_logged'] = true;
     // 4) And finally, we can display the record form
     controller_view_record_form();
     return true;

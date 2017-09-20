@@ -45,7 +45,7 @@ if(isset($input['action']))
 if($action == 'recording_force_quit')
 {
     controller_recording_force_quit();
-    close_session();
+    session_write_close();
     die();
 }
 
