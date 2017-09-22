@@ -35,12 +35,9 @@ if(RecordingSession::is_locked() === false) {
 $init_time = RecordingSession::instance()->get_init_time();
 
 // Delays, in seconds
-//$threshold_timeout = 7200; // Threshold before we start worrying about the user
-$threshold_timeout = 60; // Threshold before we start worrying about the user
-//$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-$timeout = 61;
-//$sleep_time = 60; // Duration of the sleep between two checks
-$sleep_time = 10; // Duration of the sleep between two checks
+$threshold_timeout = 7200; // Threshold before we start worrying about the user
+$timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
+$sleep_time = 60; // Duration of the sleep between two checks
 
 set_time_limit(0);
 $pid = getmypid();
@@ -74,7 +71,8 @@ while (true) {
     if($lastmod_time == false) {
         //failed to get time
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Monitoring stopped because we couldn't get the last request time", array(basename(__FILE__)));
-        die;
+        //consider last request was around 3 hours after init
+        $lastmod_time = $init_time + 10800 - $timeout; //10800 = 3h
     }
     $now = time();
 
