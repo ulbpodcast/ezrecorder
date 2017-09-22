@@ -149,11 +149,13 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     }
     
     // status of the current recording, should be empty
+    /* Buggy check, fixme
     $status = capture_ffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING,"Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
+     */
 
     $asset_dir = get_asset_dir($asset, "local_processing");
         

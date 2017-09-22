@@ -137,11 +137,13 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     }
     
     // status of the current recording, should be empty
+    /* Buggy check, fixme
     $status = capture_remoteffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
+    */
     
     $streaming_info = capture_remoteffmpeg_info_get('streaming', $asset);
     if ($streaming_info !== false) {

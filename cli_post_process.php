@@ -92,9 +92,11 @@ if ($slide_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Slide process was successfully started but did not provided a pid", array(basename(__FILE__)), $asset);
     }
     
+    /* Buggy check, fixme
     if(!is_process_running($slide_pid)) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
     }
+     */
 }
 
 if($sound_backup_enabled) {
