@@ -159,4 +159,3 @@ switch ($action) {
         $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session. User: ' . $user_id, array('controller'));
         reconnect_active_session();
 }
-

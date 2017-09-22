@@ -13,8 +13,8 @@
  * After that, we check that there has been activity at least once every "timeout" seconds (typically 15 min).
  * This program is meant to be run as a crontask at least once every "timeout" seconds
  */
-require_once 'global_config.inc';
-require_once $basedir . 'lib_model.php';
+require_once __DIR__.'/global_config.inc';
+require_once __DIR__.'/lib_model.php';
 
 require_once __DIR__.'/lib_recording_session.php';
 
@@ -66,23 +66,28 @@ while (true) {
         die;
     }
 
-    // Timeout check
+    //should we start to worry about timeout ?
+    $diff_init = $now - $init_time;
+    if ($diff_init < $threshold_timeout) {
+        sleep($sleep_time);
+        continue;
+    }
+    
+    // get last request
     $lastmod_time = RecordingSession::instance()->get_last_request();
     if($lastmod_time == false) {
         //failed to get time
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Monitoring stopped because we couldn't get the last request time", array(basename(__FILE__)));
         //consider last request was around 3 hours after init
         $lastmod_time = $init_time + 10800 - $timeout; //10800 = 3h
-    }
-    $now = time();
+    } 
 
     // if record was started at least $threshold_timeout seconds ago
     // and if no request received in the last $timeout seconds 
     // force stop the recorder
+    $now = time();
     $diff_lastmod = $now - $lastmod_time;
-    $diff_init = $now - $init_time;
-    
-    if ($diff_init > $threshold_timeout && $diff_lastmod > $timeout) {
+    if ($diff_lastmod > $timeout) {
         $date_format = "Y_M_D_H:s";
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Timeout triggered after $diff_lastmod seconds. Init: $init_time / Last request: $lastmod_time.", array(basename(__FILE__)));
         mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 

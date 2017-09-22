@@ -556,10 +556,9 @@ class SQLiteDatabase
         return self::exec_query('session_set_last_request', array(':session_id', $session_id));
     }
     
-    //return timestamp
+    //return timestamp, or false on failure, or NULL if no last request
     public function session_last_request_get($session_id)
     {
-        //$timestamp == False not handled, implement if it if you need it
         return self::exec_query_first_value('session_get_last_request', array(':session_id', $session_id));
     }
     

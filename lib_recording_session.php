@@ -173,12 +173,18 @@ class RecordingSession
     {
         global $database;
         $database->session_start_record(self::$session_id);
+        
+        // also updates the last_request time
+        $this->set_last_request();
     }
     
     public function init_record($asset_name, $course_name, $record_type)
     {
         global $database;
         $database->session_init_record(self::$session_id, $asset_name, $course_name, $record_type);
+        
+        // also updates the last_request time
+        $this->set_last_request();
     }
     
     //return timestamp
@@ -245,6 +251,7 @@ class RecordingSession
         return $database->session_last_request_set(self::$session_id);
     }
     
+    //get last request from user
     public function get_last_request()
     {
         global $database;
