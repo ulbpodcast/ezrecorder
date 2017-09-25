@@ -36,3 +36,5 @@ $slide_file_name = "slide.mov";
 $dir_date_format = "Y_m_d_H\hi";// ls friendly date to create directories/files
 
 $template_folder = 'tmpl/';
+
+$session_class = "SessionSQLite";
