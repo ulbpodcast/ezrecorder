@@ -18,6 +18,9 @@ class RecorderState {
     function init() {
         RecordingSession::restore_session_if_any();
         
+        if(!RecordingSession::is_locked())
+            return;
+            
         $status = status_get();
         $this->recording = $status == "recording" ? '1' : '0';
         $this->status_general = $status;
@@ -27,9 +30,6 @@ class RecorderState {
         $this->status_slides = status_get_slide();
         if($this->status_slides == null) //send empty instead of null in response
             $this->status_slides = '';
-        
-        if(!RecordingSession::is_locked())
-            return;
         
         $metadata = RecordingSession::instance()->metadata_get();
         if(!$metadata)

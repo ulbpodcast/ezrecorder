@@ -101,7 +101,6 @@ class LoggerSyncDaemon {
             if($this->is_running())
                 return;
         }
-        
         self::write_PID();
 
         global $logger;
@@ -111,8 +110,10 @@ class LoggerSyncDaemon {
         $failure_in_a_row = 0;
         
         while (true) {
-            if($disable_logs_sync)
+            if($disable_logs_sync) {
+                echo "Log sync disabled" . PHP_EOL;
                 break;
+            }
             
             $current_sync_start_time = time();
             
@@ -139,8 +140,10 @@ class LoggerSyncDaemon {
             
             sleep($time_to_sleep);
             
-            if(($process_start_time + self::MAX_RUN_TIME) < time())
+            if(($process_start_time + self::MAX_RUN_TIME) < time()) {
+                echo "Max run time reached, stop here" . PHP_EOL;
                 exit(0); //max run time reached, stop here
+            }
         }
     }
 }
