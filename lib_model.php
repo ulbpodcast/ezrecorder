@@ -962,8 +962,9 @@ function user_login($login, $passwd) {
             // Various information we want to display
             $current_user =  RecordingSession::instance()->get_current_user();
             $start_time_ts = RecordingSession::instance()->get_init_time();
-            $start_time = date('Y-m-d H:i:s', $start_time_ts);
-            $course = RecordingSession::instance()->get_course_id();
+            $start_time = $start_time_ts != 0 ? date('Y-m-d H:i:s', $start_time_ts) : "NA";
+            $course_id = RecordingSession::instance()->get_course_id();
+            $course = $course_id != "" ? $course_id : "NA";
             
             require_once template_getpath('div_error_recorder_in_use.php');
             return false;
