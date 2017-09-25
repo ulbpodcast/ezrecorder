@@ -20,7 +20,7 @@ if($slide_enabled)
 if($sound_backup_enabled)
     require_once $sound_backup_lib;
 
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 require_once 'lib_error.php';
 require_once 'lib_various.php';
 require_once 'lib_model.php';
@@ -34,8 +34,8 @@ if(isset($argv[1]))
     $asset = $argv[1];
 } else {
     //get session metadata to find last course
-    $fct = "session_" . $session_module . "_metadata_get";
-    $meta_assoc = $fct();
+    
+    $meta_assoc = RecordingSession::metadata_get();
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array(basename(__FILE__)));
         exit(1);
@@ -92,9 +92,11 @@ if ($slide_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Slide process was successfully started but did not provided a pid", array(basename(__FILE__)), $asset);
     }
     
+    /* Buggy check, fixme
     if(!is_process_running($slide_pid)) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
     }
+     */
 }
 
 if($sound_backup_enabled) {

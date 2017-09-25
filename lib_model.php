@@ -5,7 +5,7 @@ require_once 'lib_various.php';
 require_once 'lib_template.php';
 require_once 'lib_error.php';
 require_once $auth_lib;
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 
 if ($cam_enabled)
     require_once $cam_lib; 
@@ -31,7 +31,12 @@ function reconnect_active_session() {
     $status = status_get();
     //lets check what the 'real' state we're in
     $already_recording = ($status == 'recording' || $status == 'paused');
-    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$_SESSION['user_login']." reconnected active session. Current recorder status is $status", array(__FUNCTION__));
+    try {
+        $user_id = RecordingSession::instance()->get_current_user();
+    } catch (Exception $e) {
+        $user_id = "<no_connected_user>";
+    }
+    $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, 'User '.$user_id." reconnected active session. Current recorder status is $status", array(__FUNCTION__));
     if ($already_recording || $status == 'open') {
         //state is one of the recording mode
         $redraw = true;
@@ -40,7 +45,7 @@ function reconnect_active_session() {
         //stopped means we have already clicked on stop
         $ok = controller_view_record_submit();
         if(!$ok) //something was wrong with the submit form
-            controller_recording_force_quit();
+            recording_force_quit();
     } else
         controller_view_record_form(); //none of the above cases to this is a first form screen
 }
@@ -54,12 +59,12 @@ function controller_recording_submit_infos() {
     global $input;
     global $classroom;
     global $auth_module;
-    global $session_module;
     global $dir_date_format;
-    global $recorder_session;
     global $logger;
     global $already_recording;
 
+    $user_id = RecordingSession::instance()->get_current_user();
+    
     if($already_recording == false)
     {
         // Sanity checks
@@ -82,38 +87,43 @@ function controller_recording_submit_infos() {
 
         $streaming = (isset($input['streaming']) && $input['streaming'] == 'enabled') ? 'true' : 'false';
 
+        $user_id = RecordingSession::instance()->get_current_user();
+        
         // authorization check
         $fct_user_has_course = "auth_" . $auth_module . "_user_has_course";
-        if (!$fct_user_has_course($_SESSION['user_login'], $input['course'])) {
+        if (!$fct_user_has_course($user_id, $input['course'])) {
             error_print_message('You do not have permission to access course ' . $input['course'], false);
-            $msg = 'submit_record_infos: ' . $_SESSION['user_login'] . ' tried to access course ' . $input['course'] . ' without permission';
+            $msg = 'submit_record_infos: ' .$user_id . ' tried to access course ' . $input['course'] . ' without permission';
             log_append('warning', $msg);
             $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, $msg, array(__FUNCTION__));
             return false;
         }
-        $_SESSION['recorder_course'] = $input['course'];
-        $_SESSION['recorder_type'] = $valid_record_type;
-
+        
         $datetime = date($dir_date_format);
-
+        $course_id = $input['course'];
+        $title = trim($input['title']);
+        $description = $input['description'];
+        
+        $user_extended_info = UserExtendedInfo::get($user_id);
+        $full_name = $user_extended_info !== null ? $user_extended_info->full_name : '';
+        
         // Now we create and store the metadata
         $record_meta_assoc = array(
-            'course_name' => $input['course'],
+            'course_name' => $course_id,
             'origin' => $classroom,
-            'title' => trim($input['title']),
-            'description' => $input['description'],
+            'title' => $title,
+            'description' => $description,
             'record_type' => $valid_record_type,
             'moderation' => 'true',
-            'author' => $_SESSION['user_full_name'],
-            'netid' => $_SESSION['user_login'],
+            'author' => $full_name,
+            'netid' => RecordingSession::instance()->get_current_user(),
             'record_date' => $datetime,
             'streaming' => $streaming,
             'super_highres' => false
         );
 
 
-        $fct_metadata_save = "session_" . $session_module . "_metadata_save";
-        $res = $fct_metadata_save($record_meta_assoc);
+        $res = RecordingSession::instance()->metadata_save($record_meta_assoc);
 
         if ($res == false) {
             error_print_message('submit_record_infos: something went wrong while saving metadata');
@@ -122,15 +132,22 @@ function controller_recording_submit_infos() {
 
         log_append("submit info from recording form");
 
-        $_SESSION['asset'] = get_asset_name($record_meta_assoc['course_name'], $record_meta_assoc['record_date']);
-        file_put_contents($recorder_session, $_SESSION['asset'] . ";" . $_SESSION['user_login']);
+        $asset_name = get_asset_name($record_meta_assoc['course_name'], $record_meta_assoc['record_date']);
+        RecordingSession::instance()->init_record($asset_name, $course_id, $valid_record_type);
+        insert_form_data($user_id, $course_id, $title, $description, $valid_record_type);
     } else {
-        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, "User ".$_SESSION['user_login']. " tried to re submit infos while we were already recording, ignoring submitted infos...", array(__FUNCTION__));
+        $logger->log(EventType::RECORDER_USER_SUBMIT_INFO, LogLevel::WARNING, "User $user_id tried to re submit infos while we were already recording, ignoring submitted infos...", array(__FUNCTION__));
     }
 
     // And finally we can display the main screen! This will init the recorders (blocking call)
     view_init_record_screen();
     return true;
+}
+
+function insert_form_data($author, $course, $title, $decription, $record_type) 
+{
+    global $database;
+    $database->form_data_insert($author, $course, $title, $decription, $record_type);
 }
 
 /** Update record_type in metadata file according to allowed cam/slide
@@ -181,21 +198,8 @@ function update_metadata_file_with_allowed_types($metadata_file, $allow_cam, $al
     return true;
 }
 
-function get_asset_from_session() {
-    global $session_module;
-    
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
-    if(!$metadata)
-        return false;
-    
-        
-    $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
-    return $asset;
-}
-
 /**
- * Starts a new recording
+ * Recording is ready, start the actual recording
  */
 function controller_recording_start() {
     global $logger;
@@ -207,17 +211,9 @@ function controller_recording_start() {
     global $session_module;
     global $classroom;
 
-    // another user is connected
-    $fct_current_user_get = "session_" . $session_module . "_current_user_get";
-    $user = $fct_current_user_get();
-
-    $asset = $_SESSION['asset'];
-
-    if ($user != $_SESSION['user_login']) {
-        error_print_message('User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on _current_user file in session module');
-        $logger->log(EventType::RECORDER_START, LogLevel::ERROR, '(action recording_start) User conflict - session user [' . $_SESSION['user_login'] . '] different from current user [' . $user . '] : check permission on _current_user file in session module', array(__FUNCTION__), $asset);
-        return false;
-    }
+    RecordingSession::instance()->start_record();
+    $asset = RecordingSession::instance()->get_current_asset();
+    $user = RecordingSession::instance()->get_current_user();
 
     //get current status and check if its compatible with current action
     $status = status_get();
@@ -227,17 +223,10 @@ function controller_recording_start() {
         return false;
     }
 
-    // saves the start time
-    $datetime = date($dir_date_format);
-    $startrec_info  = "$datetime\n";
-    $startrec_info .= $_SESSION['recorder_course'] . "\n";
-    $fct_recstarttime_set = "session_" . $session_module . "_recstarttime_set";
-    $fct_recstarttime_set($startrec_info);
-
     $asset_dir = get_asset_dir($asset, "local_processing");
     if (!file_exists($asset_dir)) {
         $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Asset dir $asset_dir not found. Invalid asset? Trying to restore asset from session module.", array(__FUNCTION__), $asset);
-        $asset = get_asset_from_session();
+        $asset = RecordingSession::instance()->get_current_asset();
         $asset_dir = get_asset_dir($asset, "local_processing");
         if (!file_exists($asset_dir)) {
             $logger->log(EventType::RECORDER_START, LogLevel::ERROR, "Could not start recording because asset dir does not exists: $asset_dir", array(__FUNCTION__), $asset);
@@ -290,37 +279,34 @@ function controller_recording_start() {
     log_append("recording_start", "started recording by user request");
     $logger->log(EventType::ASSET_CREATED, LogLevel::NOTICE, 
             "Started recording at user $user request. Requested type: $requested_record_type", array(__FUNCTION__), $asset, 
-            $user, $requested_record_type, $_SESSION['recorder_course'], $classroom);
+            $user, $requested_record_type, RecordingSession::instance()->get_course_id(), $classroom);
 
     echo "OK";
     return true;
 }
 
-function close_session() {
-    global $session_module;
-
+function destroy_session() {
     // releases the recording session
-    $fct_session_unlock = "session_" . $session_module . "_unlock";
-    $fct_session_unlock();
 
+    //re open session to destroy it if needed
+    if(session_status() == PHP_SESSION_NONE)
+        session_start();
+    
     // And finally, closing the user's session
     session_destroy();
 }
 
-/**
- * Stops the recording and processes it
- */
-function controller_stop_and_publish() {
+function try_stopping() 
+{
     global $logger;
     global $input;
-    global $session_module;
     global $recorder_monitoring_pid;
-
-    if(!isset($_SESSION['asset']) || $_SESSION['asset'] == "") {
+    
+    $asset = RecordingSession::instance()->get_current_asset();
+    if(!RecordingSession::instance()->get_current_asset() || $asset == "") {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "controller_stop_and_publish called without asset in session", array(__FUNCTION__));
         return false;
     }
-    $asset = $_SESSION['asset'];
     
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
@@ -331,27 +317,24 @@ function controller_stop_and_publish() {
         $moderation = 'true';
 
     // Logging the operation
-    $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
-    $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
-    $starttime = $recstarttime[0];
-    $album = $recstarttime[1];
+    $rec_start_time = RecordingSession::instance()->get_rec_start_time();
+    $course = RecordingSession::instance()->get_course_id();
 
-    log_append('recording_stop', 'Stopped recording by user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ')');
-    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Publishing recording at user request (course ' . $album . ', started on ' . $starttime . ', moderation: ' . $moderation . ').', array(__FUNCTION__), $asset);
+    log_append('recording_stop', 'Stopped recording by user request (course ' . $course . ', started on ' . $rec_start_time . ', moderation: ' . $moderation . ')');
+    $logger->log(EventType::RECORDER_PUBLISH, LogLevel::NOTICE, 'Publishing recording at user request (course ' . $course . ', started on ' . $rec_start_time . ', moderation: ' . $moderation . ').', array(__FUNCTION__), $asset);
 
     //get the start time and course from metadata
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $meta_assoc = $fct_metadata_get();
+    $meta_assoc = RecordingSession::instance()->metadata_get();
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not get metadata from session for publishing, stopping now", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
 
     $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!file_exists($asset_dir)) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Trying to publish unknown asset $asset from dir $asset_dir", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
     
@@ -362,11 +345,10 @@ function controller_stop_and_publish() {
     
     //update session metadata with moderation
     $meta_assoc['moderation'] = $moderation;
-    $fct_metadata_save = "session_" . $session_module . "_metadata_save";
-    $meta_xml_string = $fct_metadata_save($meta_assoc);
+    $meta_xml_string = RecordingSession::instance()->metadata_save($meta_assoc);
     if($meta_xml_string == false) {
         $logger->log(EventType::RECORDER_PUBLISH, LogLevel::CRITICAL, "Could not write metadata to session.", array(__FUNCTION__), $asset);
-        close_session();
+        destroy_session();
         return false;
     }
     
@@ -376,8 +358,27 @@ function controller_stop_and_publish() {
     // launches the video processing in background
     start_post_process($asset);
     
-    close_session();
+    destroy_session();
+    return true;
+}
 
+/**
+ * Stops the recording and processes it
+ */
+function controller_stop_and_publish() {
+    global $logger;
+    
+    $ok = try_stopping();
+    // releases the recording session. Someone else can now record
+    RecordingSession::unlock();
+    destroy_session();
+    if(!$ok) {
+        $logger->log(EventType::RECORDER_PUBLISH, LogLevel::ERROR, "Something went wrong while publishing record, reseting recorder state to avoid locking users in publish menu", array(__FUNCTION__));
+        status_set('');
+        error_print_message("Failure");
+        return;
+    } 
+  
     // Displaying a confirmation message
     require_once template_getpath('div_record_submitted.php');
 }
@@ -395,12 +396,10 @@ function controller_stop_and_publish() {
  */
 function controller_recording_cancel() {
     global $logger;
-    global $session_module;
     global $recorder_monitoring_pid;
 
     $asset = null;
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
+    $metadata = RecordingSession::instance()->metadata_get();
     if($metadata) {
         $asset = get_asset_name($metadata['course_name'], $metadata['record_date']);
         $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Record cancelled at user request", array(__FUNCTION__), $asset);
@@ -413,11 +412,9 @@ function controller_recording_cancel() {
         unlink($recorder_monitoring_pid);
 
     // Logging the operation
-    $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
-    $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
-    $starttime = $recstarttime[0];
-    $album = $recstarttime[1];
-    log_append('recording_cancel', 'Deleted recording by user request (course ' . $album . ', started on ' . $starttime . ')');
+    $rec_start_time = RecordingSession::instance()->get_rec_start_time();
+    $course = RecordingSession::instance()->get_course_id();
+    log_append('recording_cancel', 'Deleted recording by user request (course ' . $course . ', started on ' . $rec_start_time . ')');
 
     // Stopping and releasing the recorder
     
@@ -430,11 +427,8 @@ function controller_recording_cancel() {
     }
     
     // releases the recording session. Someone else can now record
-    $fct_session_unlock = "session_" . $session_module . "_unlock";
-    $fct_session_unlock();
+    RecordingSession::unlock();
 
-    //closing the user's session
-    session_destroy();
     status_set('');
 
     // Displaying a confirmation message
@@ -462,10 +456,6 @@ function cancel_current_record($asset, $reset_cam_position = true) {
         $fct_capture_cancel = 'capture_' . $slide_module . '_cancel';
         $res_slide = $fct_capture_cancel($asset);
     }
-    
-    // deletes the previous metadata file 
-    $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
-    $fct_metadata_delete();
     
     if($reset_cam_position) {
         reset_cam_position();
@@ -504,9 +494,7 @@ function start_post_process($asset) {
 }
 
 function stop_current_record($start_post_process = true) {
-    global $recorder_session;
     global $logger;
-    global $session_module;
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
@@ -514,34 +502,21 @@ function stop_current_record($start_post_process = true) {
     
     $logger->log(EventType::RECORDER_STOP, LogLevel::DEBUG, "stop_current_record called with post process: $start_post_process.", array(__FUNCTION__));
 
-    if(!file_exists($recorder_session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called but no current recorder session file found", array(__FUNCTION__));
-        return false;
-    }
-        
-    $recorder_session_file = file_get_contents($recorder_session);
-    if($recorder_session_file == false) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session file could not be read ", array(__FUNCTION__));
+    if(!RecordingSession::is_locked()) {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "stop_current_record was called recorder was not currently locked", array(__FUNCTION__));
         return false;
     }
     
-    $session = explode(';', $recorder_session_file);
-    if($session == false || empty($session)) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::CRITICAL, "current recorder session was invalid. File contained: $recorder_session_file", array(__FUNCTION__));
-        return false;
-    }
-    
-    $asset = $session[0];
-    //$asset = get_asset_from_dir($asset_dir_name);
-    if(!$asset) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session. Session file containted $recorder_session_file", array(__FUNCTION__));
+    $asset = RecordingSession::instance()->get_current_asset();
+    if(!$asset || $asset == "") {
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "No asset found in session", array(__FUNCTION__));
         return false;
     }
     
     
     $asset_dir = get_asset_dir($asset, 'local_processing');
     if(!$asset_dir) {
-        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not find asset dir for asset $asset. Session file containted $recorder_session_file. exploded array: " . print_r($session, true), array(__FUNCTION__), $asset);
+        $logger->log(EventType::RECORDER_STOP, LogLevel::ERROR, "Could not find asset dir for asset $asset", array(__FUNCTION__), $asset);
         return false;
     }
 
@@ -590,29 +565,20 @@ function stop_current_record($start_post_process = true) {
     return true;
 }
 
-/**
- * Interrupts current recording
- * (example: this is called when someone tries to log in, but someone else was already recording)
- */
-function controller_recording_force_quit() {
-    global $notice;
-    global $session_module;
-    global $recorder_session;
+function recording_force_quit() 
+{
     global $logger;
     global $recorder_monitoring_pid;
-
+    
     // stops the timeout monitoring
     if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
-    $session = explode(';', file_get_contents($recorder_session));
-    $asset = $session[0];
-
+    $asset = RecordingSession::instance()->get_current_asset();
+    
     $logger->log(EventType::ASSET_CANCELED, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
     $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::NOTICE, "Record was forcefully cancelled", array('controller_recording_force_quit'), $asset);
 
-    $fct_current_user_get = "session_" . $session_module . "_current_user_get";
-    log_append('warning', $_SESSION['user_login'] . ' trying to log in but recorder is already in use by ' . $fct_current_user_get() . '. Stopping current record.');
     $status = status_get();
     if ($status == '' || $status == 'open') {
         $result = cancel_current_record($asset, false);
@@ -620,13 +586,6 @@ function controller_recording_force_quit() {
             $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Previous record cancelling returned an error. Trying to continue anyway.", array('controller_recording_force_quit'), $asset);
         }
     } else { // a recording is pending (or stopped)
-        // Logging the operation
-        $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
-        $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
-        $starttime = $recstarttime[0];
-        $album = $recstarttime[1];
-        log_append('recording_force_quit', 'Force quit recording by another user [' . $_SESSION['user_login'] . '] (course ' . $album . ', started on ' . $starttime . ')');
-
         $result = stop_current_record(true);
         if(!$result) {
             $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Previous record stopping returned an error. Trying to continue anyway.", array('controller_recording_force_quit'), $asset);
@@ -637,23 +596,46 @@ function controller_recording_force_quit() {
     status_set('');
 
     // releases the recording session. Someone else can now record
-    $fct_session_unlock = "session_" . $session_module . "_unlock";
-    $fct_session_unlock();
+    RecordingSession::unlock();
+}
+
+/**
+ * Interrupts current recording
+ * (example: this is called when someone tries to log in, but someone else was already recording)
+ */
+function controller_recording_force_quit() 
+{
+    global $notice;
+    global $logger;
+    
+    if(RecordingSession::is_locked() === false)
+        return false; //nothing to do
+
+    $old_asset = RecordingSession::instance()->get_current_asset();
+    //$old_user_id = RecordingSession::instance()->get_current_user();
+    
+    recording_force_quit();
 
     template_load_dictionnary('translations.xml');
     $notice = template_get_message('ongoing_record_interrupted_message', get_lang()); // Message to display on top of the page, warning the user that they just stopped someone else's record*/
 
-    $fct_session_lock = "session_" . $session_module . "_lock";
-    $res = $fct_session_lock($_SESSION['user_login']);
-
-    if (!$res) {
-        error_print_message('lib_model: recording_force_quit: Could not lock recorder: ' . error_last_message());
-        $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Could not lock recorder: " . error_last_message(), array('controller_recording_force_quit'), $asset);
+    if(!isset($_SESSION['user_login']) || $_SESSION['user_login'] == "") {
+        echo "No user given";
+        return false;
+    }
+    
+    $new_user = $_SESSION['user_login'];
+    
+    try {
+        RecordingSession::lock($new_user);
+    } catch (Exception $e) {
+        error_print_message('lib_model: recording_force_quit: Could not lock recorder: ' . $e->getMessage());
+        $logger->log(EventType::RECORDER_FORCE_QUIT, LogLevel::ERROR, "Could not lock recorder: " . $e->getMessage(), array('controller_recording_force_quit'), $old_asset);
         return false;
     }
 
-    log_append('login');
-
+    //make sure the user is considered as logged
+    $_SESSION['recorder_logged'] = true;
     // 4) And finally, we can display the record form
     controller_view_record_form();
     return true;
@@ -664,6 +646,8 @@ function recording_pause() {
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
+
+    $asset = RecordingSession::instance()->get_current_asset();
     
     $res_cam = true;
     $res_slide = true;
@@ -671,13 +655,13 @@ function recording_pause() {
     // if cam module is enabled
     if ($cam_enabled) {
         $fct_capture_pause = 'capture_' . $cam_module . '_pause';
-        $res_cam = $fct_capture_pause($_SESSION['asset']);
+        $res_cam = $fct_capture_pause($asset);
     }
 
     // if slide module is enabled
     if ($slide_enabled) {
         $fct_capture_pause = 'capture_' . $slide_module . '_pause';
-        $res_slide = $fct_capture_pause($_SESSION['asset']);
+        $res_slide = $fct_capture_pause($asset);
     }
     
     return $res_cam && $res_slide;
@@ -707,18 +691,20 @@ function recording_resume() {
     global $slide_enabled;
     global $slide_module;
 
+    $asset = RecordingSession::instance()->get_current_asset();
+    
     $res_cam = true;
     $res_slide = true;
 
     // if cam module is enabled 
     if ($cam_enabled) {
         $fct_capture_resume = 'capture_' . $cam_module . '_resume';
-        $res_cam = $fct_capture_resume($_SESSION['asset']);
+        $res_cam = $fct_capture_resume($asset);
     }
     // if slide module is enabled
     if ($slide_enabled) {
         $fct_capture_resume = 'capture_' . $slide_module . '_resume';
-        $res_slide = $fct_capture_resume($_SESSION['asset']);
+        $res_slide = $fct_capture_resume($asset);
     }
     
     return $res_cam && $res_slide;
@@ -778,16 +764,22 @@ function controller_view_login_form() {
     die;
 }
 
+function get_last_session_data($author) 
+{
+    global $database;
+    return $database->form_data_get_data_for_day_of_week($author, time());
+}
+
 /**
  * Displays the form people get when they log in (i.e. asking for a title, description, ...)
  */
-function controller_view_record_form() {
+function controller_view_record_form() 
+{
     global $input;
     global $cam_enabled;
     global $cam_module;
     global $slide_enabled;
     global $slide_module;
-    global $session_module;
     global $auth_module;
     global $streaming_available;
     global $recorder_monitoring_pid;
@@ -799,8 +791,8 @@ function controller_view_record_form() {
     if (file_exists($recorder_monitoring_pid))
         unlink($recorder_monitoring_pid);
 
-    if (isset($_SESSION['asset']) && isset($input['reset_player']) && $input['reset_player'] == 'true') {
-        $asset = $_SESSION['asset'];
+    $asset = RecordingSession::instance()->get_current_asset();
+    if ($asset !== false && isset($input['reset_player']) && $input['reset_player'] == 'true') {
         $logger->log(EventType::RECORDER_CANCEL, LogLevel::NOTICE, "Input has 'reset_player' argument, cancelling record", array(__FUNCTION__), $asset);
         $result = cancel_current_record($asset, true);
         if(!$result) {
@@ -826,19 +818,35 @@ function controller_view_record_form() {
     if ($cam_stream_ok && $slide_stream_ok) {
         $streaming_available = true;
     }
+    
+    $current_user = RecordingSession::instance()->get_current_user();
+    $last_session_data = get_last_session_data($current_user);
 
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
-
-    //pre fill form with previous data
-    $_SESSION['recorder_course'] = $metadata['course_name'];
-    $_SESSION['title'] = $metadata['title'];
-    $_SESSION['description'] = $metadata['description'];
-    $_SESSION['recorder_type'] = $metadata['record_type'];
+    //form data
+    $prefill_course = "";
+    $prefill_title = "";
+    $prefill_description = "";
+    $prefill_type = "slide";
+    
+    if($last_session_data) {
+        //Pre fill with previous data
+        $prefill_course = $last_session_data->course;
+        $prefill_title = $last_session_data->title;
+        $prefill_description = $last_session_data->description;
+        $prefill_type = $last_session_data->record_type; //Improvement: what if the type is not supported anymore on this recorder?
+    } else {
+        //set a default record type 
+        if ($cam_enabled && $slide_enabled)
+            $prefill_type = 'camslide';
+        elseif ($cam_enabled)
+            $prefill_type = 'cam';
+        else if($slide_enabled)
+            $prefill_type = 'slide';
+    }
 
     // Retrieving the course list (to display in the web interface)
     $fct_user_courselist_get = "auth_" . $auth_module . "_user_courselist_get";
-    $courselist = $fct_user_courselist_get($_SESSION['user_login']);
+    $courselist = $fct_user_courselist_get($current_user);
     
     global $notice; // Possible errors that occurred at previous steps.
     require_once template_getpath('record_form.php');
@@ -854,15 +862,19 @@ function controller_view_record_form() {
  */
 function user_logged_in() {
     global $logger;
-    global $session_module;
     
-    if(!isset($_SESSION['recorder_logged']))
+    if(!isset($_SESSION['recorder_logged'])) {
         return false;
+    }
     
-    $fct_is_locked = "session_" . $session_module . "_is_locked";
-    if (!$fct_is_locked($_SESSION['user_login'])) {
+    //Session should always be locked when a user is logged in
+    if(!RecordingSession::is_locked()) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, "User is logged in but session is not locked", array(__FUNCTION__));
+        return false;
+    }
+    
+    if (!RecordingSession::can_access_lock($_SESSION['user_login'])) {
         $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "User is logged in but session is not locked by this user", array(__FUNCTION__));
-        close_session();
         return false;
     }
 
@@ -886,6 +898,8 @@ function user_login($login, $passwd) {
     global $status;
     global $session_module;
     global $auth_module;
+    global $session;
+    global $session_class;
 
     // 0) Sanity checks
     if (empty($login) || empty($passwd)) {
@@ -907,31 +921,28 @@ function user_login($login, $passwd) {
         return false;
     }
 
-    // 2) Now we can set the session variables
-    $_SESSION['recorder_logged'] = true; // "Boolean" telling that we're logged in
-    $_SESSION['user_login'] = $res['user_login'];
-    $_SESSION['user_real_login'] = $res['real_login'];
-    $_SESSION['user_full_name'] = $res['full_name'];
-    $_SESSION['user_email'] = $res['email'];
-    if(isset($input['lang']))
-        set_lang($input['lang']);
-    template_repository_path($template_folder . get_lang());
-
+    $user = $res['user_login'];
+    $_SESSION['user_login'] = $user;
+        
     // 3) Now we have to check whether or not there is still a recording ongoing.
-    // For that, we check the _current_user file. If it exists, it means there is already
-    // a recording ongoing. If the user who started the recording is the one trying to log in again,
+    //  If the user who started the recording is the one trying to log in again,
     // then we display the recording screen again. If not, then we stop the current recording
-    // and display the record_form.
-    $fct_session_is_locked = "session_" . $session_module . "_is_locked";
-    $session_locked = $fct_session_is_locked();
-    if ($session_locked) {
-        $fct_current_user_get = "session_" . $session_module . "_current_user_get";
-        $current_user = $fct_current_user_get();
-        if ($_SESSION['user_login'] == $current_user) {
-            // We retrieve the recorder page
-            log_append('reconnecting', $_SESSION['user_login'] . ' trying to log in but was already using recorder. Retrieving lost session.');
-            $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, $_SESSION['user_login'] . ' trying to log in but was already using recorder. Retrieving lost session.', array(__FUNCTION__));
+    // and display the record_form.    
+    if (RecordingSession::is_locked()) {
 
+        //change language if specified an init rempository path
+        if(isset($input['lang']))
+            set_lang($input['lang']);
+        
+        template_repository_path($template_folder . get_lang());
+    
+        if (RecordingSession::instance()->can_access_lock($user)) {
+            // We retrieve the recorder page
+            log_append('reconnecting', $user . ' trying to log in but was already using recorder. Retrieving lost session.');
+            $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, $user . ' trying to log in but was already using recorder. Retrieving lost session.', array(__FUNCTION__));
+
+            $_SESSION['recorder_logged'] = true; // "Boolean" telling that we're logged in
+           
             $redraw = true;
             $status = status_get();
             $already_recording = ($status == 'recording' || $status == 'paused');
@@ -941,46 +952,42 @@ function user_login($login, $passwd) {
                 controller_stop_and_view_record_submit();
             else
                 controller_view_record_form(); //ask metadata again
-            die;
+            return true;
             
         } else {
-            $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "User " . $_SESSION['user_login'] . " tried to login but session was locked, asking him if he wants to interrupt the current record", array(__FUNCTION__));
+            $logger->log(EventType::RECORDER_LOGIN, LogLevel::WARNING, "User " . $user . " tried to login but session was locked, asking him if he wants to interrupt the current record", array(__FUNCTION__));
             
             // We ask the user if they want to stop the current recording and save it.
+            // 
             // Various information we want to display
-            $fct_current_user_get = "session_" . $session_module . "_current_user_get";
-            $current_user = $fct_current_user_get();
-
-            $fct_recstarttime_get = "session_" . $session_module . "_recstarttime_get";
-            $recstarttime = explode(PHP_EOL, $fct_recstarttime_get());
-            $start_time = $recstarttime[0];
-            $course = $recstarttime[1];
-
-            $start_time = trim($start_time);
-            $course = trim($course);
+            $current_user =  RecordingSession::instance()->get_current_user();
+            $start_time_ts = RecordingSession::instance()->get_init_time();
+            $start_time = date('Y-m-d H:i:s', $start_time_ts);
+            $course = RecordingSession::instance()->get_course_id();
+            
             require_once template_getpath('div_error_recorder_in_use.php');
-            die;
+            return false;
         }
     }
-    $user = $res['user_login'];
-    $fct_session_lock = "session_" . $session_module . "_lock";
-    $lock_ok = $fct_session_lock($user);
+    
+    try {
+        $admin_id = $res['real_login'];
+        RecordingSession::lock($user, $admin_id);
+        
+        $_SESSION['recorder_logged'] = true; // "Boolean" telling that we're logged in
+        $_SESSION['user_login'] = $user;
+        UserExtendedInfo::write($res['user_login'], $res['full_name'], $res['email']);
 
-    if (!$lock_ok) {
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user", array(__FUNCTION__));
-        error_print_message('Could not lock recorder: ' . error_last_message());
-        die;
+    } catch (Exception $e) {
+        $logger->log(EventType::RECORDER_LOGIN, LogLevel::ERROR, "Could not lock recorder for user $user. Exception message: " . $e->getMessage(), array(__FUNCTION__));
+        error_print_message('Could not lock recorder: ' . $e->getMessage());
+        return false;
     }
     
-    //check if current metadata belong to current user. If not, remove it
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
-    if($metadata != false && $metadata["netid"] != $_SESSION['user_login']) {
-        $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
-        $fct_metadata_delete();
-        $logger->log(EventType::RECORDER_LOGIN, LogLevel::DEBUG, "User $login logged and last metadata in session wasn't his, deleting it", array(__FUNCTION__));
-    }
-
+    if(isset($input['lang']))
+        set_lang($input['lang']);
+    template_repository_path($template_folder . get_lang());
+    
     $logger->log(EventType::RECORDER_LOGIN, LogLevel::INFO, "User $login logged in", array(__FUNCTION__));
     log_append('login');
 
@@ -994,7 +1001,7 @@ function reset_cam_position() {
     
     if ($cam_management_enabled) {
        //cam management enabled so try to put camera back in place
-       if (isset($_SESSION['recorder_type']) && $_SESSION['recorder_type'] == 'slide') {
+       if (RecordingSession::instance()->get_record_type() == 'slide') {
            $fct_cam_move = "cam_" . $cam_management_module . "_move";
            $fct_cam_move($GLOBALS['cam_screen_scene']); //if slide only, record screen as a backup
        } else {
@@ -1132,8 +1139,7 @@ function view_init_record_screen() {
     global $cam_enabled;
     global $slide_enabled;
     
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
+    $metadata = RecordingSession::instance()->metadata_get();
     if($metadata == false) {
         $logger->log(EventType::RECORDER_METADATA, LogLevel::WARNING, 'view_record_screen called but couldnt get metadata. Return to submit form', array(__FUNCTION__));
         controller_view_record_form();
@@ -1198,8 +1204,7 @@ function view_record_screen() {
     global $cam_management_enabled;
     global $cam_management_module;
     
-    $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-    $metadata = $fct_metadata_get();
+    $metadata = RecordingSession::instance()->metadata_get();
     if($metadata == false) {
         $logger->log(EventType::RECORDER_METADATA, LogLevel::WARNING, 'view_record_screen called but couldnt get metadata. Return to submit form', array(__FUNCTION__));
         controller_view_record_form();
@@ -1225,6 +1230,8 @@ function view_record_screen() {
     global $already_recording;
     global $enable_vu_meter;
     
+    $record_type = RecordingSession::instance()->get_record_type();
+    
     // And finally we display the page
     require_once template_getpath('record_screen.php');
 }
@@ -1236,7 +1243,7 @@ function view_record_screen() {
 function controller_stop_and_view_record_submit() {
     global $logger;
 
-    $asset = $_SESSION['asset'];
+    $asset = RecordingSession::instance()->get_current_asset();
     if (!$asset) {
         $logger->log(EventType::RECORDER_PUSH_STOP, LogLevel::WARNING, 'controller_stop_and_view_record_submit called without asset', array(__FUNCTION__));
         die();
@@ -1255,7 +1262,8 @@ function controller_stop_and_view_record_submit() {
 }
 
 function controller_view_record_submit() {
-    if(!isset($_SESSION['asset']))
+    $asset = RecordingSession::instance()->get_current_asset();
+    if($asset === false)
         return false;
     
     // And displaying the submit form
@@ -1284,8 +1292,7 @@ function controller_view_screenshot_image() {
     global $nopic_file;
 
     // updates the last_request time
-    $fct_last_request_set = 'session_' . $session_module . '_last_request_set';
-    $fct_last_request_set();
+    RecordingSession::instance()->set_last_request();
 
     if (isset($input['source']) && in_array($input['source'], array('cam', 'slides'))) {
         if ($input['source'] == 'cam' && $cam_enabled) {
@@ -1308,14 +1315,11 @@ function controller_view_screenshot_image() {
  * Logs the user out, i.e. destroys all the data stored about them
  */
 function user_logout() {
-    global $session_module;
+    RecordingSession::metadata_delete();
+    RecordingSession::unlock();
+    destroy_session();
 
-    close_session();
-
-    $fct_metadata_delete = "session_" . $session_module . "_metadata_delete";
-    $fct_metadata_delete();
-    // 3) Displaying the logout message
-
+    // Displaying the logout message
     include_once template_getpath('logout.php');
 }
 
@@ -1328,9 +1332,9 @@ function user_logout() {
  * @return string(fr|en) 
  */
 function get_lang() {
-    if (isset($_SESSION['lang']) && !empty($_SESSION['lang'])) {
-        return $_SESSION['lang'];
-    } else
+    if(RecordingSession::instance() !== null)
+        return RecordingSession::instance()->get_lang();
+    else
         return 'en';
 }
 
@@ -1339,7 +1343,8 @@ function get_lang() {
  * @param type $lang 
  */
 function set_lang($lang) {
-    $_SESSION['lang'] = $lang;
+    if(RecordingSession::instance() !== null)
+        RecordingSession::instance()->set_lang($lang);
 }
 
 /*
@@ -1424,7 +1429,8 @@ function controller_view_sound_status() {
     if(!$enable_vu_meter)
         return false;
     
-    $sound_info = $sound_detect->mean_volume_get($_SESSION['asset']);
+    $asset = RecordingSession::instance()->get_current_asset();
+    $sound_info = $sound_detect->mean_volume_get($asset);
     if($sound_info === false) {
         echo "Couldn't get sound info";
         http_response_code(500);
@@ -1446,4 +1452,36 @@ function sound_info_available() {
 
 function debug_checks() {
     
+}
+
+class UserExtendedInfo
+{
+    public $full_name = null;
+    public $email = null;
+    
+    function __construct($name, $email) 
+    {
+        $this->full_name = $name;
+        $this->email = $email;
+    }
+    
+    //write given info to DB
+    static public function write($user_id, $full_name, $email)
+    {
+         global $database;
+         $database->user_info_write($user_id, $full_name, $email);
+    }
+    
+    //get a UserExtendedInfo object for user_id, or null if not found
+    static public function get($user_id)
+    {
+        global $database;
+        $full_name = null;
+        $email = null;
+        $ok = $database->user_info_get($user_id, $full_name, $email);
+        if(!$ok)
+            return null;
+        
+        return new UserExtendedInfo($full_name, $email);
+    }
 }

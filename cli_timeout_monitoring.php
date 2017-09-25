@@ -13,10 +13,10 @@
  * After that, we check that there has been activity at least once every "timeout" seconds (typically 15 min).
  * This program is meant to be run as a crontask at least once every "timeout" seconds
  */
-require_once 'global_config.inc';
-require_once $basedir . 'lib_model.php';
+require_once __DIR__.'/global_config.inc';
+require_once __DIR__.'/lib_model.php';
 
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 
 global $service;
 $service = true;
@@ -25,16 +25,18 @@ Logger::$print_logs = true;
 
 $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring started", array(basename(__FILE__)));
 
+RecordingSession::restore_session_if_any();
+if(RecordingSession::is_locked() === false) {
+    echo "No current recording session, nothing to do";
+    die;
+}
+
 // Saves the time when the recording has been init
-$init_time = time();
-$fct_initstarttime_set = "session_" . $session_module . "_initstarttime_set";
-$fct_initstarttime_set($init_time);
+$init_time = RecordingSession::instance()->get_init_time();
 
 // Delays, in seconds
 $threshold_timeout = 7200; // Threshold before we start worrying about the user
-//$threshold_timeout = 120; // Threshold before we start worrying about the user
 $timeout = 900; // Timeout after which we consider a user has forgotten to stop their recording
-//$timeout = 30;
 $sleep_time = 60; // Duration of the sleep between two checks
 
 set_time_limit(0);
@@ -45,8 +47,6 @@ fwrite(fopen($recorder_monitoring_pid, 'w'), $pid);
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
-
-    $fct_is_locked = "session_" . $session_module . "_is_locked";
 
     //Stop conditions:
     // We stop if the pid file does not exist anymore ("kill -9" simulation)
@@ -60,25 +60,34 @@ while (true) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Could not read monitoring file", array(basename(__FILE__)));
         die;
     }
-    if (!$fct_is_locked()) {
+    
+    if(!RecordingSession::is_locked()) {
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Monitoring stopped. Cause: Recorder is not locked anymore", array(basename(__FILE__)));
         die;
     }
 
-    // Timeout check
-
-    $fct_last_request_get = "session_" . $session_module . "_last_request_get";
-
-    $lastmod_time = $fct_last_request_get();
-    $now = time();
+    //should we start to worry about timeout ?
+    $diff_init = $now - $init_time;
+    if ($diff_init < $threshold_timeout) {
+        sleep($sleep_time);
+        continue;
+    }
+    
+    // get last request
+    $lastmod_time = RecordingSession::instance()->get_last_request();
+    if($lastmod_time == false) {
+        //failed to get time
+        $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::CRITICAL, "Monitoring stopped because we couldn't get the last request time", array(basename(__FILE__)));
+        //consider last request was around 3 hours after init
+        $lastmod_time = $init_time + 10800 - $timeout; //10800 = 3h
+    } 
 
     // if record was started at least $threshold_timeout seconds ago
     // and if no request received in the last $timeout seconds 
     // force stop the recorder
+    $now = time();
     $diff_lastmod = $now - $lastmod_time;
-    $diff_init = $now - $init_time;
-    
-    if ($diff_init > $threshold_timeout && $diff_lastmod > $timeout) {
+    if ($diff_lastmod > $timeout) {
         $date_format = "Y_M_D_H:s";
         $logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::INFO, "Timeout triggered after $diff_lastmod seconds. Init: $init_time / Last request: $lastmod_time.", array(basename(__FILE__)));
         mail($mailto_admins, 'Recording timed out', 'The recording in classroom ' . $classroom 
@@ -86,7 +95,7 @@ while (true) {
              . ($diff_lastmod) . ' seconds ago. Time: ' . date($date_format,$now) . ' .Last request: ' . date($date_format, $lastmod_time)
              . ' Start time: ' . date($date_format,$init_time) . '');
 
-        controller_recording_force_quit();
+        recording_force_quit();
     }
     
     //$logger->log(EventType::RECORDER_TIMEOUT_MONITORING, LogLevel::DEBUG, "diffmod: $diff_lastmod. diffinit: $diff_init", array(basename(__FILE__)));

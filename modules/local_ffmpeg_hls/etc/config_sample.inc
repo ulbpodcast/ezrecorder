@@ -13,6 +13,7 @@ $ffmpeg_streaming_quality = "highlow"; // quality enabled for live stream (highl
 // -- If source is "rtsp"
 $ffmpeg_rtsp_media_high_uri = "rtsp://xxx.xxx.xxx.xxx:xxx/xx";
 $ffmpeg_rtsp_media_low_uri = "rtsp://xxx.xxx.xxx.xxx:xxx/yy";
+$ffmpeg_rtsp_transport = "tcp"; //valid values are 'tcp', 'udp', 'udp_multicast', 'http'
 // --
 
 // -- If source is "avfoundation" or "AV.io"

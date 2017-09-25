@@ -1,6 +1,6 @@
 <?php
 
-require_once("./lib_model.php");
+require_once(__DIR__. "/../lib_model.php");
 
 class RecorderState {
     
@@ -16,7 +16,7 @@ class RecorderState {
     public $record_type      = '';
     
     function init() {
-        global $session_module;
+        RecordingSession::restore_session_if_any();
         
         $status = status_get();
         $this->recording = $status == "recording" ? '1' : '0';
@@ -28,8 +28,10 @@ class RecorderState {
         if($this->status_slides == null) //send empty instead of null in response
             $this->status_slides = '';
         
-        $fct_metadata_get = "session_" . $session_module . "_metadata_get";
-        $metadata = $fct_metadata_get();
+        if(!RecordingSession::is_locked())
+            return;
+        
+        $metadata = RecordingSession::instance()->metadata_get();
         if(!$metadata)
             return;
         
@@ -39,7 +41,6 @@ class RecorderState {
         $this->course = $metadata['course_name'];
         $this->streaming = $metadata['streaming'];
         $this->record_type = $metadata['record_type'];
-        
     }
     
     function encode() {

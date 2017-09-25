@@ -137,11 +137,13 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     }
     
     // status of the current recording, should be empty
+    /* Buggy check, fixme
     $status = capture_remoteffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
+    */
     
     $streaming_info = capture_remoteffmpeg_info_get('streaming', $asset);
     if ($streaming_info !== false) {
@@ -451,10 +453,12 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_recorder_ip;
     global $remote_script_thumbnail_create;
     global $remote_recorder_username;
+    global $logger;
         
+    $remote_thumb_file = "$remoteffmpeg_basedir/var/pic_new.jpg";
     //if no image or image is old get a new screencapture
     if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 1)) {
-        $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
+        $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remote_thumb_file $remoteffmpeg_capture_tmp_file";
         $return_val = 0;
         system($cmd, $return_val);
         
@@ -462,6 +466,9 @@ function capture_remoteffmpeg_thumbnail() {
         if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 60)) {
             //print "could not take a screencapture";
             copy("./nopic.jpg", "$remoteffmpeg_capture_file");
+            if($return_val != 0)
+                $logger->log(EventType::TEST, LogLevel::ERROR, "Could not get remote thumbnail file $remote_thumb_file (writing to $remoteffmpeg_capture_tmp_file). Permission problem?", array(__FUNCTION__));
+
         } else {
             //copy screencapture to actual snap
             $status = capture_remoteffmpeg_status_get();

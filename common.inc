@@ -7,6 +7,7 @@
 
 require_once('global_config.inc');
 require_once('logger_recorder.php');
+require_once(__DIR__.'/database/lib_database.php');
 
 if($debug_mode) {
     error_reporting(E_ALL); 
@@ -25,7 +26,8 @@ $last_log_sent_get_url = "$ezcast_logs_url?action=last_log_sent&source=$classroo
 $log_push_url = "$ezcast_logs_url?action=push_logs"; //followed by json array
 $ezcast_submit_url = "$ezcast_manager_url/recorder/index.php"; // URL to EZmanager server
 
-$logger = new RecorderLogger($log_database_file, $last_log_sent_get_url, $classroom);
+$database = new SQLiteDatabase($database_file); //replace this with a singleton
+$logger = new RecorderLogger($classroom);
 
 $sound_detect = null; //sound detection object, only defined if $enable_vu_meter is set
 if($enable_vu_meter) {
