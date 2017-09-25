@@ -14,11 +14,13 @@ class RecordingSession
 {
     private static $instance = null;
     private static $session_id = null;
-    private static $meta_file = __DIR__ . '/var/metadata.xml';
+    private static $meta_file = null; //defined in constructor
     
     //can throw if called . $user_id can be left out if 
     private function __construct($user_id = null, $admin_id = null) 
     {
+        self::$meta_file = __DIR__ . '/var/metadata.xml';
+        
         global $database;
         
         //if self::$session_id has already been defined, we're in a restore case, no need to create a new session
