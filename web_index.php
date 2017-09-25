@@ -28,7 +28,6 @@ require_once 'lib_model.php';
 require_once __DIR__.'/lib_recording_session.php';
 
 $input = array_merge($_GET, $_POST);
-$template_folder = 'tmpl/';
 
 template_repository_path($template_folder . get_lang());
 template_load_dictionnary('translations.xml');

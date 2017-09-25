@@ -1,6 +1,6 @@
 <?php
 
-require_once("./lib_model.php");
+require_once(__DIR__. "/../lib_model.php");
 
 class RecorderState {
     
@@ -16,6 +16,8 @@ class RecorderState {
     public $record_type      = '';
     
     function init() {
+        RecordingSession::restore_session_if_any();
+        
         $status = status_get();
         $this->recording = $status == "recording" ? '1' : '0';
         $this->status_general = $status;
