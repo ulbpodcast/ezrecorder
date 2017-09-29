@@ -3,7 +3,8 @@
 // This file is shared between server and recorder and should be kept identical in both projects.
 // !!! When adding a new type, add a class member + add it's ID into the $event_type_id array
 
-class EventType {
+class EventType
+{
     // Commons
     const TEST                               = "test";
     const LOGGER                             = "logger";
@@ -66,6 +67,7 @@ class EventType {
     const MANAGER_ASSET_COPY                 = "manager_asset_copy";
     const MANAGER_MODO_DELETE                = "manager_modo_delete";
     const MANAGER_EZMAM_CREATE_COURSE        = "manager_ezmam_create_course";
+    const MANAGER_SUBSCRIPTION_FORM          = "manager_subscription_form";
     
     // EZRenderer
     
@@ -119,7 +121,7 @@ class EventType {
         
         // EZAdmin: 2000->2999
        
-        // EZManager: 3000->3999 
+        // EZManager: 3000->3999
         EventType::MANAGER_LOG_SYNC                           => 3000,
         EventType::MANAGER_UPLOAD_TO_EZCAST                   => 3001,
         EventType::MANAGER_REQUEST_FROM_RECORDER              => 3002,
@@ -136,6 +138,7 @@ class EventType {
         EventType::MANAGER_ASSET_COPY                         => 3013,
         EventType::MANAGER_MODO_DELETE                        => 3014,
         EventType::MANAGER_EZMAM_CREATE_COURSE                => 3015,
+        EventType::MANAGER_SUBSCRIPTION_FORM                  => 3016,
         
         // EZRenderer: 4000->4999
         
