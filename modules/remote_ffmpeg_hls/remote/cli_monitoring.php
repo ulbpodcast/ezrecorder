@@ -25,11 +25,11 @@ $asset = $argv[1];
 
 $working_dir = get_asset_module_folder($remoteffmpeg_module_name, $asset);
 if($working_dir == false) {
-    $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Could not find remoteffmpeg working dir for asset $asset", array(basename(__FILE__)), $asset);
+    $logger->log(EventType::RECORDER_MODULE_MONIT, LogLevel::ERROR, "Could not find remoteffmpeg working dir for asset $asset", array(basename(__FILE__)), $asset);
     exit(2);
 }
 
-$logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::DEBUG, "Started remoteffmpeg module monit with working dir $working_dir", array(basename(__FILE__)), $asset);
+$logger->log(EventType::RECORDER_MODULE_MONIT, LogLevel::DEBUG, "Started remoteffmpeg module monit with working dir $working_dir", array(basename(__FILE__)), $asset);
        
 // Delays, in seconds
 $recovery_threshold = 20; // Threshold before we start worrying about ffmpeg
@@ -46,14 +46,14 @@ while (true) {
     // or the file containsan other pid
     if (!file_exists($remoteffmpeg_monitoring_file) 
             || $pid != file_get_contents($remoteffmpeg_monitoring_file)) {
-        $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::INFO, "Stopped monit, pid file was removed or missing", array(basename(__FILE__)), $asset);
+        $logger->log(EventType::RECORDER_MODULE_MONIT, LogLevel::INFO, "Stopped monit, pid file was removed or missing", array(basename(__FILE__)), $asset);
         exit(0);
     }
 
     // or the status is not set (should be open / recording / paused / stopped)
     $status = status_get();
     if($status == '' || $status == 'launch_failure') {
-        $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::INFO, "Stopped monit, module is not recording anymore", array(basename(__FILE__)), $asset);
+        $logger->log(EventType::RECORDER_MODULE_MONIT, LogLevel::INFO, "Stopped monit, module is not recording anymore", array(basename(__FILE__)), $asset);
         exit(0);
     }
     
@@ -63,7 +63,7 @@ while (true) {
     $rec_status = rec_status_get();
     
     if (last_modif_file_too_old()) {
-        $logger->log(EventType::RECORDE_MODULE_MONIT, LogLevel::ERROR, "Last video file is older than $recovery_threshold! Trying to relaunch.", array(basename(__FILE__), 'remote_ffmpeg_hls'), $asset);
+        $logger->log(EventType::RECORDER_MODULE_MONIT, LogLevel::ERROR, "Last video file is older than $recovery_threshold! Trying to relaunch.", array(basename(__FILE__), 'remote_ffmpeg_hls'), $asset);
         rec_status_set('stopped');
         
         $log_file = "$working_dir/relaunch.log";
