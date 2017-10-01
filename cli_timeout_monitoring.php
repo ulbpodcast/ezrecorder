@@ -47,7 +47,7 @@ fwrite(fopen($recorder_monitoring_pid, 'w'), $pid);
 
 // This is the main loop. Runs until the lock file disappears
 while (true) {
-
+    $now = time();
     //Stop conditions:
     // We stop if the pid file does not exist anymore ("kill -9" simulation)
     // or the file contains an other pid
@@ -85,7 +85,7 @@ while (true) {
     // if record was started at least $threshold_timeout seconds ago
     // and if no request received in the last $timeout seconds 
     // force stop the recorder
-    $now = time();
+   
     $diff_lastmod = $now - $lastmod_time;
     if ($diff_lastmod > $timeout) {
         $date_format = "Y_M_D_H:s";
