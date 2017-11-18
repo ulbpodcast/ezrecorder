@@ -430,7 +430,7 @@ function controller_recording_cancel() {
     RecordingSession::unlock();
 
     status_set('');
-
+    move_asset($asset, 'trash',true);
     // Displaying a confirmation message
     require_once template_getpath('div_record_cancelled.php');
 }
