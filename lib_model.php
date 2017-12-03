@@ -430,7 +430,7 @@ function controller_recording_cancel() {
     RecordingSession::unlock();
 
     status_set('');
-    move_asset($asset, 'trash',true);
+    
     // Displaying a confirmation message
     require_once template_getpath('div_record_cancelled.php');
 }
@@ -460,7 +460,8 @@ function cancel_current_record($asset, $reset_cam_position = true) {
     if($reset_cam_position) {
         reset_cam_position();
     }
-        
+    //moving asset to trash. Don't forget to clean-up trash folder regularly!
+    move_asset($asset, 'trash',true);
     return $res_cam && $res_slide;
 }
 
