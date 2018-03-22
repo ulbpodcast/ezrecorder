@@ -258,9 +258,11 @@ function cam_onvif_ptz_preset_token_get($presetName)
         return false;
     }
     
-    foreach($presets as $key => $value) {
-        if($value['Name'] == $presetName){
-            return $value['Token'];
+    if($presets) {
+        foreach($presets as $key => $value) {
+            if($value['Name'] == $presetName){
+                return $value['Token'];
+            }
         }
     }
     

@@ -24,7 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require_once dirname(__FILE__).'/../../global_config.inc';
+require_once __DIR__.'/../../global_config.inc';
 
 $localqtb_features = array('recording');
 $localqtb_ip = $ezrecorder_ip;

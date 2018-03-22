@@ -54,7 +54,7 @@ do {
 
 echo "Creating config.inc" . PHP_EOL;
 
-$config = file_get_contents(dirname(__FILE__) . "/config_sample.inc");
+$config = file_get_contents(__DIR__ . "/config_sample.inc");
 
 echo "Please enter now the requested values: " . PHP_EOL;
 

@@ -6,7 +6,7 @@
 require_once(__DIR__ . '/common_static.inc');
 
 // Dev: Change this value everytime you add an option to this file, as well as the value in common.inc. When version in config and common.inc don't match, a warning is triggered.
-$config_version = "20161003"; 
+$config_version = "2017041201"; 
 
 /* ---------- GLOBAL SETTINGS ----------- */
 $classroom = "Classroom name"; // classroom name
@@ -15,6 +15,8 @@ $ezrecorder_ip = "127.0.0.1"; // static ip used by EZcast remote server
 $ezrecorder_username = "podclient"; // user name used to launch bash scripts
 $ezrecorder_recorddir = "/Users/podclient/Movies/"; // basedir for the local video storage
 $remote_recorder_ip = "";
+//Optional override $remote_recorder_ip for requests from ezmanager. Use this is you need a different ip to connect to the same server from this recorder and from the manager.
+$external_remote_recorder_ip = "";
 $remote_recorder_username = "";
 
 //list of supported timezones: http://php.net/manual/en/timezones.europe.php
@@ -52,10 +54,6 @@ $slide_enabled = false;
 $slide_module = "remoteffmpeg";
 $slide_lib = "$basedir/modules/remote_ffmpeg_hls/lib_capture.php";
 
-// session data
-$session_module = "xml";
-$session_lib = "$basedir/modules/recording_session/lib_recording_session.php";
-
 // authentication
 $auth_module = "file";
 $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
@@ -64,12 +62,21 @@ $auth_lib = "$basedir/modules/auth_file/lib_auth.php";
 $enable_vu_meter = false;
 $sound_detect_lib = "sound_detect_av";
 
+// sound backup
+$sound_backup_enabled = false;
+$sound_backup_module = "sound_backup";
+$sound_backup_lib = "$basedir/modules/sound_backup/lib_capture.php";
+
 // debugging
 $debug_mode = false; //debug mode print recorder events and php errors to console
 $send_debug_logs_to_server = false; //by default, events of type debug are not sent to ezcast
+$disable_logs_sync = false;
 
 global $in_install;
 //load static variables
 if(!isset($in_install)) {
     require_once(__DIR__ . '/common.inc');
 }
+
+
+//test0001s

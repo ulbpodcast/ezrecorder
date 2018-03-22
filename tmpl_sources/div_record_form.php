@@ -38,11 +38,14 @@ make sure $courselist is set and is an array of all courses available for the us
                     <select name="course" id="course">
                         <?php
                         foreach ($courselist as $course_name => $course_description) {
-                            if ($course_name == $_SESSION['recorder_course']) {
+                            if ($course_name == $prefill_course) {
                                 ?>
-                                <option selected="selected" value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>
+                                <!--<option selected="selected" value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>-->
+                                <option selected="selected" value="<?php echo $course_name; ?>"><?php echo $course_description; ?></option>
+
                             <?php } else { ?>
-                                <option value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>
+<!--                                <option value="<?php echo $course_name; ?>"><?php echo $course_name; ?> - <?php echo $course_description; ?></option>-->
+                                <option value="<?php echo $course_name; ?>"><?php echo $course_description; ?></option>
                                 <?php
                             }
                         }
@@ -56,12 +59,12 @@ make sure $courselist is set and is an array of all courses available for the us
 
         <!-- TEXT FIELDS - TITLE INPUT -->
         <label>®Title®:</label>
-        <input type="text" name="title" id="title" maxlength="70" value="<?php echo $_SESSION['title']; ?>"/>
+        <input type="text" name="title" id="title" maxlength="70" value="<?php echo $prefill_title; ?>"/>
         <!-- TEXT FIELDS - TITLE INPUT [END] -->
 
         <!-- TEXT FIELDS - DESCRIPTION -->
         <label>®Description®:</label>
-        <textarea  name="description" rows="4" id="description"><?php echo $_SESSION['description']; ?></textarea>
+        <textarea  name="description" rows="2" id="description"><?php echo $prefill_description; ?></textarea>
         <!-- TEXT FIELDS - DESCRIPTION [END] -->
         <div class="spacer"></div>
     </div>
@@ -74,24 +77,9 @@ make sure $courselist is set and is an array of all courses available for the us
         <?php if ($slide_enabled) { ?><div class="radioThree" onclick="set_record_type('slide');" ><input id="radioslide" type="radio" name="record_type" value="slide" class="styled" onclick="set_record_type('slide');"/></div><?php } ?>
     </div>
     
-    <?php
-        //default record type if not any already defined
-        if(!isset($_SESSION['recorder_type'])) {
-            $default_type = "";
-            if ($cam_enabled && $slide_enabled)
-                $default_type = 'camslide';
-            elseif ($cam_enabled)
-                $default_type = 'cam';
-            else if($slide_enabled)
-                $default_type = 'slide';
-            
-            $_SESSION['recorder_type'] = $default_type;
-        }
-    ?>
-    
     <script type="text/javascript"  language="JavaScript">
     //select the record type if it is already known
-    $radioButton = document.getElementById("radio<?php echo $_SESSION['recorder_type']; ?>");
+    $radioButton = document.getElementById("radio<?php echo $prefill_type; ?>");
     if($radioButton)
         $radioButton.click();
     </script>
@@ -99,8 +87,14 @@ make sure $courselist is set and is an array of all courses available for the us
 
     <!-- CANCEL BUTTON / CONTINUE -->
     <div id="btn">   
-        <label class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>><input type="checkbox" name="streaming" value="enabled"> Streaming LIVE</label>
-        <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
-        <a class="continuer" id="submit_button" href="#">®Continue®</a></div>
+        <label id="streamform" class="stream" <?php if (!$streaming_available) echo "style='visibility:hidden'"; ?>>
+            <input type="checkbox" name="streaming" value="enabled">
+            <span class="tooltip" id="streamtext">®Enable_streaming® 
+                <span class="tooltiptext" id="stream_popup">®Stream_help®</span>
+            </span>
+        </label>
+         <a class="deconnexion" href="index.php?action=logout" id="logout_button">®Deconnection®</a>
+        <a class="continuer" id="submit_button" href="#">®Continue®</a>
+    </div>
 </form>
 <!-- CANCEL BUTTON / CONTINUE [END] -->

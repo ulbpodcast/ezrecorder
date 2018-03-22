@@ -4,6 +4,8 @@
 require_once "global_config.inc";
 require_once "modules/remote_ffmpeg_hls/lib_capture.php";
 require_once "lib_model.php";
+require_once "logger_sync_daemon.php";
+require_once "lib_ffmpeg.php";
 
 Logger::$print_logs = true;
 $debug_mode = true;
@@ -31,6 +33,21 @@ case "slide_status_get":
 	break;	
 case "stop_current_record":
         stop_current_record(false);
+        break;
+case "slide_post_process":
+        $asset = $argv[2];
+        $fct = 'capture_' . $slide_module . '_process';
+        $slide_pid = "";
+        $success = $fct($asset, $slide_pid);
+        break;
+case "log_sync":
+        $daemon = new LoggerSyncDaemon(); 
+        $res = $daemon->run();
+        break;
+case "movie_join_parts":
+        $movies_path = $argv[2];
+        $output = $argv[3];
+        movie_join_parts($movies_path, "ffmpegmovie", $output);
         break;
 default:
 	echo "Invalid test" .PHP_EOL;

@@ -219,36 +219,4 @@ if (count($modules_array['authentication']) > 0) {
     echo "No authentication module found. Make sure an authentication module has been set up before using EZrecorder !" . PHP_EOL;
 }
 
-
-/* ------------ SESSION MODULE ------------- */
-echo PHP_EOL;
-echo "------------------------------------------------------------" . PHP_EOL;
-echo "                       S E S S I O N  " . PHP_EOL;
-echo "------------------------------------------------------------" . PHP_EOL;
-if (count($modules_array['session']) > 0) {
-    if (count($modules_array['session']) == 1) {
-        $module = $modules_array['session'][0];
-        unset($modules_array['session'][0]);
-    } else {
-        echo "Select the module you want to enable for session management: " . PHP_EOL;
-        echo "---------------------------------------------------------------- " . PHP_EOL;
-        foreach ($modules_array['session'] as $index => $module) {
-            echo ($index + 1) . ". " . $module['title'] . ": " . $module['description'] . PHP_EOL;
-        }
-        $index++;
-        do {
-            $value = read_line("Enter the number of the module you want to enable [1..$index]: ");
-        } while (!is_numeric($value) || $value < 1 || $value > $index);
-        $module = $modules_array['session'][--$value];
-    }
-    echo "The module '" . $module['title'] . "' has been selected." . PHP_EOL;
-    $session_module = $module['name'];
-    $session_lib = $module['library'];
-
-    $config = preg_replace('/\$session_module = (.+);/', '\$session_module = "' . $session_module . '";', $config);
-    $config = preg_replace('/\$session_lib = (.+);/', '\$session_lib = "' . $session_lib . '";', $config);
-} else {
-    echo "No session management module found. Make sure a session managmeent module has been set up before using EZrecorder !" . PHP_EOL;
-}
-
 file_put_contents(__DIR__ . "/global_config.inc", $config);

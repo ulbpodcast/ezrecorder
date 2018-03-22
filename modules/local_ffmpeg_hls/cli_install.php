@@ -35,6 +35,14 @@ while(!in_array($value,$ffmpeg_input_source_list)) {
 }
 unset($value);
 
+$value = read_line("H264 preset [default: '$h264_preset']: ");
+if ($value != "")
+    $h264_preset = $value; 
+
+$value = read_line("H264 preset [default: '$h264_profile']: ");
+if ($value != "")
+    $h264_profile = $value; 
+
 switch($ffmpeg_input_source)
 {
     case "rtsp":
@@ -93,6 +101,8 @@ $config = preg_replace('/\$avfoundation_video_interface = (.+);/', '\$avfoundati
 $config = preg_replace('/\$avfoundation_audio_interface = (.+);/', '\$avfoundation_audio_interface = "' . $avfoundation_audio_interface . '";', $config);
 $config = preg_replace('/\$decklink_device = (.+);/', '\$decklink_device = "' . $decklink_device . '";', $config);
 $config = preg_replace('/\$decklink_format_index = (.+);/', '\$decklink_format_index = "' . $decklink_format_index . '";', $config);
+$config = preg_replace('/\$h264_profile = (.+);/', '\$h264_profile = "' . $h264_profile . '";', $config);
+$config = preg_replace('/\$h264_preset = (.+);/', '\$h264_preset = "' . $h264_preset . '";', $config);
 
 file_put_contents("$ffmpeg_basedir/etc/config.inc", $config);
 

@@ -4,13 +4,14 @@ require_once __DIR__.'/config_sample.inc';
 require_once(__DIR__."/../../../lib_install.php");
 require_once(__DIR__."/../../../global_config.inc");
 
-echo PHP_EOL . "***************************************" . PHP_EOL;
+echo PHP_EOL . 
+     "***************************************" . PHP_EOL;
 echo "* Installation of remote_ffmpeg_cutlist remote module    *" . PHP_EOL;
 echo "***************************************" . PHP_EOL;
 
 echo "Creating config.inc" . PHP_EOL;
 
-$config = file_get_contents(dirname(__FILE__) . "/config_sample.inc");
+$config = file_get_contents(__DIR__ . "/config_sample.inc");
 
 echo "Please enter now the requested values: " . PHP_EOL;
 
@@ -37,6 +38,18 @@ if ($value != "")
 if (!is_dir($remoteffmpeg_recorddir . '/ffmpeg_hls')){
     mkdir($remoteffmpeg_recorddir . '/ffmpeg_hls', 0755, true);
 }
+
+$h264_preset = "medium";
+$h264_profile = "main";
+
+$value = read_line("H264 preset [default: '$h264_preset']: ");
+if ($value != "")
+    $h264_preset = $value; 
+
+$value = read_line("H264 preset [default: '$h264_profile']: ");
+if ($value != "")
+    $h264_profile = $value; 
+
 
 $avfoundation_video_interface = 0;
 $avfoundation_audio_interface = 1;
@@ -102,6 +115,8 @@ $bash_file = str_replace("!MAIL_TO", $mailto_admins, $bash_file);
 $bash_file = str_replace("!INPUT_SOURCE", $remoteffmpeg_input_source, $bash_file);
 $bash_file = str_replace("!PHP_PATH", $php_cli_cmd, $bash_file);
 $bash_file = str_replace("!FFMPEG_PATH", $ffmpeg_cli_cmd, $bash_file);
+$bash_file = str_replace("!H264_PROFILE", $h264_profile, $bash_file);
+$bash_file = str_replace("!H264_PRESET", $h264_preset, $bash_file);
 $bash_file = str_replace("!AVFOUNDATION_VIDEO_INTERFACE", $avfoundation_video_interface, $bash_file);
 $bash_file = str_replace("!AVFOUNDATION_AUDIO_INTERFACE", $avfoundation_audio_interface, $bash_file);
 $bash_file = str_replace("!DECKLINK_DEVICE", "\"$decklink_device\"", $bash_file);

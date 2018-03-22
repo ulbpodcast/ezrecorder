@@ -36,9 +36,16 @@ class sound_detect_av implements sound_detect {
        
         $audio_interface = $this->avfoundation_index;
         
-        $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i \":$audio_interface\" -af 'volumedetect' -f null /dev/null 2>&1";
+        $remote = $this->remote_ip && $this->remote_username;
         
-        if($this->remote_ip && $this->remote_username)
+        if($remote == false) 
+            $audio_interface_str = "\":$audio_interface\"";
+        else //in case of remote, the command in embedded in a sudo command and the " need one more escape
+            $audio_interface_str = "\\\":$audio_interface\\\"";
+        
+        $cmd = "$timeout_script 10 $ffmpeg_cli_cmd -t 0.1 -f avfoundation -i $audio_interface_str -af 'volumedetect' -f null /dev/null 2>&1";
+        
+        if($remote)
             $cmd = "sudo -u ".$ezrecorder_username." ssh -o ConnectTimeout=10 -o BatchMode=yes ". $this->remote_username.'@'.$this->remote_ip." \"$cmd\"";
         
 //        echo $cmd;
@@ -46,7 +53,7 @@ class sound_detect_av implements sound_detect {
         $cmdoutput = "";
         exec($cmd, $cmdoutput, $returncode);
         if($returncode != 0) {
-            $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::ERROR, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
+            $logger->log(EventType::RECORDER_SOUND_DETECTION, LogLevel::WARNING, "Failed to run detect sound command: $cmd ", array(__FUNCTION__));
             return false;
         }
 

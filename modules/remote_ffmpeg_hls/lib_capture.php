@@ -61,6 +61,9 @@ function remote_call($cmd, $remote_log_file = "/dev/null", $background = false, 
     return $return_val;
 }
 
+/* Return true if remote fill exists
+Also returns exact command return value by reference
+ *  */
 function check_remote_file_existence($remote_file, &$return_val) {
     
     $cmd = "test -f $remote_file";
@@ -134,11 +137,13 @@ function capture_remoteffmpeg_init(&$pid, $meta_assoc, $asset) {
     }
     
     // status of the current recording, should be empty
+    /* Buggy check, fixme
     $status = capture_remoteffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING, "Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
+    */
     
     $streaming_info = capture_remoteffmpeg_info_get('streaming', $asset);
     if ($streaming_info !== false) {
@@ -448,17 +453,22 @@ function capture_remoteffmpeg_thumbnail() {
     global $remote_recorder_ip;
     global $remote_script_thumbnail_create;
     global $remote_recorder_username;
+    global $logger;
         
+    $remote_thumb_file = "$remoteffmpeg_basedir/var/pic_new.jpg";
     //if no image or image is old get a new screencapture
     if (!file_exists($remoteffmpeg_capture_file) || (time() - filemtime($remoteffmpeg_capture_file) > 1)) {
-        $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remoteffmpeg_basedir/var/pic_new.jpg $remoteffmpeg_capture_tmp_file";
+        $cmd = "sudo -u $remote_recorder_username $remote_script_thumbnail_create $remote_recorder_ip $remote_thumb_file $remoteffmpeg_capture_tmp_file";
         $return_val = 0;
         system($cmd, $return_val);
         
         //if command failed or remote script did not actually create image file
-        if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 3)) {
+        if ($return_val != 0 || (time() - filemtime($remoteffmpeg_capture_tmp_file) > 60)) {
             //print "could not take a screencapture";
             copy("./nopic.jpg", "$remoteffmpeg_capture_file");
+            if($return_val != 0)
+                $logger->log(EventType::TEST, LogLevel::ERROR, "Could not get remote thumbnail file $remote_thumb_file (writing to $remoteffmpeg_capture_tmp_file). Permission problem?", array(__FUNCTION__));
+
         } else {
             //copy screencapture to actual snap
             $status = capture_remoteffmpeg_status_get();
@@ -489,6 +499,7 @@ function capture_remoteffmpeg_thumbnail() {
  */
 function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $remote_recorder_ip;
+    global $external_remote_recorder_ip;
     global $remoteffmpeg_download_protocol;
     global $remoteffmpeg_streaming_protocol;
     global $remote_recorder_username;
@@ -501,22 +512,19 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
     global $remoteffmpeg_module_name;
     global $ezrecorder_username;
     
+    $ip = $remote_recorder_ip;
+    if($external_remote_recorder_ip != "")
+        $ip = $external_remote_recorder_ip;
+    
     switch ($action) {
         case 'download':
             $filename = $remoteffmpeg_upload_dir . '/' . $asset . "/slide.mov";
-            
-            $cmd = "sudo -u $ezrecorder_username ssh -o ConnectTimeout=5 $remote_recorder_username@$remote_recorder_ip 'test -e $filename'";
-            $return_val = 0;
-            system($cmd, $return_val);
+            $return_val = 0; //unused
+            if(!check_remote_file_existence($filename, $return_val))
+                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. Or maybe ssh command failed? File: $filename", array(__FUNCTION__), $asset);
 
-            if($return_val != 0)  {
-                $logger->log(EventType::RECORDER_INFO_GET, LogLevel::ERROR, "info_get: download: No slide file found. This may be because the file is missing or because it has yet to be processed. Or maybe ssh command failed? File: $filename. Cmd: $cmd", array(__FUNCTION__), $asset);
-            }
-
-            //Todo: check file existence on remote server
-            
             // rsync requires ssh protocol is set (key sharing) on the remote server
-            $download_info_array = array("ip" => $remote_recorder_ip,
+            $download_info_array = array("ip" => $ip,
                 "protocol" => $remoteffmpeg_download_protocol,
                 "username" => $remote_recorder_username,
                 "filename" => $filename);
@@ -542,7 +550,7 @@ function capture_remoteffmpeg_info_get($action, $asset = '') {
                 return false;
             
             $streaming_info_array = array(
-                "ip" => $remote_recorder_ip, 
+                "ip" => $ip, 
                 "submit_url" => $ezcast_submit_url,
                 "protocol" => $remoteffmpeg_streaming_protocol,
                 "course" => $meta_assoc['course_name'],
@@ -662,7 +670,7 @@ function capture_remoteffmpeg_recstatus_set($status) {
  * It also seems post_process does not properly wait on slide processing. 
  * See "!! Slides processing ($slide_pid) NOT running at this point" error. Maybe it's just not put in background there.
  * 
- * 
+ */
 function capture_remoteffmpeg_process_result($asset) {
     global $remote_recorder_ip;
     global $remote_script_datafile_get;
@@ -680,11 +688,10 @@ function capture_remoteffmpeg_process_result($asset) {
         return false;
     }
 
-    if($result) 
+    if($result)
         $result = trim($result);
     
     $success = $result !== false && $result == "0";
-    $logger->log(EventType::TEST, LogLevel::DEBUG, "File was found ($result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
+    $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::DEBUG, "File was found ($result_file), contain: $result. Returning success: " . ($success ? "true" : "false"), array(__FUNCTION__));
     return $success;
 }
-*/

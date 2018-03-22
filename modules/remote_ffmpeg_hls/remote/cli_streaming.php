@@ -37,7 +37,8 @@ function streaming_init() {
     
     // init the streamed asset
     $post_array = xml_file2assoc_array($remoteffmpeg_streaming_info);
-    if ($post_array['module_quality'] == 'none') return false;
+    if ($post_array['module_quality'] == 'none') 
+        return false;
     
     $post_array['action'] = 'streaming_init';
     $result = server_request_send($post_array["submit_url"], $post_array);
@@ -76,7 +77,7 @@ function streaming_init() {
         return false;
     }
     
-    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Started background streaming processes for qualities: high $start_high | low $start_low ", array(__FUNCTION__), $asset);
+    $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::NOTICE, "Started background streaming processes for qualities: high $start_high | low $start_low ", array(__FUNCTION__), $asset);
     
     return true;
 }

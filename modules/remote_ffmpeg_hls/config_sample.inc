@@ -13,7 +13,7 @@ $remoteffmpeg_streaming_quality = "highlow"; // quality enabled for live stream 
 
 $remote_basedir = "/path/to/ezrecorder"; // basedir on the remote recorder
 $remoteffmpeg_basedir = "/Library/ezrecorder/modules/remote_ffmpeg_hls/remote/"; // remote_ffmpeg_hls module on the remote recorder
-$remoteffmpeg_local_basedir = dirname(__FILE__).'/'; // basedir on this machine
+$remoteffmpeg_local_basedir = __DIR__.'/'; // basedir on this machine
 $remoteffmpeg_recorddir = '/Users/podclient/Movies/'; //path on remote recorder
 $remoteffmpeg_upload_dir = $remoteffmpeg_recorddir . '/upload_to_server/';
 

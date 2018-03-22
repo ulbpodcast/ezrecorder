@@ -4,7 +4,7 @@ require 'etc/config.inc';
 require_once __DIR__ . '/../../global_config.inc';
 require_once $basedir . '/common.inc';
 require_once $basedir . '/lib_various.php';
-require_once 'create_bash_configs.php';
+require_once __DIR__ . '/../../create_bash_configs.php';
 require_once $basedir . '/lib_error.php';
 require_once $basedir . '/lib_model.php';
 require_once __DIR__ . '/info.php';
@@ -27,10 +27,13 @@ function init_streaming($asset, &$meta_assoc) {
     global $ffmpeg_cli_streaming;
     global $php_cli_cmd;
     global $ffmpeg_streaming_info;
+    global $ffmpeg_module_name;
     
     if (file_exists($ffmpeg_streaming_info))
         unlink($ffmpeg_streaming_info);
 
+    $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
+    
     //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
     $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
     if ($streaming_info !== false) {
@@ -65,10 +68,10 @@ function init_streaming($asset, &$meta_assoc) {
     $return_val_high = 0;
     $return_val_low = 0;
     if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
-        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high > /dev/null 2>&1 &", $return_val_high);
+        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high &> $working_dir/stream_send_high.log &", $return_val_high);
     }
     if (strpos($ffmpeg_streaming_quality, 'low') !== false) {
-        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " low > /dev/null 2>&1 &", $return_val_low);
+        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " low &> $working_dir/stream_send_low.log &", $return_val_low);
     }
     if($return_val_high != 0 || $return_val_low != 0) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__), $asset);
@@ -78,7 +81,7 @@ function init_streaming($asset, &$meta_assoc) {
     return true;
 }
 
-function capture_ffmpeg_valide_environment(&$error_str) {
+function capture_ffmpeg_validate_environment(&$error_str) {
     global $ffmpeg_basedir;
     
     // -- Check if bash files are executables
@@ -122,7 +125,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $ffmpeg_basedir;
     global $ffmpeg_module_name;
     
-    $success = capture_ffmpeg_valide_environment($error_str);
+    $success = capture_ffmpeg_validate_environment($error_str);
     if(!$success) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not init module because of environment error: $error_str", array(__FUNCTION__), $asset);
         return false;
@@ -146,11 +149,13 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     }
     
     // status of the current recording, should be empty
+    /* Buggy check, fixme
     $status = capture_ffmpeg_status_get();
     if ($status != '') { // has a status
         error_last_message("capture_init: can't open because of current status: $status");
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING,"Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
+     */
 
     $asset_dir = get_asset_dir($asset, "local_processing");
         
@@ -263,17 +268,21 @@ function capture_ffmpeg_pause_resume($action, $asset) {
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $cutlist_file = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
     $log_file = $working_dir . '/pause_resume.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
+    //$cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $action $cutlist_file >> $log_file 2>&1";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $asset $action >> $log_file 2>&1";
     system($cmd, $return_val);
     if($return_val != 0) {
         $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::ERROR, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array(__FUNCTION__), $asset);
         return false;
     }
     
-    $set_status = $pause ? 'paused' : 'resumed';
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::DEBUG, "Setting recording $asset failed (file: $cutlist_file). Command: $cmd", array(__FUNCTION__), $asset);
+    
+    $set_status = $pause ? 'paused' : 'recording';
     capture_ffmpeg_status_set($set_status);
     capture_ffmpeg_recstatus_set($set_status);
-    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status'd by user", array(__FUNCTION__), $asset);
+    $set_status_str = $pause ? 'paused' : 'resumed';
+    $logger->log(EventType::RECORDER_PAUSE_RESUME, LogLevel::INFO, "Recording was $set_status_str by user", array(__FUNCTION__), $asset);
     
     echo "OK";
     return true;
@@ -318,10 +327,10 @@ function capture_ffmpeg_stop(&$pid, $asset) {
     }
     
     // pauses the current recording (while user chooses the way to publish the record)
-    $cut_list = ffmpeg_get_cutlist_file($ffmpeg_module_name, $asset);
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
     $log_file = $working_dir . '/stop.log';
-    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
+    //$cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist stop $cut_list >> $log_file 2>&1";
+    $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_cutlist $asset stop >> $log_file 2>&1";
     $return_var = 0;
     system($cmd, $return_var);
     if($return_var != 0) {
@@ -604,7 +613,7 @@ function capture_ffmpeg_thumbnail() {
     // Camera screenshot
     $diff = time() - filemtime($ffmpeg_capture_file);
     if (!file_exists($ffmpeg_capture_file) || ($diff > 1)) { //if last used capture is more than 1 sec old
-        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 3)) { //if last ffmpeg thumbnail is older than 3 secs
+        if ((time() - filemtime($ffmpeg_capture_tmp_file) > 60)) { //if last ffmpeg thumbnail is older than 60 secs
             //print "could not take a screencapture";
             copy("./nopic.jpg", $ffmpeg_capture_file);
         } else { //use ffmpeg thumbnail to generate final thumbnail (resize + add status on it)

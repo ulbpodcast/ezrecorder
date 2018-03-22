@@ -16,10 +16,10 @@ require_once "lib_install.php";
 function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_file = true) {
 
     $img_path = array();
-    $img_path['broadcasting'] = dirname(__FILE__) . '/img/broadcasting.png';
-    $img_path['connection'] = dirname(__FILE__) . '/img/connection.png';
-    $img_path['error'] = dirname(__FILE__) . '/img/error.png';
-    $img_path['pending'] = dirname(__FILE__) . '/img/pending.png';
+    $img_path['broadcasting'] = __DIR__ . '/img/broadcasting.png';
+    $img_path['connection'] = __DIR__ . '/img/connection.png';
+    $img_path['error'] = __DIR__ . '/img/error.png';
+    $img_path['pending'] = __DIR__ . '/img/pending.png';
 
     $img = imagecreatefromjpeg($input);
 //or imagecreatefrompng,imagecreatefromgif,etc. depending on user's uploaded file extension
@@ -90,7 +90,7 @@ function image_resize($input, $output, $maxwidth, $maxheight, $status, $status_f
         imagecopymerge($newimg, $img_status, 5, 130, 0, 0, 225, 25, 75);
 
     imagejpeg($newimg, $output); //$output file is the path/filename where you wish to save the file.  
-//Have to figure that one out yourself using whatever rules you want.  Can use imagegif() or imagepng() or whatever.
+    //Have to figure that one out yourself using whatever rules you want.  Can use imagegif() or imagepng() or whatever.
     return true;
 }
 
@@ -124,7 +124,7 @@ function xml_assoc_array2metadata($assoc_array) {
     $xmlstr = "<?xml version='1.0' standalone='yes'?>\n<metadata>\n</metadata>\n";
     $xml = new SimpleXMLElement($xmlstr);
     foreach ($assoc_array as $key => $value) {
-        $xml->addChild($key, $value);
+        $xml->addChild($key,  str_replace('&','&amp;',$value));
     }
     $xml_txt = $xml->asXML();
     return $xml_txt;
@@ -160,13 +160,12 @@ function server_request_send($server_url, $post_array) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, $post_array);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //don't send answer to stdout but in returned string
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,30); 
-    curl_setopt($ch, CURLOPT_TIMEOUT, 6000); //timeout in seconds
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); //timeout in seconds
     $res = curl_exec($ch);
-
     $curlinfo = curl_getinfo($ch);
     curl_close($ch);
     file_put_contents("$basedir/var/curl.log", var_export($curlinfo, true) . PHP_EOL . $res, FILE_APPEND);
-    if (!$res) {//error
+    if ($res === false) {//error
         $http_code = isset($curlinfo['http_code']) ? $curlinfo['http_code'] : false;
         $logger->log(EventType::RECORDER_REQUEST_TO_MANAGER, LogLevel::ERROR, "Curl failed to POST data to $server_url. Http code: $http_code", array(__FUNCTION__));
 
@@ -433,7 +432,7 @@ function get_asset_from_dir($dir) {
  */
 function move_asset($asset, $target, $move_on_remote = false) {
     global $logger;
-    global $slide_enabled;
+    global $remote_recorder_ip;
     
     $valid_targets = array("local_processing", "upload_to_server", "upload_ok");
     if(!in_array($target, $valid_targets)) {
@@ -461,7 +460,7 @@ function move_asset($asset, $target, $move_on_remote = false) {
 
     $logger->log(EventType::TEST, LogLevel::INFO, "Local asset moved from $current_dir to $target_dir dir", array(__FUNCTION__), $asset);
     
-    if($slide_enabled && $move_on_remote) { //move only if remote exists
+    if($remote_recorder_ip && $move_on_remote) { //move only if remote exists
         return move_remote_asset($asset, $target);
     } else {
         return true;
@@ -480,7 +479,7 @@ function move_remote_asset($asset, $target) {
     $return_val = 0;
     system($local_cmd, $return_val);
     if($return_val != 0) {
-        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd", array(__FUNCTION__), $asset);
+        $logger->log(EventType::TEST, LogLevel::ERROR, "Failed to move remote asset to target $target. Cmd: $local_cmd. Return val: $return_val", array(__FUNCTION__), $asset);
         return false;
     }
     $logger->log(EventType::TEST, LogLevel::INFO, "Remote asset moved from to $target folder", array(__FUNCTION__), $asset);

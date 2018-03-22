@@ -26,6 +26,7 @@ function capture_remotefmle_init(&$pid, $meta_assoc, $asset) {
     global $remotefmle_ip;
     global $remote_script_call;
     global $remotefmle_username;
+    global $logger;
 
     $tmp_dir = capture_remotefmle_tmpdir_get($asset);
 
@@ -33,23 +34,24 @@ function capture_remotefmle_init(&$pid, $meta_assoc, $asset) {
     // put the xml string in a metadata file on the local mac mini
     file_put_contents($tmp_dir . "/_metadata.xml", $xml);
 
-    if (capture_remotefmle_status_get() == '') {
+    $status = capture_remotefmle_status_get();
+    if ($status != 'recording' && $status != 'open') {
         /* remote script call requires:
          * - the remote ip
          * - the absolute path to the logs file
          * - the remote script to execute
          */
         // '> /dev/null' discards output, '&' executes the process as background task and 'echo $!' returns the pid
-        system("sudo -u $remotefmle_username $remote_script_call $remotefmle_ip $remotefmle_recorder_logs $remotefmle_script_init $asset > /dev/null & echo $! > $tmp_dir/pid");
+        $cmd = "sudo -u $remotefmle_username $remote_script_call $remotefmle_ip $remotefmle_recorder_logs $remotefmle_script_init $asset > /dev/null & echo $! > $tmp_dir/pid";
+        system($cmd);
+        $logger->log(EventType::TEST, LogLevel::NOTICE, "FLME init command: $cmd", array(__FUNCTION__), $asset);
+       
         //      system("sudo -u $remotefmle_username ssh -o ConnectTimeout=10 $remotefmle_ip \"$remotefmle_script_qtbnew >> $remotefmle_recorder_logs 2>&1\"");
         $pid = file_get_contents($tmp_dir . '/pid');
-        if (capture_remotefmle_status_get() == 'launch_failure') {
-            error_last_message("can't open because remote FMLE failed to launch");
-            return false;
-        }
 
         capture_remotefmle_status_set('open');
     } else {
+        $logger->log(EventType::TEST, LogLevel::CRITICAL, "capture_init: can't open because current status: $status", array(__FUNCTION__), $asset);
         error_last_message("capture_init: can't open because current status: $status");
         return false;
     }
@@ -77,8 +79,9 @@ function capture_remotefmle_start($asset) {
      */
     system("sudo -u $remotefmle_username $remote_script_call $remotefmle_ip $remotefmle_recorder_logs $remotefmle_script_start $asset > /dev/null &");
 
+    $status = capture_remotefmle_status_get();
     //update recording status
-    if (capture_remotefmle_status_get() == "open") {
+    if ($status == "open") {
         capture_remotefmle_status_set('recording');
     } else {
         error_last_message("capture_start: can't start recording because current status: $status");
@@ -428,7 +431,7 @@ function capture_remotefmle_tmpdir_get($asset) {
     static $tmp_dir;
 
     $tmp_dir = $remotefmle_local_basedir . '/var/' . $asset;
-    if (!file_exists($tmp_dir) && !dir($tmp_dir))
+    if (!file_exists($tmp_dir) || !dir($tmp_dir))
         mkdir($tmp_dir, 0777, true);
 
     return $tmp_dir;

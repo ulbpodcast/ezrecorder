@@ -1,0 +1,270 @@
+i
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2
+INPUT: {"action":"camera_move","position":"PLAN LARGE"}
+MODULE : panasonic
+existing_key: 1
+INPUT: {"action":"camera_move","position":"PLAN RAPPROCHE"}
+MODULE : panasonic
+existing_key: 2

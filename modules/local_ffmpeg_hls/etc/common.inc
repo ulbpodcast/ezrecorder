@@ -1,5 +1,10 @@
 <?php
 
+//this file is included in config.inc
+
+if(isset($config_version) && $config_version != "2017031601")
+    trigger_error("local_ffmpeg_hls config.inc file is not up to date", E_USER_WARNING);
+
 $ffmpeg_features = array('recording', 'streaming');
 
 $ffmpeg_basedir = dirname(__DIR__).'/';
@@ -37,6 +42,7 @@ $ffmpeg_script_start = $ffmpeg_basedir.'bash/ffmpeg_start';
 $ffmpeg_script_cutlist = $ffmpeg_basedir.'bash/ffmpeg_cutlist';
 $ffmpeg_script_stop = $ffmpeg_basedir.'bash/ffmpeg_stop';
 $ffmpeg_script_finalize = $ffmpeg_basedir.'bash/ffmpeg_finalize';
+$ffmpeg_script_process = $ffmpeg_basedir.'bash/ffmpeg_process.php';
 
 $ffmpeg_input_source_list = array("DeckLink", "IntensityShuttle", "IntensityShuttleThunderbolt", "UltraStudioMiniRecorder", "avfoundation", "AV.io", "rtsp");
 
@@ -60,6 +66,7 @@ $bash_env['AVFOUNDATION_VIDEO_INTERFACE']=$avfoundation_video_interface;
 $bash_env['AVFOUNDATION_AUDIO_INTERFACE']=$avfoundation_audio_interface;
 $bash_env['DECKLINK_DEVICE']=$decklink_device;
 $bash_env['DECKLINK_FORMAT_INDEX']=$decklink_format_index;
+$bash_env['STREAMING_QUALITY']=$ffmpeg_streaming_quality;
 
 $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 
@@ -67,4 +74,6 @@ $bash_env['THUMBNAIL_PATH']=$ffmpeg_basedir."/var/pic_new.jpg";
 $bash_env['FFMPEG_RTSP_MEDIA_HIGH_URI']=$ffmpeg_rtsp_media_high_uri;
 $bash_env['FFMPEG_RTSP_MEDIA_LOW_URI']=$ffmpeg_rtsp_media_low_uri;
 
-
+$bash_env['H264_PROFILE']=$h264_profile;
+$bash_env['H264_PRESET']=$h264_preset;
+$bash_env['RTSP_TRANSPORT']=$ffmpeg_rtsp_transport;

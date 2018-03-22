@@ -29,8 +29,12 @@ $cli_post_process = "$basedir/cli_post_process.php";
 $cli_timeout_monitoring = "$basedir/cli_timeout_monitoring.php";
 
 // logging
-$log_database_file = "$basedir/var/logs.sqlite";
+$database_file = "$basedir/var/db.sqlite";
 $cam_file_name = "cam.mov";
 $slide_file_name = "slide.mov";
 
-$dir_date_format = "Y_m_d_H\hi";// ls friendly date to create directories/files
+$dir_date_format = "Y_m_d_H\hi_s\s";// ls friendly date to create directories/files
+
+$template_folder = 'tmpl/';
+
+$session_class = "SessionSQLite";

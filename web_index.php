@@ -1,12 +1,21 @@
 <?php
 
+//htdocs version warning, will warn if the htdocs were updated in the code but not applied to the web server.
+if(isset($htdocs_version)) { //if this is set, this file was included from the web space
+    $web_version = $htdocs_version;
+    require_once(__DIR__ . "/htdocs/htdocs_version.php");
+    $source_version = $htdocs_version;
+    if($web_version != $source_version)
+        trigger_error("Documents in web space are not up to date, please run cli_install_htdocs.php", E_USER_ERROR);
+}
+
 /* ezcast recorder main program (MVC controller)
  *
  */
 // Inits
 //
 include_once 'global_config.inc';
-include_once 'common.inc';
+require_once 'common.inc';
 
 session_register_shutdown(); // By default, calls to die() do not write session on shutdown. This makes it so that it does.
 session_start();
@@ -16,14 +25,28 @@ require_once 'lib_error.php';
 require_once 'lib_template.php';
 require_once 'lib_model.php';
 
-require_once $session_lib;
+require_once __DIR__.'/lib_recording_session.php';
 
 $input = array_merge($_GET, $_POST);
-$template_folder = 'tmpl/';
 
 template_repository_path($template_folder . get_lang());
 template_load_dictionnary('translations.xml');
 
+RecordingSession::restore_session_if_any();
+
+// At this point of the code, we know the user is logged in.
+// So now, we must see what action they wanted to perform, and do it.
+$action = '';
+if(isset($input['action']))
+    $action = $input['action'];
+
+
+if($action == 'recording_force_quit')
+{
+    controller_recording_force_quit();
+    session_write_close();
+    die();
+}
 
 //
 // Controller
@@ -32,42 +55,23 @@ template_load_dictionnary('translations.xml');
 // If we're not logged in, we try to log in or display the login form
 
 if (!user_logged_in()) {
-
+    
     // If an "action" was given, it means we've already submitted the login form
     // So all we want to do is check whether there is still a "forgotten" recording
     // and if not, log the user in
     if (isset($input['action']) && $input['action'] == 'login' && isset($input['login']) && isset($input['passwd'])) {
         //login and password were given, try to login
-        user_login($input['login'], $input['passwd']);
+        $ok = user_login($input['login'], $input['passwd']);
     } else {
         // No login infos were submitted, display login form
         controller_view_login_form();
     }
+    session_write_close();
     die;
 }
 
-// Check if the asset is known, restore it if needed
-// The asset is not known if the session has been force quit,
-// if the session has expired or if there is a remote
-// control of the session    
-$fct_session_is_locked = "session_" . $session_module . "_is_locked";
-if (!isset($_SESSION['asset']) && $fct_session_is_locked()) {
-    $session = explode(';', file_get_contents($recorder_session));
-    if ($_SESSION['user_login'] == $session[1]) {
-        $_SESSION['asset'] = $session[0];
-        $logger->log(EventType::TEST, LogLevel::INFO, 'Restored asset into session from session file. User: ' . $_SESSION['user_login'], array('controller'));
-    } else {
-        $logger->log(EventType::TEST, LogLevel::ERROR, 'Could not restore asset for user ' . $_SESSION['user_login'] . '. Current user did not match with the one in session file.', array('controller'));
-    }
-}
-
-
-// At this point of the code, we know the user is logged in.
-// So now, we must see what action they wanted to perform, and do it.
-$action = '';
-if(isset($input['action']))
-    $action = $input['action'];
-
+session_write_close(); //we only use session for login processing
+   
 global $service; //true if we're currently running a service. 
 $service = false;
     
@@ -135,10 +139,11 @@ switch ($action) {
         break;
 
     // Case when someone asks to log in while someone else was recording
+    /*
     case 'recording_force_quit':
         controller_recording_force_quit();
         break;
-
+*/
     case 'camera_move':
         controller_camera_move();
         break;
@@ -149,7 +154,7 @@ switch ($action) {
     // At this point of the code, we know the user is logged in, but for some reason they didn't provide an action.
     // That means they manually reloaded the page. In this case, we bring them back from where they came.
     default:
-        $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session. User: ' . $_SESSION['user_login'], array('controller'));
+        $user_id = RecordingSession::instance()->get_current_user();
+        $logger->log(EventType::TEST, LogLevel::DEBUG, 'Index controller: User is logged in but did not provided an action, try to reconnect active session. User: ' . $user_id, array('controller'));
         reconnect_active_session();
 }
-

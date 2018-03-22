@@ -1,28 +1,4 @@
 <?php
-/*
- * EZCAST EZrecorder
- *
- * Copyright (C) 2016 Université libre de Bruxelles
- *
- * Written by Michel Jansens <mjansens@ulb.ac.be>
- * 	      Arnaud Wijns <awijns@ulb.ac.be>
- *            Antoine Dewilde
- * UI Design by Julien Di Pietrantonio
- *
- * This software is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
 
 /*
  * Error managing and logging library
@@ -61,18 +37,27 @@ function log_append($operation, $message = '') {
     $data .= (isset($_SERVER['REMOTE_ADDR'])) ? $_SERVER['REMOTE_ADDR'] : 'noip';
     $data .= ' ';
     
+    $has_session =  RecordingSession::instance() != null;
     // 3) Username and realname of the user that provoked the event
     // There can be no login if the operation was performed by a CLI tool for instance.
     // In that case, we display "nologin" instead.
-    if(!isset($_SESSION['user_login']) || empty($_SESSION['user_login'])) {
+    $current_user = "";
+    $admin_user = "";
+            
+    if($has_session) {
+        $current_user = RecordingSession::instance()->get_current_user();
+        $admin_user = RecordingSession::instance()->get_current_admin();
+    }
+    
+    if($current_user === null) {
         $data .= 'nologin';
     }
     // General case, where there is a login and (possibly) a real login
-    else if(isset($_SESSION['real_login'])) {
-        $data .= $_SESSION['real_login'].'/'.$_SESSION['user_login'];
+    else if($admin_user != null) {
+        $data .= $admin_user.'/'.$current_user;
     }
     else {
-        $data .= $_SESSION['user_login'];
+        $data .= $current_user;
     }
     $data .= ' ';
     

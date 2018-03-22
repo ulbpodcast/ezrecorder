@@ -9,8 +9,8 @@
 
 <data>
     <labels>
-        <label id="Page_title" lang="fr">Enregistrement - ULB Podcast</label>
-        <label id="Page_title" lang="en">Recorder - ULB Podcast</label>
+        <label id="Page_title" lang="fr">Enregistrement - UCL Podcast</label>
+        <label id="Page_title" lang="en">Recorder - UCL Podcast</label>
         <label id="service_name" lang="fr">EZcast Recorder</label>
         <label id="service_name" lang="en">EZcast Recorder</label>
         <!-- Keywords -->
@@ -38,6 +38,10 @@
         <label id="Start_time" lang="en">Date/time</label>
         <label id="Deconnection" lang="fr">Annuler</label>
         <label id="Deconnection" lang="en">Cancel</label>
+        <label id="Enable_streaming" lang="fr">Diffusion en direct</label>
+        <label id="Enable_streaming" lang="en">Streaming Live</label>
+        <label id="Stream_help" lang="fr">L'enregistrement sera diffusé et accessible en direct depuis l'album public du cours</label>
+        <label id="Stream_help" lang="en">The record will be live streamed and available from the public album of the course</label>
         <label id="Back" lang="fr">Retour</label>
         <label id="Back" lang="en">Back</label>
         <label id="Continue" lang="fr">Continuer</label>
@@ -102,13 +106,14 @@
         <label id="Navigator_not_compatible" lang="en">Your browser is not compatible. Please run updates or change it.</label>
         <label id="Iframes_unsupported" lang="fr">Votre navigateur ne permet pas l'affichage d'aperçus.</label>
         <label id="Iframes_unsupported" lang="en">Your browser doesn't support iframes for visual feedback.</label>
-        <label id="launch_failure" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</label>
+        <label id="launch_failure" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe UCL Podcast par mail : podcast@uclouvain.be. Merci</label>
         <label id="launch_failure" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</label>
         <label id="Ongoing_recording" lang="fr">Attention : enregistrement en cours.\nVoulez-vous arrêter l'enregistrement en cours et en lancer un nouveau?</label>
         <label id="Ongoing_recording" lang="en">Caution: ongoing recording.\nDo you want to stop the current recording and start your own?</label>
         <label id="offline_from_podc" lang="fr">Attention: Cette action n'a pas pu être éxécutée.\n\n Vérifiez que vous êtes toujours connecté au réseau wifi 'PODC' et rafraichissez la page de votre navigateur (ctrl+R / cmd+R) avant de réessayer.</label>
         <label id="offline_from_podc" lang="en">Warning: This action could not be executed.\n\n Verify that you are still connected to PODC and refresh the page in your web browser (ctrl+R / cmd+R) before retrying.</label>
-
+        <label id="support_phone_number" lang="fr">UCLPodcast: podcast@uclouvain.be</label>
+        <label id="support_phone_number" lang="en">UCLPodcast: podcast@uclouvain.be</label>
     </labels>
         
     <messages>
@@ -118,7 +123,7 @@
         <message id="Incorrect_password" lang="en">Incorrect password</message>
         <message id="ongoing_record_interrupted_message" lang="fr">Un enregistrement était en cours. Il a été arrêté et sauvegardé dans l'album privé de son auteur.</message>
         <message id="ongoing_record_interrupted_message" lang="en">The recorder was already in use. The previous record has been stopped and published in its owner's private album.</message>
-        <message id="launch_failure_message" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe ULB Podcast au (02/650) 29 26. Merci</message>
+        <message id="launch_failure_message" lang="fr">Une erreur est survenue au lancement de l'enregistreur. Veuillez contacter directement l'équipe par mail : podcast@uclouvain.be. Merci</message>
         <message id="launch_failure_message" lang="en">An error has occured while starting the recorder. Please call the Podcast team as soon as possible at (02/650) 29 26. Thank you</message>
         <message id="Empty_username_password" lang="fr">Veuillez rentrer votre Podcast id et mot de passe.</message>
         <message id="Empty_username_password" lang="en">Please enter your Podcast id and password.</message>

@@ -14,21 +14,22 @@ echo           "******************************************" . PHP_EOL;
 
 $config = file_get_contents(__DIR__ ."/config_sample.inc");
 
-$value = read_line("Use given avinterface to detect sound level [default: '$vu_meter_avfoundation_index']: ");
-if ($value != "")
-    $vu_meter_avfoundation_index = $value;
-//else keep default
-
-$value = read_line("Use given avinterface to detect sound level [default: '$vu_meter_avfoundation_remote_username']: ");
+$value = read_line("Remote username (ssh) (leave empty if no remote) [default: '$vu_meter_avfoundation_remote_username']: ");
 if ($value != "")
     $vu_meter_avfoundation_remote_username = $value;
 //else keep default
 
-$value = read_line("Use given avinterface to detect sound level [default: '$vu_meter_avfoundation_remote_ip']: ");
+$value = read_line("Remote IP (ssh) (leave empty if no remote) [default: '$vu_meter_avfoundation_remote_ip']: ");
 if ($value != "")
     $vu_meter_avfoundation_remote_ip = $value;
 //else keep default
     
+echo "Use given avinterface to detect sound level. You can list them with 'ffmpeg -f avfoundation -list_devices true -i \"\"'";
+$value = read_line("[default: '$vu_meter_avfoundation_index']: ");
+if ($value != "")
+    $vu_meter_avfoundation_index = $value;
+//else keep default
+
 $config = preg_replace('/\$vu_meter_avfoundation_index = (.+);/', '\$vu_meter_avfoundation_index = "' . $vu_meter_avfoundation_index . '";', $config);
 $config = preg_replace('/\$vu_meter_avfoundation_remote_username = (.+);/', '\$vu_meter_avfoundation_remote_username = "' . $vu_meter_avfoundation_remote_username . '";', $config);
 $config = preg_replace('/\$vu_meter_avfoundation_remote_ip = (.+);/', '\$vu_meter_avfoundation_remote_ip = "' . $vu_meter_avfoundation_remote_ip . '";', $config);

@@ -3,7 +3,7 @@
 <div class="footer">
     <div class="footer_wrapper">
         <div class="logos"> 
-            <a href="http://podcast.ulb.ac.be"><img src="./images/Generale/logoPodcast.png"/></a>
+            <a href="http://ezcast.uclouvain.be"><img src="./images/Generale/logoezcast.png"/></a>
         </div>
         <ul>
             <li>
@@ -11,10 +11,18 @@
             </li>
             <li>
                 <div class="footertext">
-                    Copyright © 2017
+                    Copyright © <?php echo date('Y'); ?>
                 </div>
             </li>
         </ul>
     </div>
 </div>
+<script>
+$(document).ready(function () {
+    $( "#assistance_button" ).click(function() {
+      alert( "®support_phone_number®" );
+    });
+});
+</script>
+
 <!-- FOOTER - COPYRIGHT INFOS [END] -->

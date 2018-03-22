@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/global_config.inc';
 require_once __DIR__.'/lib_various.php';
+require_once __DIR__.'/lib_recording_session.php';
 
 class LoggerSyncDaemon {
     // Log sync with server interval, in seconds
@@ -31,9 +32,10 @@ class LoggerSyncDaemon {
     public function sync_logs() {
         global $logger;
         global $log_push_url;
+        global $database;
         
         $last_id_sent = 0;
-        $ok = $logger->get_last_log_sent($last_id_sent);
+        $ok = $database->get_last_log_sent($last_id_sent);
         if(!$ok) {
             $logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::ERROR, "Failed to get last log sent, cannot continue", array(basename(__FILE__)));
             return 1;
@@ -99,15 +101,20 @@ class LoggerSyncDaemon {
             if($this->is_running())
                 return;
         }
-        
         self::write_PID();
 
         global $logger;
+        global $disable_logs_sync;
 
         $process_start_time = time();
         $failure_in_a_row = 0;
         
         while (true) {
+            if($disable_logs_sync) {
+                echo "Log sync disabled" . PHP_EOL;
+                break;
+            }
+            
             $current_sync_start_time = time();
             
             //$logger->log(EventType::RECORDER_LOG_SYNC, LogLevel::DEBUG, "Syncing...", array(basename(__FILE__)));
@@ -133,8 +140,10 @@ class LoggerSyncDaemon {
             
             sleep($time_to_sleep);
             
-            if(($process_start_time + self::MAX_RUN_TIME) < time())
+            if(($process_start_time + self::MAX_RUN_TIME) < time()) {
+                echo "Max run time reached, stop here" . PHP_EOL;
                 exit(0); //max run time reached, stop here
+            }
         }
     }
 }

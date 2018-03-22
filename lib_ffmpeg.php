@@ -162,7 +162,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         // -i file : input is the list of files
         // -c copy : copy the existing codecs (no reencoding)
         $output_file = "$movies_path/$output";
-        $cmd = "$ffmpeg_cli_cmd -safe 0 -f -y concat -i $concat_file $output_file";
+		$cmd = "$ffmpeg_cli_cmd -safe 0 -f concat -y -i $concat_file $output_file";
         print $cmd . PHP_EOL;
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (2) with cmd: $cmd", array(__FUNCTION__));
         exec($cmd, $cmdoutput, $returncode);
@@ -244,7 +244,7 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
             break;
     }
     //when leaving this function, if $start_time is not equals to 0, we got an unfinished segment at the end
-    if($start_time != 0) {
+    if($startime != 0) {
         //add a segment to the end of the video
         $ffmpeg_params[] = array($startime - $init, 9999999999);
     }
@@ -295,6 +295,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         // sometimes, ffmpeg doesn't extract the recording segment properly
         // This results in a shortened segment which may cause problems in the final rendering 
         // We then loop on segment extraction to make sure it has the expected duration
+        // Expected duration will probably always fail if ffmpeg was restarted by monitoring
         $try_count = 3;
         while ($try < $try_count && abs($part_duration - $desired_part_duration) > 1) { //allow one second difference max
             // extracts the recording segment from the full recording
@@ -304,7 +305,8 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             // -y  : the segment is replaced if already existing
             $more_params = ($try >= 1) ? ' -probesize 1000000 -analyzeduration 1000000 ' : ''; // increase analyze duration
             $more_params .= ($try >= 2) ? ' -pix_fmt yuv420p ' : ''; // defines pixel format, which is often lacking
-            $cmd = "$ffmpeg_cli_cmd -i $movie_path/$movie_in -ss " . $part_start_second . " -t " . $desired_part_duration . $more_params . " -c copy -y $tmp_dir/part-$index.mov; wait";
+            $part_file = "$tmp_dir/part-$index.mov";
+            $cmd = "$ffmpeg_cli_cmd -ss " . $part_start_second . " -i $movie_path/$movie_in  -t " . $desired_part_duration . $more_params . " -c copy -y $part_file; wait";
             print "*************************************************************************" . PHP_EOL .
                     $cmd . PHP_EOL .
                     "*************************************************************************" . PHP_EOL;
@@ -315,7 +317,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             }
             
             // the segment has been extracted, we verify here its duration
-            $cmd = "$ffmpeg_cli_cmd -i $tmp_dir/part-$index.mov 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
+            $cmd = "$ffmpeg_cli_cmd -i $part_file 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
             $cmdoutput = system($cmd, $return_code); // duration in HH:MM:SS
             if($return_code != 0) {
                 return '3/' . $cmdoutput;
@@ -323,43 +325,54 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             
             list($hours, $minutes, $seconds) = sscanf($cmdoutput, "%d:%d:%d");
             $part_duration = $hours * 3600 + $minutes * 60 + $seconds; // duration in seconds
+            
+            if($try >= 1) {
+                $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration, array("movie_extract_cutlist"), $asset_name);
+            }
+            
             $try++;
-            print   "--------------------------------------------------------------------------"     . PHP_EOL .
-                    "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration . PHP_EOL .
-                    "--------------------------------------------------------------------------"     . PHP_EOL;
         }
         if($try == $try_count) {
-            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
+            $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Part creation failed after $try_count tries. Part duration didn't match expected duration. Let's try to continue anyway with our current result.", array("movie_extract_cutlist"), $asset_name);
         } else if ($try == 0) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::CRITICAL, "WHAT? We didn't even loop once, there is a logic error here.", array("movie_extract_cutlist"), $asset_name);
         }
     }
 
+    if(sizeof($ffmpeg_params) > 1)
+    {
     $join_file = "$tmp_dir/concat1.txt";
-    if(file_exists($join_file))
-        unlink($join_file); //cleanup before starting
-    // creates a temporary text file containing all video files to join
-    $cmd = "for f in $tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
-    $return_code = 0;
-    $cmdoutput = system($cmd, $return_code);
-    if($return_code != 0) {
-        return '5/' . $cmdoutput;
-    }
-    // uses the temporary text file to concatenate the video files
-    // -f concat : option for concatenation
-    // -i file : input is the list of files
-    // -c copy : copy the existing codecs (no reencoding)
-    $cmd = "$ffmpeg_cli_cmd -f concat -safe 0 -i $join_file -c copy -y $movie_path/$movie_out";
-    print $cmd . PHP_EOL;
-    $return_code = 0;
-    $cmdoutput = system($cmd, $return_code);
-    if($return_code != 0) {
-        return "6/ Command $cmd failed with output:" . $cmdoutput;
-    }
-    
-    // deletes the temporary text file
-    unlink($join_file);
+        if(file_exists($join_file))
+            unlink($join_file); //cleanup before starting
+        // creates a temporary text file containing all video files to join
+        $cmd = "for f in $tmp_dir/part*.mov; do echo \"file '\$f'\" >> $join_file; done";
+        $return_code = 0;
+        $cmdoutput = system($cmd, $return_code);
+        if($return_code != 0) {
+            return '5/' . $cmdoutput;
+        }
+        // uses the temporary text file to concatenate the video files
+        // -f concat : option for concatenation
+        // -i file : input is the list of files
+        // -c copy : copy the existing codecs (no reencoding)
+        $cmd = "$ffmpeg_cli_cmd -f concat -safe 0 -i $join_file -c copy -y $movie_path/$movie_out";
+        print $cmd . PHP_EOL;
+        $return_code = 0;
+        $cmdoutput = system($cmd, $return_code);
+        if($return_code != 0) {
+            return "6/ Command $cmd failed with output:" . $cmdoutput;
+        }
 
+        // deletes the temporary text file
+        unlink($join_file);
+    } else { //only one part, just move it
+        $ok = rename("$tmp_dir/part-0.mov", "$movie_path/$movie_out");
+        if(!$ok) {
+            return "7/ Failed to move part-0.mov to $movie_path/$movie_out";
+        }
+    }
+
+    //cleanup. Note that we don't do it if we failed previously, this is intentional.
     if ($tmp_dir != '')
         exec("rm -rf $tmp_dir", $cmdoutput, $errno);
     
@@ -402,4 +415,36 @@ function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume
         break;
     }
     return $found_mean && $found_max;
+}
+        
+/* Stop a process with PID from given file. Return success. Remove file on successfully stop.*/
+function stop_ffmpeg($pid_file) {
+    global $logger;
+    global $log_context;
+    
+    if(file_exists($pid_file)) {
+        $pid = file_get_contents($pid_file);
+        unlink($pid_file);
+        $return_val = 0;
+        system("kill -2 $pid", $return_val);
+        if($return_val != 0) {
+            $logger->log(EventType::RECORDER_SOUND_BACKUP, LogLevel::ERROR, 
+                    "Could not kill FFMPEG process (pid $pid)", array($log_context));
+            return false;
+        }
+        //wait until process closed, or $kill_timeout passed
+        $kill_timeout = 10;
+        $start = time();
+        while(true) {
+            $now = time();
+            if(($now - $kill_timeout) > $start) {
+                system("kill -9 $pid", $return_val);
+                break;
+            }
+            if(!is_process_running($pid))
+                break;
+        }
+        unlink($pid_file);
+    }
+    return true;
 }

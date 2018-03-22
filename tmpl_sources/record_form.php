@@ -18,7 +18,6 @@
         <script type="text/javascript" src="js/hover.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery.colorbox-min.js"></script>
-        <script type="text/javascript" src="js/footer.js"></script>
         <script type="text/javascript">
             var record_type = '';
 

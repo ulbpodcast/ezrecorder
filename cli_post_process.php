@@ -1,8 +1,9 @@
 <?php
 /*
- * This is a CLI script that launches the local processing of the recordings 
+ * This is a CLI script that launches the local processing of the recordings. 
  * By default, the data about the record to process is retrieved from the session module.
- * Alternatively, you can provide
+ * This STOPS the current recording !
+ * Alternatively, you can specify the asset:
  * Usage: cli_post_process.php [asset_name]
  * 
  */
@@ -12,10 +13,14 @@ $service = true;
 
 require_once 'global_config.inc';
 
-require_once $cam_lib;
+if($cam_enabled)
+    require_once $cam_lib;
 if($slide_enabled)
     require_once $slide_lib;
-require_once $session_lib;
+if($sound_backup_enabled)
+    require_once $sound_backup_lib;
+
+require_once __DIR__.'/lib_recording_session.php';
 require_once 'lib_error.php';
 require_once 'lib_various.php';
 require_once 'lib_model.php';
@@ -29,8 +34,8 @@ if(isset($argv[1]))
     $asset = $argv[1];
 } else {
     //get session metadata to find last course
-    $fct = "session_" . $session_module . "_metadata_get";
-    $meta_assoc = $fct();
+    
+    $meta_assoc = RecordingSession::metadata_get();
     if($meta_assoc == false) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Could not get session metadata file, cannot continue", array(basename(__FILE__)));
         exit(1);
@@ -87,10 +92,24 @@ if ($slide_enabled) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "Slide process was successfully started but did not provided a pid", array(basename(__FILE__)), $asset);
     }
     
+    /* Buggy check, fixme
     if(!is_process_running($slide_pid)) {
         $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "!! Slides processing ($slide_pid) NOT running at this point ", array(basename(__FILE__)), $asset);
     }
+     */
 }
+
+if($sound_backup_enabled) {
+    $fct = 'capture_' . $sound_backup_module . '_process';
+    $pid = 0;
+    $success = $fct($asset, $pid);
+    if(!$success) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::ERROR, "Failed to stop sound_backup", array(basename(__FILE__)), $asset);
+    } else if ($slide_pid == 0) {
+        $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "sound backup module was successfully stopped", array(basename(__FILE__)), $asset);
+    }
+}
+
 
 if(!$cam_pid && !$slide_pid) {
     $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::CRITICAL, "Both cam and slides post processing failed or disabled, stopping now.", array(basename(__FILE__)), $asset);

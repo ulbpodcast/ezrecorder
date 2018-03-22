@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__) . '/config_sample.inc';
+require_once __DIR__ . '/config_sample.inc';
 require_once(__DIR__."/../../lib_install.php");
 
 echo PHP_EOL . "***************************************" . PHP_EOL;
