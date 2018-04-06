@@ -121,6 +121,10 @@ $bash_file = str_replace("!AVFOUNDATION_AUDIO_INTERFACE", $avfoundation_audio_in
 $bash_file = str_replace("!DECKLINK_DEVICE", "\"$decklink_device\"", $bash_file);
 $bash_file = str_replace("!DECKLINK_FORMAT_INDEX", $decklink_format_index, $bash_file);
 $bash_file = str_replace("!DECKLINK_VOLUME", $decklink_volume, $bash_file);
+
+$bash_file = str_replace("!HIGH_URI", $ffmpeg_rtsp_media_high_uri, $bash_file);
+$bash_file = str_replace("!LOW_URI", $ffmpeg_rtsp_media_high_uri, $bash_file);
+
 file_put_contents("$remoteffmpeg_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remoteffmpeg_basedir/bash");
