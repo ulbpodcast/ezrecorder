@@ -84,9 +84,23 @@ switch($remoteffmpeg_input_source)
            $decklink_volume = $value;
         
         break;
+        case "rtsp":
+            $value = read_line("rtsp high stream uri [default: '$ffmpeg_rtsp_media_high_uri']:");
+            if ($value != "")
+               $ffmpeg_rtsp_media_high_uri = $value;
+           //else keep default
+
+            $value = read_line("rtsp low stream uri (used only with streaming) [default: '$ffmpeg_rtsp_media_low_uri']:");
+            if ($value != "")
+               $ffmpeg_rtsp_media_low_uri = $value;
+           //else keep default
+        break;
     default:
         break;
 }
+
+$config = preg_replace('/\$ffmpeg_rtsp_media_high_uri = (.+);/', '\$ffmpeg_rtsp_media_high_uri = "' . $ffmpeg_rtsp_media_high_uri . '";', $config);
+$config = preg_replace('/\$ffmpeg_rtsp_media_low_uri = (.+);/', '\$ffmpeg_rtsp_media_low_uri = "' . $ffmpeg_rtsp_media_low_uri . '";', $config);
 
 $config = preg_replace('/\$remoteffmpeg_input_source = (.+);/', '\$remoteffmpeg_input_source = "' . $remoteffmpeg_input_source . '";', $config);
 $config = preg_replace('/\$remoteffmpeg_recorddir = (.+);/', '\$remoteffmpeg_recorddir = "' . $remoteffmpeg_recorddir . '";', $config);
