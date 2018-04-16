@@ -1,0 +1,8 @@
+SHOW RTSP SOUND LEVEL
+---------------------
+In case of 2 rtsp stream, several manual setup are need to view sound level.
+Change in glogal_config.inc for $sound_detect_lib: sound_detect_av by sound_detect_rtsp
+Change in common_static.inc for $timeout_script: $basedir/timeout.sh by $basedir/timeout2.sh
+Run: sudo php customize.php in modules/sound_detect_rtsp
+Update template from the ezrecorder root directory: tmpl_install.sh 
+
