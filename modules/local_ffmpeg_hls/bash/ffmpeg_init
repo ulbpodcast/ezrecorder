@@ -202,6 +202,20 @@ do
         if [ $EXISTS_VIDEO -eq 0 ]
         then
             sleep 1
+        else
+          #first .ts file found. Lets see if we don't see those lethal DTS errors is logfile
+          grep 'non monotonous DTS' $HIGH_DIR/../ffmpeg.log
+          if [ $? -eq 0 ] 
+          then
+            # we have a DTS problem, so we need to restart ffmpeg
+            EXISTS_VIDEO=0
+            kill -HUP $FFMPEG_PID 
+            rm $TARGET_DIR/ffmpeg.log
+            rm  $HIGH_DIR/*.m3u8
+            rm  $HIGH_DIR/*.ts
+            rm  $LOW_DIR/*.m3u8
+            rm  $LOW_DIR/*.ts
+          fi
         fi
     done
 
