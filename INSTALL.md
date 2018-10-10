@@ -49,10 +49,11 @@ On EZrecorder, generate a SSH key and add the public key from EZmanager in the a
 ```
 cd
 # generate a key pair
-ssh-keygen –t dsa 
+ssh-keygen
 cd .ssh
 vi authorized_keys # may be authorized_keys2 
 # paste the EZmanager public key in authorized_keys
+# paste the ezrecorder public key (id_rsa.pub) in authorized_keys (if you have only one recorder for cam and slide)
 ```
 
 5. Edit "commons/config.inc" file of EZcast
@@ -92,11 +93,18 @@ Sudo launchctl load –w /System/Library/LaunchDaemons/org.apache.httpd.plist
 
 * Activate AT job
 
-Change <true/> tag at Disabled key
-
+Change <true/> tag at Disabled key in file /System/Library/LaunchDaemons/com.apple.atrun.plist
+    
 ```
 sudo launchctl load –w /System/Library/LaunchDaemons/com.apple.atrun.plist 
 ``` 
+**NOTE**  On High Sierra, OSX 10.13 this file is readonly. Copy it to /Library/LaunchDaemons/com.apple.atrunlocal.plist :
+```
+sudo sh -c "sed -e 's_atrun_atrun_local' /System/Library/LaunchDaemons/com.apple.atrun.plist > /Library/LaunchDaemons/com.apple.atrunlocal.plist"
+
+#Launch at daemon
+sudo launchctl load  /Library/LaunchDaemons/com.apple.atrunlocal.plist
+```
 
 * (MacOS Optional) Activate Internet Sharing
 
