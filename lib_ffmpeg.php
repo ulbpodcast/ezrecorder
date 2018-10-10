@@ -243,13 +243,23 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
         if ($action == 'stop') 
             break;
     }
-    //when leaving this function, if $start_time is not equals to 0, we got an unfinished segment at the end
+    //when leaving this function, if $start_time is not equal to 0, we got an unfinished segment at the end
     if($startime != 0) {
         //add a segment to the end of the video
         $ffmpeg_params[] = array($startime - $init, 9999999999);
     }
 }
-
+/**
+ * 
+ * @global string $ffmpeg_cli_cmd
+ * @global type $logger
+ * @param type $movie_path
+ * @param path $movie_in path to i
+ * @param type $cutlist_file
+ * @param type $movie_out
+ * @param type $asset_name
+ * @return string|int
+ */
 function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out = '', $asset_name = '') {
     global $ffmpeg_cli_cmd;
     global $logger;

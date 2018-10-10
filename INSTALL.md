@@ -48,10 +48,11 @@ On EZrecorder, generate a SSH key and add the public key from EZmanager in the a
 
 ```
 cd
-# generate a key pair
-ssh-keygen
+# generate a key pair for ssh access to 127.0.0.1
+ssh-keygen 
 cd .ssh
-vi authorized_keys # may be authorized_keys2 
+cat id_rsa.pub >> authorized_keys
+vi authorized_keys # may be authorized_keys2  on older MacOS X
 # paste the EZmanager public key in authorized_keys
 # paste the ezrecorder public key (id_rsa.pub) in authorized_keys (if you have only one recorder for cam and slide)
 ```
@@ -77,7 +78,7 @@ $recorder_recorddir = "~$recorder_user/";
 
 6. Configure the recorder
 
-* Activate Apache and load php5 module
+* Activate Apache and load php7 module
 
 ```
 sudo vi /etc/apache2/httpd.conf
@@ -98,14 +99,19 @@ Change <true/> tag at Disabled key in file /System/Library/LaunchDaemons/com.app
 ```
 sudo launchctl load –w /System/Library/LaunchDaemons/com.apple.atrun.plist 
 ``` 
-**NOTE**  On High Sierra, OSX 10.13 this file is readonly. Copy it to /Library/LaunchDaemons/com.apple.atrunlocal.plist :
+**NOTE** : Since  MacOS 10.12 High Sierra, the file is read-only (cannot be overriden) do this:
 ```
-sudo sh -c "sed -e 's_atrun_atrun_local' /System/Library/LaunchDaemons/com.apple.atrun.plist > /Library/LaunchDaemons/com.apple.atrunlocal.plist"
-
+sudo sh -c "sed -e 's_atrun_atrunlocal_g' /System/Library/LaunchDaemons/com.apple.atrun.plist >/Library/LaunchDaemons/com.apple.atrunlocal.plist"
 #Launch at daemon
 sudo launchctl load  /Library/LaunchDaemons/com.apple.atrunlocal.plist
-```
-
+``` 
+``` 
+# check AT works with typing:
+at now
+touch /tmp/at.test
+<ctrl>+D
+#wait up to a minute and /tmp/at.test file should appear
+``` 
 * (MacOS Optional) Activate Internet Sharing
 
 Depending on your needs, you may have to use Internet Sharing to provide an access to the recorder.

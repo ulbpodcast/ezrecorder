@@ -74,7 +74,7 @@ then
     echo "The script will now proceed to some verifications"
     echo " "
     echo "*************************************************"
-    echo "Checking for PHP5 ..."
+    echo "Checking for PHP ..."
     echo "*************************************************"
     cmd_path_find php /usr/bin/php
     default_path=$RES
@@ -92,8 +92,8 @@ then
     fi
     # Retry as long as PHP has not been found
     while [ $check -lt 1 ]; do
-        echo "If PHP5 is installed, please enter its path now (with tailing 'php')"
-        echo "otherwise, please enter 'exit' to quit this script and install PHP5"
+        echo "If PHP is installed, please enter its path now (with tailing 'php')"
+        echo "otherwise, please enter 'exit' to quit this script and install PHP"
         read php_path
         if [ "$php_path" == "exit" ]; then exit; fi
         if [ "$php_path" == "" ]
@@ -277,7 +277,7 @@ else
     #no tests, just install
     cmd_path_find php /usr/bin/php
     default_path=$RES
-    echo "Enter the path to PHP5 (with trailing 'php'):"
+    echo "Enter the path to PHP (with trailing 'php'):"
     read -p "[default: $default_path]" php_path
     if [ "$php_path" == "" ]; then 
         php_path=$default_path
@@ -301,6 +301,8 @@ echo ""
 echo "Creating the config file..."
 $php_path cli_install.php "$php_path" "$ffmpeg_path"
 
+
+q
 $(dirname $0)/setperms.sh
 
 echo -e "${G}Done${N}"
