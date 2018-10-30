@@ -198,7 +198,14 @@ do
     do 
         # if video didn't exist yet, checks if it exists now
         [ $EXISTS_VIDEO -eq 0 ] && test -e $HIGH_DIR/${COMMON_MOVIE_NAME}1.ts && EXISTS_VIDEO=1;
-        # if cam doesn't exist yet, wait 
+        
+        if [ -e $STREAMING_INFO ] && [ $EXISTS_VIDEO -eq 1 ]
+        then 
+            EXISTS_VIDEO=0;
+            [ $EXISTS_VIDEO -eq 0 ] && test -e $LOW_DIR/${COMMON_MOVIE_NAME}1.ts && EXISTS_VIDEO=1;
+        fi
+        
+        # if    if [ $EXISTS_VIDEO -eq 0 ]cam doesn't exist yet, wait 
         if [ $EXISTS_VIDEO -eq 0 ]
         then
             sleep 1
@@ -229,6 +236,10 @@ do
     else 
         echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log; 
         kill -9 `cat $FFMPEG_PID`
+        kill -9 `cat $FFMPEG_PID2`
+        rm $LOW_DIR/${COMMON_MOVIE_NAME}*.ts
+        rm $HIGH_DIR/${COMMON_MOVIE_NAME}*.ts
+
     fi;
 
     #increments CALLS
