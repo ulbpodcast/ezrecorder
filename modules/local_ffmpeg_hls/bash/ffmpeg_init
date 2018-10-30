@@ -33,6 +33,7 @@ fi
 
 #make sure last ffmpeg is dead
 kill -9 `cat $FFMPEG_PID`
+kill -9 `cat $FFMPEG_PID2`
 
 TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_0/
 HIGH_DIR=${TARGET_DIR}/high
