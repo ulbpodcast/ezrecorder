@@ -2,7 +2,7 @@
 
 /** All static variables of ezrecorder should go here
  *  This files is included AT HE BEGINNING of global_config.inc, values here can't depend on config
- * 
+ *
  *  */
 
 
@@ -19,6 +19,7 @@ $recorder_monitoring_pid = "$basedir/var/_timeout_monitoring_pid";
 $nopic_file = "$basedir/nopic.jpg";
 
 //portable script to emulate "timeout" behavior
+// for linux: timeout2.sh
 $timeout_script = "$basedir/timeout.sh";
 
 // cli script for  uploading to server

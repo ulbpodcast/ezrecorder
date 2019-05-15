@@ -143,6 +143,9 @@ function template_list_files($source_folder) {
  */
 function template_parse($file, $lang, $output_folder) {
     global $dictionnary_xml;
+    global $organization;
+    global $organisation_url;
+    global $organization_ezcast_url;
     //
     // 1) Sanity checks
     //
@@ -179,6 +182,16 @@ function template_parse($file, $lang, $output_folder) {
     //Begin and end of @string@ must be on the same line.
     //calls template_get_label for each match and replace keywork with translated value in the text
     $data = preg_replace_callback('!®(\S+)®!iU', create_function('$matches', 'return template_get_label($matches[1], \''.$lang.'\');'), $data);
+    
+    //customize fot organization
+    if (strcmp($organization,"Generale") !== 0){
+		$data = str_replace('Generale',$organization,$data);
+		$data = str_replace('http://www.ulb.ac.be',$organisation_url,$data);
+		$data = str_replace('http://podcast.ulb.ac.be',$organization_ezcast_url,$data);
+		$data = str_replace('logo-ulb.png','logo-'.$organization.'.png',$data);
+    }
+
+    
     
     //
     // 3) Saving the result

@@ -3,6 +3,7 @@
 #include localdefs
 source $(dirname $0)/localdefs
 
+
 ASSET=$1
 WORKING_DIR=$2
 CALLS=$3
@@ -38,6 +39,7 @@ mkdir -p -m777 $TARGET_DIR
 mkdir -p -m777 $HIGH_DIR
 mkdir -p -m777 $LOW_DIR
 
+
 if [ $FFMPEG_MONO -eq 1 ]
 then
     AC='-ac 1'
@@ -51,54 +53,130 @@ fi
 if [ ! -z ${H264_PRESET} ];
 then
     PRESET_STR="-preset ${H264_PRESET}"
+
+if [ "$(expr substr $(uname -s) 1 5)" = "Linux" -a "$INPUT_SOURCE" = "AV.io" ]
+then
+	date > ${TARGET_DIR}/modprobe.log
+	/usr/bin/sudo /sbin/modprobe -v -r uvcvideo 2>&1 >> ${TARGET_DIR}/modprobe.log
+	/usr/bin/sudo /sbin/modprobe -v uvcvideo 2>&1 >> ${TARGET_DIR}/modprobe.log
 fi
 
 # loop while delay hasn't expired and cam file doesn't exist
 while [ $CALLS -le $MAXCALLS -a \( $EXISTS_VIDEO -eq 0 \) ]
-do 
+do
     case "$INPUT_SOURCE" in
         "DeckLink" )
           DECKLINK_INPUT="${DECKLINK_DEVICE}@${DECKLINK_FORMAT_INDEX}"
           if [ $STREAMING == 'true' ]
-            then 
+            then
                 # streaming is enabled. We prepare low and high resolution
                 $FFMPEG_PATH -f decklink -i "${DECKLINK_INPUT}" -af "volume=${DECKLINK_VOLUME}" -vcodec libx264 -r 25 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
-            else 
+            else
                 # streaming is disabled. We prepare high resolution only
                 $FFMPEG_PATH -f decklink -i "${DECKLINK_INPUT}" -af "volume=${DECKLINK_VOLUME}" -vcodec libx264 -r 25 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
             fi ;;
         "avfoundation" )
             AV_INPUT=${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}
             if [ -e $STREAMING_INFO ]
-            then 
+            then
                 # streaming is enabled. We prepare low and high resolution
                 $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i "$AV_INPUT" -vcodec libx264 -r 25 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-            else 
+            else
                 # streaming is disabled. We prepare high resolution only
                 $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i "$AV_INPUT" -vcodec libx264 -r 25 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-            fi ;;   
+            fi ;;
         "AV.io" )
             AV_INPUT=${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}
-            if [ -e $STREAMING_INFO ]
-            then 
-                # streaming is enabled. We prepare low and high resolution
-                $FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
-                -i "$AV_INPUT" -vcodec libx264 -r 15 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k \
-                -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-                -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
-                -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k \
-                -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-                -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
-                -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-            else 
-                # streaming is disabled. We prepare high resolution only
-                $FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 \
-                -i "$AV_INPUT" -vcodec libx264 $PRESET_STR $PROFILE_STR -acodec aac $AC \
-                -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-                -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
-                -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-                 
+            if [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]
+            then
+				AV_INPUT="/dev/video0"
+				if [ -e $STREAMING_INFO ]
+				then
+					# streaming is enabled. We prepare low and high resolution
+					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 \
+					-i $ALSA_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
+					-bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
+					-vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
+					-pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				else
+					# streaming is disabled. We prepare high resolution only
+					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 \
+					-i $ALSA_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
+					-pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				fi
+			else
+				if [ -e $STREAMING_INFO ]
+				then
+					# streaming is enabled. We prepare low and high resolution
+					$FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
+					-i $AV_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
+					-bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
+					-vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
+					-pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				else
+					# streaming is disabled. We prepare high resolution only
+					$FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 \
+					-i $AV_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
+					-pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				fi
             fi ;;
+        "rtsp" )
+            if [ -z $FFMPEG_RTSP_MEDIA_HIGH_URI ]
+            then
+                echo "ffmpeg_init: FFMPEG_RTSP_MEDIA_HIGH_URI is not defined, cannot continue" >> $TARGET_DIR/_log
+                exit 1
+            fi
+
+            if [ -e $STREAMING_INFO ]
+            then
+                # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
+                if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
+                then
+                    $FFMPEG_PATH -t $LIMIT_DURATION -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                        -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
+                        -hls_list_size 0 -hls_wrap 0 -start_number 1 \
+                        $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 \
+                        -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
+                        -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" \
+                        -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 \
+                        $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 \
+                        -y -updatefirst 1 $THUMBNAIL_PATH \
+                        >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                else
+                    # High
+                    $FFMPEG_PATH -t $LIMIT_DURATION -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                    -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
+                    -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
+                    >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+                    # Low, thumbnails are created from this one
+                    $FFMPEG_PATH -t $LIMIT_DURATION -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                    -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
+                    -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 \
+                    -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH \
+                    >/dev/null 2> $TARGET_DIR/ffmpeg2.log & echo $! > $FFMPEG_PID2
+                fi
+            else
+                # streaming is disabled. We prepare high resolution only
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
+                -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec libfdk_aac $AC -hls_time 3 \
+                -hls_list_size 0 -hls_wrap 0 -start_number 1 \
+                $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 \
+                -y -updatefirst 1 $THUMBNAIL_PATH \
+                >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+            fi
+        ;;
          *)
             #no valid input source specified
             exit 1
@@ -128,10 +206,10 @@ do
 
     # loop while delay hasn't expired and cam file doesn't exist
     while [ $(( `date +"%s"`- $SDAT )) -le $WAITING_DELAY -a \( $EXISTS_VIDEO -eq 0 \) ]
-    do 
+    do
             # if video didn't exist yet, checks if it exists now
             [ $EXISTS_VIDEO -eq 0 ] && test -e $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 && EXISTS_VIDEO=1;
-            # if cam doesn't exist yet, wait 
+            # if cam doesn't exist yet, wait
             if [ $EXISTS_VIDEO -eq 0 ]
             then
                     sleep 1
@@ -139,15 +217,15 @@ do
     done
 
 
-    # add entry in log file 
+    # add entry in log file
     [ $CALLS -eq 1 ] && echo "********************************************" >> $TARGET_DIR/_check_log
     [ $CALLS -gt 1 ] && echo "--------------------------------------------" >> $TARGET_DIR/_check_log
     echo `date +"%d/%m/%y - %Hh%Mm%Ss"` : Attempt $CALLS >> $TARGET_DIR/_check_log
     echo "--------------------------------------------" >> $TARGET_DIR/_check_log
-    if [ $EXISTS_VIDEO -eq 1 ]; then 
-        echo "CAM (EZrecorder)   : Success" >> $TARGET_DIR/_check_log; 
-    else 
-        echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log; 
+    if [ $EXISTS_VIDEO -eq 1 ]; then
+        echo "CAM (EZrecorder)   : Success" >> $TARGET_DIR/_check_log;
+    else
+        echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log;
         kill -9 `cat $FFMPEG_PID`
     fi;
 
@@ -158,7 +236,7 @@ done
 
 # the file has not been found
 if [ $EXISTS_VIDEO -eq 0 ]
-then 
+then
     echo "FAILURE REMOTE FFMPEG"
     echo "FFMPEG Launch Failure in $CLASSROOM" | mail -s "FFMPEG Failure $CLASSROOM" $MAIL_TO
     echo -n "launch_failure" > $STATUS_FILE
@@ -167,14 +245,14 @@ else # currently recording
     #saves current date as recording init
     echo init:`date +%s`:`date +"%Y_%m_%d_%Hh%M"` > ${WORKING_DIR}/_cut_list.txt
     echo -n "open" > $STATUS_FILE
-    
+
     if [ $STREAMING == 'true' ]
     then
         # initialisation of the streaming
         $PHP_PATH $CLI_STREAMING "init"
     fi
 
-    #start monitoring 
+    #start monitoring
     echo "$PHP_PATH $EZCASTDIR/cli_monitoring.php $ASSET > ${WORKING_DIR}/monit.txt" | at now
     exit 0
 fi

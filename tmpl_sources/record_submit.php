@@ -17,7 +17,7 @@
         <title>®Page_title®</title>
         <link rel="shortcut icon" type="image/ico" href="images/Generale/favicon.ico" />
         <link rel="apple-touch-icon" href="images/ipadIcon.png" /> 
-        <link rel="stylesheet" type="text/css" href="css/Style_recorder.css"/>
+        <link rel="stylesheet" type="text/css" href="css/style_recorder.css"/>
         <script type="text/javascript" src="js/hover.js"></script>
         <script type="text/javascript" src="js/httpRequest.js"></script>
         <script type="text/javascript" src="js/jQuery/jquery-1.12.0.min.js"></script>
