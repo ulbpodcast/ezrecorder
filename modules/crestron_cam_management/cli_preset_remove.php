@@ -8,4 +8,4 @@ if($argc != 2) {
 
 $presetInfo = $argv[1];
 
-cam_lumens_pos_delete($presetInfo);
+cam_crestron_ptz_pos_delete($presetInfo);

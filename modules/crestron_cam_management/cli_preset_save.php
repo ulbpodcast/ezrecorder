@@ -9,4 +9,4 @@ if($argc != 3) {
 
 $presetInfo = $argv[1];
 $presetName = $argv[2];
-cam_lumens_set_presets($presetInfo,$presetName);
+cam_crestron_ptz_set_presets($presetInfo,$presetName);

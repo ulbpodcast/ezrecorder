@@ -1,22 +1,22 @@
 <?php
     include "config.inc";
-    include "lumens.php";
+    include "crestron.php";
 
     $PRESET_FILE = __DIR__ . '/var/presets';
 
-    function cam_lumens_posnames_get() {
-        $presets = cam_lumens_get_presets();
+    function cam_crestron_ptz_posnames_get() {
+        $presets = cam_crestron_ptz_get_presets();
         if($presets)
             return json_decode($presets,true);
         else
             return array();
     }
 
-    function cam_lumens_move($name) {
+    function cam_crestron_ptz_move($name) {
         global $cam_ip;
         global $cam_port;
     
-        $presets = cam_lumens_posnames_get();
+        $presets = cam_crestron_ptz_posnames_get();
         if(!$presets)
             return false;
 
@@ -24,11 +24,11 @@
         if($position === false)
             return false;
         
-        $lumens = new Lumens_management($cam_ip,$cam_port);
-        $lumens->move($position);
+        $crestron = new Crestron_management($cam_ip,$cam_port);
+        $crestron->move($position);
     }
 
-    function cam_lumens_get_presets() {
+    function cam_crestron_ptz_get_presets() {
         global $PRESET_FILE;
 
         if(file_exists($PRESET_FILE)) {
@@ -38,10 +38,10 @@
         return false;
     }
 
-    function cam_lumens_set_presets($presetInfo,$presetName){
+    function cam_crestron_ptz_set_presets($presetInfo,$presetName){
         global $PRESET_FILE;
         
-        $json = cam_lumens_get_presets();
+        $json = cam_crestron_ptz_get_presets();
         $json = json_decode($json, true);
         $json[$presetInfo] = $presetName;
         $json = json_encode($json, true);
@@ -50,10 +50,10 @@
         
     }
 
-    function cam_lumens_pos_delete($name){
+    function cam_crestron_ptz_pos_delete($name){
         global $PRESET_FILE;
         
-        $json = cam_lumens_get_presets();
+        $json = cam_crestron_ptz_get_presets();
         $json = json_decode($json, true);
         unset($json[$name]);
         $json = json_encode($json, true);

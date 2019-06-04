@@ -1,6 +1,6 @@
 <?php
 
-    class Lumens_management{
+    class Crestron_management{
         private $url;
         private $socket;
         function __construct($cam_ip,$cam_port){
