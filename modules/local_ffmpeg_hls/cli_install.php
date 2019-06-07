@@ -106,7 +106,11 @@ $config = preg_replace('/\$h264_preset = (.+);/', '\$h264_preset = "' . $h264_pr
 
 file_put_contents("$ffmpeg_basedir/etc/config.inc", $config);
 
-$perms_file = file_get_contents("$ffmpeg_basedir/setperms_sample.sh");
+if (strtoupper(php_uname('s'))==='LINUX'){
+	$perms_file = file_get_contents("$ffmpeg_basedir/setperms_samplinux.sh");
+}else{
+	$perms_file = file_get_contents("$ffmpeg_basedir/setperms_sample.sh");
+}
 $perms_file = str_replace("!USER", $ezrecorder_username, $perms_file);
 $perms_file = str_replace("!WEB_USER", $ezrecorder_web_user, $perms_file);
 file_put_contents("$ffmpeg_basedir/setperms.sh", $perms_file);

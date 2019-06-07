@@ -4,6 +4,7 @@
     <div class="footer_wrapper">
         <div class="logos"> 
             <a href="http://ezcast.uclouvain.be"><img src="./images/Generale/logoezcast.png"/></a>
+
         </div>
         <ul>
             <li>

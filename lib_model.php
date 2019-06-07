@@ -373,6 +373,7 @@ function controller_stop_and_publish() {
     $moderation = 'false';
     if (isset($input['moderation']) && $input['moderation'] == 'true')
         $moderation = 'true';
+
     
     $ok = try_stopping();
     // releases the recording session. Someone else can now record
@@ -436,7 +437,7 @@ function controller_recording_cancel() {
     RecordingSession::unlock();
 
     status_set('');
-
+    
     // Displaying a confirmation message
     require_once template_getpath('div_record_cancelled.php');
 }
@@ -466,7 +467,8 @@ function cancel_current_record($asset, $reset_cam_position = true) {
     if($reset_cam_position) {
         reset_cam_position();
     }
-        
+    //moving asset to trash. Don't forget to clean-up trash folder regularly!
+    move_asset($asset, 'trash',true);
     return $res_cam && $res_slide;
 }
 
@@ -1068,7 +1070,11 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
             chmod($asset_dir, 0777);
             //set default permissions for this dir
             $return_val = 0;
-            system("chmod +a \"group:everyone allow list,add_file,search,add_subdirectory,delete_child,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit\" $asset_dir", $return_val);
+			if (strtoupper(php_uname('s'))==='LINUX'){
+				system("chmod a=rwx  $asset_dir", $return_val);
+			}else{
+				system("chmod +a \"group:everyone allow list,add_file,search,add_subdirectory,delete_child,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit\" $asset_dir", $return_val);
+			}
             if($return_val != 0) {
                 $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to set folder permissions for $asset_dir", array(__FUNCTION__), $asset);
             }

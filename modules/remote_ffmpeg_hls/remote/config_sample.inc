@@ -4,6 +4,11 @@ $remoteffmpeg_recorddir = '~/Movies/';
 
 $remoteffmpeg_input_source = "AV.io"; //see $remoteffmpeg_input_source_list for valid sources
 
+// -- If source is "rtsp"
+$ffmpeg_rtsp_media_high_uri = "rtsp://xxx.xxx.xxx.xxx:xxx/xx";
+$ffmpeg_rtsp_media_low_uri = "rtsp://xxx.xxx.xxx.xxx:xxx/yy";
+// --
+
 // -- If source is "avfoundation" or "AV.io"
 //avfoundations input indexes. You can list them with:   ffmpeg -f avfoundation -list_devices true -i ""
 //TODO: the next two must be changed in localdefs for now, or just rerun the cli_install.php to do it

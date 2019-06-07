@@ -229,6 +229,8 @@ function get_asset_dir($asset, $step = '') {
             return get_upload_to_server_dir($asset);
         case "local_processing":
             return get_local_processing_dir($asset);
+        case "trash":
+            return get_trash_dir($asset);    
         case '':
             $dir = get_upload_to_server_dir($asset);
             if(!file_exists($dir))
@@ -255,6 +257,13 @@ function get_local_processing_dir($asset = '') {
     global $ezrecorder_recorddir;
 
     return $ezrecorder_recorddir . '/local_processing/' . $asset . '/';
+}
+
+
+function get_trash_dir($asset = '') {
+    global $ezrecorder_recorddir;
+
+    return $ezrecorder_recorddir . '/trash/' . $asset . '/';
 }
 
 function get_upload_to_server_dir($asset = '') {
@@ -434,7 +443,7 @@ function move_asset($asset, $target, $move_on_remote = false) {
     global $logger;
     global $remote_recorder_ip;
     
-    $valid_targets = array("local_processing", "upload_to_server", "upload_ok");
+    $valid_targets = array("local_processing", "upload_to_server", "upload_ok","trash");
     if(!in_array($target, $valid_targets)) {
         $logger->log(EventType::TEST, LogLevel::ERROR, 'Invalid target folder give', array(__FUNCTION__), $asset);
         return false;

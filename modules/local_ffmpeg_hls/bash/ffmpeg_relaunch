@@ -19,10 +19,33 @@ mkdir -p -m777 $TARGET_DIR
 mkdir -p -m777 $HIGH_DIR
 mkdir -p -m777 $LOW_DIR
 
+if [ "$(expr substr $(uname -s) 1 5)" = "Linux" -a "$INPUT" = "AV.io" ]
+then
+	date > ${TARGET_DIR}/modprobe.log
+	/usr/bin/sudo /sbin/modprobe -v -r uvcvideo 2>&1 >> ${TARGET_DIR}/modprobe.log
+	/usr/bin/sudo /sbin/modprobe -v uvcvideo 2>&1 >> ${TARGET_DIR}/modprobe.log
+fi
+
+
 if [ -e $STREAMING_INFO ]
-then 
+then
     source $STREAMING_INFO
-fi 
+fi
+
+if [ $FFMPEG_MONO -eq 1 ]
+then
+    AC='-ac 1'
+fi
+
+if [ ! -z ${H264_PROFILE} ];
+then
+    PROFILE_STR="-profile:v ${H264_PROFILE}"
+fi
+
+if [ ! -z ${H264_PRESET} ];
+then
+    PRESET_STR="-preset ${H264_PRESET}"
+fi
 
 if [ $FFMPEG_MONO -eq 1 ]
 then
@@ -50,37 +73,63 @@ case "$INPUT" in
             # streaming is disabled. We prepare high resolution only
             $FFMPEG_PATH -f decklink -i "${DECKLINK_INPUT}" -vcodec libx264 -r 25 -crf 18 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
         fi ;; 
+
     "avfoundation" )
         AV_INPUT=\'${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}\'
         if [ -e $STREAMING_INFO ]
-        then 
+        then
             # streaming is enabled. We prepare low and high resolution
             $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i "$AV_INPUT" -vcodec libx264 -r 25 -crf 18 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
-        else 
+
+        else
             # streaming is disabled. We prepare high resolution only
-            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i "$AV_INPUT" -vcodec libx264 -r 25 -crf 18 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
-        fi ;;   
+            $FFMPEG_PATH -f avfoundation  -vcodec rawvideo -pixel_format yuyv422 -r '25' -i "$AV_INPUT" -vcodec libx264 -r 25 -crf 18 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number $CURRENT_INDEX $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
+        fi ;;
     "AV.io" )
-        AV_INPUT=${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}
-        if [ -e $STREAMING_INFO ]
-        then 
-            # streaming is enabled. We prepare low and high resolution
-            $FFMPEG_PATH -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
-            -i "$AV_INPUT" -vcodec libx264 -r 15 $PRESET_STR $PROFILE_STR -acodec aac $AC -maxrate 1000k \
-            -bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-            -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
-            -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k \
-            -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-            -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
-            -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-        else 
-            # streaming is disabled. We prepare high resolution only
-            $FFMPEG_PATH -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 \
-            -i "$AV_INPUT" -vcodec libx264 $PRESET_STR $PROFILE_STR -acodec aac $AC \
-            -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
-            -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
-            -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-        fi ;;               
+            AV_INPUT=${AVFOUNDATION_VIDEO_INTERFACE}:${AVFOUNDATION_AUDIO_INTERFACE}
+            if [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]
+            then
+				AV_INPUT="/dev/video0"
+				if [ -e $STREAMING_INFO ]
+				then
+					# streaming is enabled. We prepare low and high resolution
+					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 -i $ALSA_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
+					-bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
+					-vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
+					-pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				else
+					# streaming is disabled. We prepare high resolution only
+					$FFMPEG_PATH -t $LIMIT_DURATION -f video4linux2 -thread_queue_size 5120 -pixel_format yuyv422 -s 1280x720 -framerate 15 \
+					-i $AV_INPUT -f alsa -ac 1 -thread_queue_size 5120 -i $ALSA_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
+					-pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				fi
+			else
+				if [ -e $STREAMING_INFO ]
+				then
+					# streaming is enabled. We prepare low and high resolution
+					$FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 -vcodec rawvideo  \
+					-i $AV_INPUT -vcodec libx264 -r 15 -profile:v main -acodec libfdk_aac $AC -maxrate 1000k \
+					-bufsize 1835k -pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
+					-vcodec libx264 -r 10 -crf 18 -acodec libfdk_aac -profile:v baseline -maxrate 256k -bufsize 480k \
+					-pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				else
+					# streaming is disabled. We prepare high resolution only
+					$FFMPEG_PATH -t $LIMIT_DURATION -f avfoundation -pixel_format yuyv422 -s 1280x720 -framerate 15 \
+					-i $AV_INPUT -vcodec libx264 -profile:v main -acodec libfdk_aac $AC \
+					-pix_fmt yuv420p -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header \
+					-hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf fps=1 -y \
+					-updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+				fi
+            fi ;;
     "rtsp" )
         if [ -z $FFMPEG_RTSP_MEDIA_HIGH_URI ]
         then
@@ -89,26 +138,25 @@ case "$INPUT" in
         fi
 
         if [ -e $STREAMING_INFO ]
-        then 
+        then
             # streaming is enabled. If a low media is defined, copy it from camera stream, else re encode it ourselves
             # low probsize allow for faster stream start
             if [ -z $FFMPEG_RTSP_MEDIA_LOW_URI ]
             then
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec copy $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
+
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vcodec libx264 -r 10 -crf 18 -acodec aac $PRESET_STR $PROFILE_STR -maxrate 256k -bufsize 480k -pix_fmt yuv420p -b:v 128k -b:a 96k $AC -force_key_frames "expr:gte(t,n_forced*3)" -flags -global_header -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
             else
                 # High
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -map 0:0 -map 0:1 -vcodec copy -acodec aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
-
-                sleep 1 
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
                 # Low, thumbnails are created from this one
-                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_LOW_URI -map 0:0 -map 0:1 -vcodec copy -acodec copy $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -updatefirst 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID2
+                $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 -i $FFMPEG_RTSP_MEDIA_LOW_URI -vcodec copy -acodec aac $AC -hls_time 3 -hls_list_size 0 -hls_wrap 0 -start_number 1 $LOW_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 -y -update 1 $THUMBNAIL_PATH </dev/null >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID2
             fi
-        else 
+        else
             $FFMPEG_PATH -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
-            -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec copy $AC -hls_time 3 \
+            -i $FFMPEG_RTSP_MEDIA_HIGH_URI -vcodec copy -acodec aac $AC -hls_time 3 \
             -hls_list_size 0 -hls_wrap 0 -start_number 1 \
             $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 -vf scale=235:157,fps=1 \
-            -y -updatefirst 1 $THUMBNAIL_PATH \
+            -y -update 1 $THUMBNAIL_PATH \
             >/dev/null 2> $TARGET_DIR/ffmpeg_${CALLS}.log & echo $! > $FFMPEG_PID
         fi 
         ;;
@@ -129,4 +177,3 @@ case "$INPUT" in
         # -hls_wrap = number of segments before overwritting
         # -start_number = first segment starts at ...
 esac
-

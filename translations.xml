@@ -114,6 +114,7 @@
         <label id="offline_from_podc" lang="en">Warning: This action could not be executed.\n\n Verify that you are still connected to PODC and refresh the page in your web browser (ctrl+R / cmd+R) before retrying.</label>
         <label id="support_phone_number" lang="fr">UCLPodcast: podcast@uclouvain.be</label>
         <label id="support_phone_number" lang="en">UCLPodcast: podcast@uclouvain.be</label>
+
     </labels>
         
     <messages>

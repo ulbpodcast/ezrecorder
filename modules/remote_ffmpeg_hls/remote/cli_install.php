@@ -97,9 +97,23 @@ switch($remoteffmpeg_input_source)
            $decklink_volume = $value;
         
         break;
+        case "rtsp":
+            $value = read_line("rtsp high stream uri [default: '$ffmpeg_rtsp_media_high_uri']:");
+            if ($value != "")
+               $ffmpeg_rtsp_media_high_uri = $value;
+           //else keep default
+
+            $value = read_line("rtsp low stream uri (used only with streaming) [default: '$ffmpeg_rtsp_media_low_uri']:");
+            if ($value != "")
+               $ffmpeg_rtsp_media_low_uri = $value;
+           //else keep default
+        break;
     default:
         break;
 }
+
+$config = preg_replace('/\$ffmpeg_rtsp_media_high_uri = (.+);/', '\$ffmpeg_rtsp_media_high_uri = "' . $ffmpeg_rtsp_media_high_uri . '";', $config);
+$config = preg_replace('/\$ffmpeg_rtsp_media_low_uri = (.+);/', '\$ffmpeg_rtsp_media_low_uri = "' . $ffmpeg_rtsp_media_low_uri . '";', $config);
 
 $config = preg_replace('/\$remoteffmpeg_input_source = (.+);/', '\$remoteffmpeg_input_source = "' . $remoteffmpeg_input_source . '";', $config);
 $config = preg_replace('/\$remoteffmpeg_recorddir = (.+);/', '\$remoteffmpeg_recorddir = "' . $remoteffmpeg_recorddir . '";', $config);
@@ -122,6 +136,10 @@ $bash_file = str_replace("!AVFOUNDATION_AUDIO_INTERFACE", $avfoundation_audio_in
 $bash_file = str_replace("!DECKLINK_DEVICE", "\"$decklink_device\"", $bash_file);
 $bash_file = str_replace("!DECKLINK_FORMAT_INDEX", $decklink_format_index, $bash_file);
 $bash_file = str_replace("!DECKLINK_VOLUME", $decklink_volume, $bash_file);
+
+$bash_file = str_replace("!HIGH_URI", $ffmpeg_rtsp_media_high_uri, $bash_file);
+$bash_file = str_replace("!LOW_URI", $ffmpeg_rtsp_media_high_uri, $bash_file);
+
 file_put_contents("$remoteffmpeg_basedir/bash/localdefs", $bash_file);
 
 system("chmod -R 755 $remoteffmpeg_basedir/bash");
