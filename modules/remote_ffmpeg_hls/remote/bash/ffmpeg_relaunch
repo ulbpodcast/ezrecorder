@@ -18,21 +18,6 @@ mkdir -p -m777 $TARGET_DIR
 mkdir -p -m777 $HIGH_DIR
 mkdir -p -m777 $LOW_DIR
 
-if [ $FFMPEG_MONO -eq 1 ]
-then
-    AC='-ac 1'
-fi
-
-if [ ! -z ${H264_PROFILE} ];
-then
-    PROFILE_STR="-profile:v ${H264_PROFILE}"
-fi
-
-if [ ! -z ${H264_PRESET} ];
-then
-    PRESET_STR="-preset ${H264_PRESET}"
-fi
-
 
 if [ "$(expr substr $(uname -s) 1 5)" = "Linux" -a "$INPUT_SOURCE" = "AV.io" ]
 then

@@ -30,6 +30,8 @@ fi
 
 #make sure last ffmpeg is dead
 kill -9 `cat $FFMPEG_PID`
+kill -9 `cat $FFMPEG_PID2`
+
 
 TARGET_DIR=${WORKING_DIR}/${COMMON_MOVIE_NAME}_0/
 HIGH_DIR=${TARGET_DIR}/high
@@ -251,6 +253,9 @@ fi
     else
         echo "CAM (EZrecorder)   : Failure" >> $TARGET_DIR/_check_log;
         kill -9 `cat $FFMPEG_PID`
+        kill -9 `cat $FFMPEG_PID2`
+        rm $LOW_DIR/${COMMON_MOVIE_NAME}*.ts
+        rm $HIGH_DIR/${COMMON_MOVIE_NAME}*.ts
     fi;
 
     #increments CALLS

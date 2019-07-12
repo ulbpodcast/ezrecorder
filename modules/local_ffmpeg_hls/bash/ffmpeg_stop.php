@@ -42,3 +42,37 @@ if($return_val != 0) {
 }
 
 exit(0);
+
+// ######################################################
+// ######################################################
+// ######################################################
+
+function stop_ffmpeg($pid_file) {
+    global $logger;
+    global $log_context;
+    
+    if(file_exists($pid_file)) {
+        $pid = file_get_contents($pid_file);
+        unlink($pid_file);
+        $return_val = 0;
+        system("kill -2 $pid", $return_val);
+        if($return_val != 0) {
+            $logger->log(EventType::RECORDER_FFMPEG_STOP, LogLevel::ERROR, 
+                    "Could not kill FFMPEG process (pid $pid)", array($log_context));
+            return false;
+        }
+        //wait until process closed, or $kill_timeout passed
+        $kill_timeout = 10;
+        $start = time();
+        while(true) {
+            $now = time();
+            if(($now - $kill_timeout) > $start) {
+                system("kill -9 $pid", $return_val);
+                break;
+            }
+            if(!is_process_running($pid))
+                break;
+        }
+    }
+    return true;
+}

@@ -291,13 +291,13 @@
         if(sound_info_available()) { ?>
         setInterval(function() {
             update_sound_status();
-        }, 3000);
+        }, 1500);
         <?php } ?>
 
         
         setInterval(function() {
             refresh_all_previews();
-        }, 3000);
+        }, 2000);
  
         //also fetch first images immediately
         refresh_all_previews();

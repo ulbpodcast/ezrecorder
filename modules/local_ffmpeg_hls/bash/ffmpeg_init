@@ -44,27 +44,6 @@ mkdir -p -m777 $HIGH_DIR
 mkdir -p -m777 $LOW_DIR
 
 
-if [ $FFMPEG_MONO -eq 1 ]
-then
-    AC='-ac 1'
-fi
-
-if [ ! -z ${H264_PROFILE} ];
-then
-    PROFILE_STR="-profile:v ${H264_PROFILE}"
-fi
-
-if [ ! -z ${H264_PRESET} ];
-then
-    PRESET_STR="-preset ${H264_PRESET}"
-fi
-
-if [ -e $STREAMING_INFO ]
-
-then
-    source $STREAMING_INFO
-fi
-
 if [ "$(expr substr $(uname -s) 1 5)" = "Linux" -a "$INPUT" = "AV.io" ]
 then
 	date > ${TARGET_DIR}/modprobe.log
@@ -219,7 +198,6 @@ do
                     # High
                     $FFMPEG_PATH -t $LIMIT_DURATION -f rtsp -rtsp_transport tcp -thread_queue_size 127 \
                     -i $FFMPEG_RTSP_MEDIA_HIGH_URI -map 0:0 -map 0:1  -vcodec copy -acodec aac $AC -hls_time 3 \
-
                     -hls_list_size 0 -hls_wrap 0 -start_number 1 $HIGH_DIR/$COMMON_MOVIE_NAME.m3u8 \
                     >/dev/null 2> $TARGET_DIR/ffmpeg.log & echo $! > $FFMPEG_PID
 
