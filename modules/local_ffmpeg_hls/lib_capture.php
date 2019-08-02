@@ -84,7 +84,7 @@ function init_streaming($asset, &$meta_assoc) {
     if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
       file_put_contents('/home/arwillame/test/txt4.txt',"$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high &> $working_dir/stream_send_high.log &".PHP_EOL,FILE_APPEND);
 
-        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high &", $return_val_high);
+        system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high &> $working_dir/stream_send_high.log &", $return_val_high);
         file_put_contents('/home/arwillame/test/txt4.txt',$return_val_high.PHP_EOL,FILE_APPEND);
 
     }
