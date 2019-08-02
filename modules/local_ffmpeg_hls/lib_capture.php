@@ -29,20 +29,30 @@ function init_streaming($asset, &$meta_assoc) {
     global $ffmpeg_streaming_info;
     global $ffmpeg_module_name;
 
+    file_put_contents('/home/arwillame/test/txt4.txt','YEAH'.PHP_EOL,FILE_APPEND);
+
     if (file_exists($ffmpeg_streaming_info))
         unlink($ffmpeg_streaming_info);
 
+        file_put_contents('/home/arwillame/test/txt4.txt','1'.PHP_EOL,FILE_APPEND);
+
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
+    file_put_contents('/home/arwillame/test/txt4.txt','2'.PHP_EOL,FILE_APPEND);
 
     //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
     $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
+    file_put_contents('/home/arwillame/test/txt4.txt','3'.PHP_EOL,FILE_APPEND);
+
     if ($streaming_info !== false) {
+      file_put_contents('/home/arwillame/test/txt4.txt','4'.PHP_EOL,FILE_APPEND);
+
         // defines that the streaming is enabled
         // It must be done before calling $ffmpeg_script_init (for preparing low and high HLS streams)
         file_put_contents($ffmpeg_streaming_info, var_export($streaming_info, true));
     } else {
         return true;
     }
+    file_put_contents('/home/arwillame/test/txt4.txt','5'.PHP_EOL,FILE_APPEND);
 
     // streaming is enabled, we send a request to EZmanager to
     // init the streamed asset
@@ -52,13 +62,17 @@ function init_streaming($asset, &$meta_assoc) {
     $post_array['action'] = 'streaming_init';
     $result = server_request_send($ezcast_submit_url, $post_array);
     $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, "Sent request for streaming with data " . print_r($post_array, true), array(__FUNCTION__), $asset);
+    file_put_contents('/home/arwillame/test/txt4.txt','6'.PHP_EOL,FILE_APPEND);
 
     if (strpos($result, 'Curl error') !== false) {
+      file_put_contents('/home/arwillame/test/txt4.txt','7'.PHP_EOL,FILE_APPEND);
+
         // an error occured with CURL
         $meta_assoc['streaming'] = 'false';
         unlink($ffmpeg_streaming_info);
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Curl failed to send request to server. Request: ". print_r($post_array, true) .". Result: $result", array(__FUNCTION__), $asset);
     }
+    file_put_contents('/home/arwillame/test/txt4.txt','8'.PHP_EOL,FILE_APPEND);
 
     $course_name = $meta_assoc['course_name'];
 
@@ -77,6 +91,7 @@ function init_streaming($asset, &$meta_assoc) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__), $asset);
         return false;
     }
+    file_put_contents('/home/arwillame/test/txt4.txt','9'.PHP_EOL,FILE_APPEND);
 
     return true;
 }
