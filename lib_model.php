@@ -1108,7 +1108,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
     // inits are is started in background to allow both to prepare at the same time
     // init cam module if enabled
     if ($cam_enabled) {
-      file_put_contents('/home/arwillame/test/txt2.txt','9'.PHP_EOL,FILE_APPEND);
+      file_put_contents('/home/arwillame/test/txt2.txt','9 : '.$slide_enabled.PHP_EOL,FILE_APPEND);
 
         reset_cam_position();
         $fct_capture_init = 'capture_' . $cam_module . '_init';
