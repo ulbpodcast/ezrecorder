@@ -124,12 +124,15 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $bash_env;
     global $ffmpeg_basedir;
     global $ffmpeg_module_name;
-
+    file_put_contents('/home/arwillame/test/txt3.txt','YEAH'.PHP_EOL,FILE_APPEND);
     $success = capture_ffmpeg_validate_environment($error_str);
     if(!$success) {
+      file_put_contents('/home/arwillame/test/txt3.txt','1'.PHP_EOL,FILE_APPEND);
+
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not init module because of environment error: $error_str", array(__FUNCTION__), $asset);
         return false;
     }
+    file_put_contents('/home/arwillame/test/txt3.txt','2'.PHP_EOL,FILE_APPEND);
 
     //prepare bash variables
     $success = create_bash_configs($bash_env, $ffmpeg_basedir . "etc/localdefs");
@@ -138,6 +141,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Unable to create bash variables file", array(__FUNCTION__), $asset);
         return false;
     }
+    file_put_contents('/home/arwillame/test/txt3.txt','3'.PHP_EOL,FILE_APPEND);
 
     $success = create_module_working_folders($ffmpeg_module_name, $asset);
     if(!$success) {
@@ -156,6 +160,7 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING,"Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
      */
+     file_put_contents('/home/arwillame/test/txt3.txt','4'.PHP_EOL,FILE_APPEND);
 
     $asset_dir = get_asset_dir($asset, "local_processing");
 
@@ -167,15 +172,22 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     $return_val = 0;
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 > $log_file 2>&1 & echo $! > $init_pid_file";
     system($cmd, $return_val);
+    file_put_contents('/home/arwillame/test/txt3.txt','5'.PHP_EOL,FILE_APPEND);
+
     if($return_val) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Init command failed with return val: $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
         capture_ffmpeg_status_set("launch_failure");
         return false;
     }
     $pid = file_get_contents($init_pid_file);
+    file_put_contents('/home/arwillame/test/txt3.txt','6'.PHP_EOL,FILE_APPEND);
 
     // init the streaming
+    //       file_put_contents('/home/arwillame/test/txt3.txt','1'.PHP_EOL,FILE_APPEND);
+    file_put_contents('/home/arwillame/test/txt3.txt','7'.PHP_EOL,FILE_APPEND);
+
     init_streaming($asset, $meta_assoc);
+    file_put_contents('/home/arwillame/test/txt3.txt','8'.PHP_EOL,FILE_APPEND);
 
     $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::INFO, "Successfully initialized module (init script is still running in background at this point)", array(__FUNCTION__), $asset);
     return true;
