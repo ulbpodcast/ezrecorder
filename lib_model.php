@@ -1114,10 +1114,14 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
         $fct_capture_init = 'capture_' . $cam_module . '_init';
         $cam_ok = $fct_capture_init($cam_pid, $metadata, $asset);
         if ($cam_ok == false) {
+          file_put_contents('/home/arwillame/test/txt2.txt','100'.PHP_EOL,FILE_APPEND);
+
             $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::ERROR, "Camera capture module reported init failure", array(__FUNCTION__), $asset);
             log_append('error', "view_record_screen: Cam capture init failed.");
         }
     }
+    file_put_contents('/home/arwillame/test/txt2.txt','101'.PHP_EOL,FILE_APPEND);
+
     // init slide module if enabled
     if ($slide_enabled) {
       file_put_contents('/home/arwillame/test/txt2.txt','10'.PHP_EOL,FILE_APPEND);
