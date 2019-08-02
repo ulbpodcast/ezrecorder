@@ -1141,6 +1141,7 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
             log_append('error', "view_record_screen: Slides capture init failed.");
         }
     }
+    file_put_contents('/home/arwillame/test/txt2.txt','12'.PHP_EOL,FILE_APPEND);
 
     if($sound_backup_enabled) {
         $fct = 'capture_' . $sound_backup_module . '_init';
@@ -1152,22 +1153,28 @@ function init_capture(&$metadata, &$cam_ok, &$slide_ok) {
             $logger->log(EventType::RECORDER_CAPTURE_POST_PROCESSING, LogLevel::WARNING, "sound backup module was successfully started", array(basename(__FILE__)), $asset);
         }
     }
+    file_put_contents('/home/arwillame/test/txt2.txt','13'.PHP_EOL,FILE_APPEND);
 
     // waits until both processes are finished to continue.
     while (($cam_enabled && is_process_running($cam_pid) ) || ($slide_enabled && is_process_running($slide_pid)))
         sleep(0.5);
+        file_put_contents('/home/arwillame/test/txt2.txt','14'.PHP_EOL,FILE_APPEND);
 
     //inits scripts will set at status when they are done, check the result here
     $cam_status = '';
     $slide_status = '';
     $status = status_get($cam_status, $slide_status);
     if ((!$cam_ok && !$slide_ok) || $status == 'error' || $status == 'launch_failure') {
+      file_put_contents('/home/arwillame/test/txt2.txt','15'.PHP_EOL,FILE_APPEND);
+
         status_set('launch_failure');
         $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::CRITICAL, "Capture init scripts finished and recording status is now: \"$status\". Cam status: $cam_status. Slide status: $slide_status. (check logs in asset directory for more info, until we get rid of the bash scripts)", array(__FUNCTION__), $asset);
         return false;
     } else {
         $logger->log(EventType::RECORDER_CAPTURE_INIT, LogLevel::DEBUG, "Capture init scripts finished and recording status is now: \"$status\".", array(__FUNCTION__), $asset);
     }
+    file_put_contents('/home/arwillame/test/txt2.txt','17'.PHP_EOL,FILE_APPEND);
+
     return true;
 }
 
