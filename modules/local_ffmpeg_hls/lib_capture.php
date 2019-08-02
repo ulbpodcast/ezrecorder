@@ -82,12 +82,18 @@ function init_streaming($asset, &$meta_assoc) {
     $return_val_high = 0;
     $return_val_low = 0;
     if (strpos($ffmpeg_streaming_quality, 'high') !== false) {
+      file_put_contents('/home/arwillame/test/txt4.txt','8_1'.PHP_EOL,FILE_APPEND);
+
         system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " high &> $working_dir/stream_send_high.log &", $return_val_high);
     }
     if (strpos($ffmpeg_streaming_quality, 'low') !== false) {
+      file_put_contents('/home/arwillame/test/txt4.txt','8_2'.PHP_EOL,FILE_APPEND);
+
         system("$php_cli_cmd $ffmpeg_cli_streaming $course_name " . $streaming_info['asset'] . " low &> $working_dir/stream_send_low.log &", $return_val_low);
     }
     if($return_val_high != 0 || $return_val_low != 0) {
+      file_put_contents('/home/arwillame/test/txt4.txt','8_3'.PHP_EOL,FILE_APPEND);
+
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Failed to start background process. High return code: $return_val_high. Low return code: $return_val_low.", array(__FUNCTION__), $asset);
         return false;
     }
