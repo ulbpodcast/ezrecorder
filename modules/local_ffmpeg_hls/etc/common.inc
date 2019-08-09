@@ -2,7 +2,7 @@
 
 //this file is included in config.inc
 
-if(isset($config_version) && $config_version != "2017031601")
+if(isset($config_version) && $config_version != "2017041201")
     trigger_error("local_ffmpeg_hls config.inc file is not up to date", E_USER_WARNING);
 
 $ffmpeg_features = array('recording', 'streaming');

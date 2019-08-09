@@ -48,7 +48,7 @@ class sound_detect_rtsp implements sound_detect {
         $ok = extract_volumes_from_ffmpeg_output($cmdoutput, $sound_info->mean_volume, $sound_info->max_volume);
 
         $file="/tmp/log.txt";
-        $data="########\n".$cmd."\n\n".$cmdoutput."\n\n".$sound_info->mean_volume."\n\n"; 
+        $data="########\n".$cmd."\n\n".json_encode($cmdoutput)."\n\n".$sound_info->mean_volume."\n\n"; 
         file_put_contents($file, $data); 
 
         if($ok === false) 

@@ -142,11 +142,11 @@ class RecordingSession
             $logger->log(EventType::RECORDER_METADATA, LogLevel::ERROR, __FUNCTION__.": Failed to save metadata to self::$meta_file. Current user: $name. Probably a permission problem.", array("lib_recording_session"));
             return false;
         }
-        $res = chmod(self::$meta_file, 0644);
-        if(!$res) {
+       // $res = chmod(self::$meta_file, 0644);
+       // if(!$res) {
             //file is owned by podclient. Any solution ?
-            $logger->log(EventType::TEST, LogLevel::WARNING, "Could not chmod file self::$meta_file. Current user: $name", array("lib_recording_session"));
-        }
+       //     $logger->log(EventType::TEST, LogLevel::WARNING, "Could not chmod file self::$meta_file. Current user: $name", array("lib_recording_session"));
+       // }
         return $xml;
     }
     

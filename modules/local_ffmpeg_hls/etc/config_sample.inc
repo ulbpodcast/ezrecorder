@@ -1,6 +1,6 @@
 <?php
 
-$config_version = "2017031601";
+$config_version = "2017041201";
 
 require_once __DIR__.'/../../../global_config.inc';
 

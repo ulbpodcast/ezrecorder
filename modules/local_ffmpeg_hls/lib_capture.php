@@ -435,7 +435,7 @@ function capture_ffmpeg_cancel($asset = null) {
     $cancelled_file = "$asset_dir/CANCELED";
     file_put_contents($cancelled_file, "");
     //Move recording to Trash
-    move_asset($asset, $target);
+    move_asset($asset, "trash");
 
     return true;
 }
