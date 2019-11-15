@@ -29,22 +29,17 @@ function init_streaming($asset, &$meta_assoc) {
     global $ffmpeg_streaming_info;
     global $ffmpeg_module_name;
 
-    file_put_contents('/home/arwillame/test/txt4.txt','YEAH'.PHP_EOL,FILE_APPEND);
 
     if (file_exists($ffmpeg_streaming_info))
         unlink($ffmpeg_streaming_info);
 
-        file_put_contents('/home/arwillame/test/txt4.txt','1'.PHP_EOL,FILE_APPEND);
 
     $working_dir = get_asset_module_folder($ffmpeg_module_name, $asset);
-    file_put_contents('/home/arwillame/test/txt4.txt','2'.PHP_EOL,FILE_APPEND);
 
     //if streaming is enabled, write it in '/var/streaming' ($ffmpeg_streaming_info) so that we may get the information later
     $streaming_info = capture_ffmpeg_info_get('streaming', $asset);
-    file_put_contents('/home/arwillame/test/txt4.txt','3'.PHP_EOL,FILE_APPEND);
 
     if ($streaming_info !== false) {
-      file_put_contents('/home/arwillame/test/txt4.txt','4'.PHP_EOL,FILE_APPEND);
 
         // defines that the streaming is enabled
         // It must be done before calling $ffmpeg_script_init (for preparing low and high HLS streams)
@@ -52,7 +47,6 @@ function init_streaming($asset, &$meta_assoc) {
     } else {
         return true;
     }
-    file_put_contents('/home/arwillame/test/txt4.txt','5'.PHP_EOL,FILE_APPEND);
 
     // streaming is enabled, we send a request to EZmanager to
     // init the streamed asset
@@ -62,17 +56,14 @@ function init_streaming($asset, &$meta_assoc) {
     $post_array['action'] = 'streaming_init';
     $result = server_request_send($ezcast_submit_url, $post_array);
     $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::DEBUG, "Sent request for streaming with data " . print_r($post_array, true), array(__FUNCTION__), $asset);
-    file_put_contents('/home/arwillame/test/txt4.txt','6'.PHP_EOL,FILE_APPEND);
 
     if (strpos($result, 'Curl error') !== false) {
-      file_put_contents('/home/arwillame/test/txt4.txt','7'.PHP_EOL,FILE_APPEND);
 
         // an error occured with CURL
         $meta_assoc['streaming'] = 'false';
         unlink($ffmpeg_streaming_info);
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Curl failed to send request to server. Request: ". print_r($post_array, true) .". Result: $result", array(__FUNCTION__), $asset);
     }
-    file_put_contents('/home/arwillame/test/txt4.txt','8'.PHP_EOL,FILE_APPEND);
 
     $course_name = $meta_assoc['course_name'];
 
@@ -138,15 +129,12 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     global $bash_env;
     global $ffmpeg_basedir;
     global $ffmpeg_module_name;
-    file_put_contents('/home/arwillame/test/txt3.txt','YEAH'.PHP_EOL,FILE_APPEND);
     $success = capture_ffmpeg_validate_environment($error_str);
     if(!$success) {
-      file_put_contents('/home/arwillame/test/txt3.txt','1'.PHP_EOL,FILE_APPEND);
 
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Could not init module because of environment error: $error_str", array(__FUNCTION__), $asset);
         return false;
     }
-    file_put_contents('/home/arwillame/test/txt3.txt','2'.PHP_EOL,FILE_APPEND);
 
     //prepare bash variables
     $success = create_bash_configs($bash_env, $ffmpeg_basedir . "etc/localdefs");
@@ -155,7 +143,6 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::CRITICAL, "Unable to create bash variables file", array(__FUNCTION__), $asset);
         return false;
     }
-    file_put_contents('/home/arwillame/test/txt3.txt','3'.PHP_EOL,FILE_APPEND);
 
     $success = create_module_working_folders($ffmpeg_module_name, $asset);
     if(!$success) {
@@ -174,7 +161,6 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::WARNING,"Current status is: '$status' at init time, this shouldn't happen. Try to continue anyway.", array(__FUNCTION__), $asset);
     }
      */
-     file_put_contents('/home/arwillame/test/txt3.txt','4'.PHP_EOL,FILE_APPEND);
 
     $asset_dir = get_asset_dir($asset, "local_processing");
 
@@ -186,7 +172,6 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
     $return_val = 0;
     $cmd = "sudo -u $ezrecorder_username $ffmpeg_script_init $asset $ffmpeg_input_source $working_dir 1 > $log_file 2>&1 & echo $! > $init_pid_file";
     system($cmd, $return_val);
-    file_put_contents('/home/arwillame/test/txt3.txt','5'.PHP_EOL,FILE_APPEND);
 
     if($return_val) {
         $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::ERROR, "Init command failed with return val: $return_val. Cmd: $cmd", array(__FUNCTION__), $asset);
@@ -194,14 +179,10 @@ function capture_ffmpeg_init(&$pid, $meta_assoc, $asset) {
         return false;
     }
     $pid = file_get_contents($init_pid_file);
-    file_put_contents('/home/arwillame/test/txt3.txt','6'.PHP_EOL,FILE_APPEND);
 
     // init the streaming
-    //       file_put_contents('/home/arwillame/test/txt3.txt','1'.PHP_EOL,FILE_APPEND);
-    file_put_contents('/home/arwillame/test/txt3.txt','7'.PHP_EOL,FILE_APPEND);
 
     init_streaming($asset, $meta_assoc);
-    file_put_contents('/home/arwillame/test/txt3.txt','8'.PHP_EOL,FILE_APPEND);
 
     $logger->log(EventType::RECORDER_FFMPEG_INIT, LogLevel::INFO, "Successfully initialized module (init script is still running in background at this point)", array(__FUNCTION__), $asset);
     return true;

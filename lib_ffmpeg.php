@@ -10,7 +10,7 @@ require_once("lib_various.php");
 
 function get_ordered_video_files($dir) {
     global $logger;
-    
+
     $video_files = array();
     $count = 1;
     $video_file = "$dir/ffmpegmovie".$count.".ts";
@@ -30,11 +30,11 @@ function get_ordered_video_files($dir) {
 
 function create_parts_list($dir, $list_file) {
     global $logger;
-    
+
     $video_files = get_ordered_video_files($dir);
-    if($video_files === false) 
+    if($video_files === false)
         return false;
-    
+
     if(file_exists($list_file))
         unlink($list_file);
 
@@ -49,11 +49,11 @@ function merge_method_m3u8($m3u8_file, $out_file, $maxtime = null) {
     global $ffmpeg_cli_cmd;
     global $logger;
     global $timeout_script;
-    
+
     $cmd = "$ffmpeg_cli_cmd -i $m3u8_file -c copy -bsf:a aac_adtstoasc -y $out_file";
     if($maxtime !== null)
         $cmd = "$timeout_script $maxtime $cmd";
-    
+
     $return_val = 0;
     $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Merge movies (1) with cmd: $cmd", array(__FUNCTION__));
     system($cmd, $return_val);
@@ -68,7 +68,7 @@ function merge_method_m3u8($m3u8_file, $out_file, $maxtime = null) {
 function merge_method_fallback($video_dir, $out_file) {
     global $logger;
     global $ffmpeg_cli_cmd;
-    
+
     // -- Create list file for ffmpeg concat - cant use scandir else we get wrong parts order, such as 1 10 100 2 ...
     $tmpdir = dirname($out_file);
     $list_file = "$tmpdir/filelist.txt";
@@ -91,7 +91,7 @@ function merge_method_fallback($video_dir, $out_file) {
 
 /**
  * concatenates multiple video files without re-encoding (as a reference movie)
- * @global string $ffmpeg_cli_cmd 
+ * @global string $ffmpeg_cli_cmd
  * @param type $movies_path path to the video files
  * @param type $commonpart name contained in each video file (= 'qtbmovie')
  * @param type $output name for the output video
@@ -112,11 +112,13 @@ function movie_join_parts($movies_path, $commonpart, $output) {
 
     if(!file_exists($tmpdir))
         mkdir($tmpdir);
-    
+
     $concat_file = "$tmpdir/concat2.txt";
 
     $cmd = "";
     for ($i = 0; $i < $movie_count; $i++) {
+        $fileExist = TRUE;
+
         // high resolution exists
         $quality = "";
          if (is_file("${commonpart}_$i/high/$commonpart.m3u8")) {
@@ -124,22 +126,24 @@ function movie_join_parts($movies_path, $commonpart, $output) {
         } else if (is_file("${commonpart}_$i/low/$commonpart.m3u8")) {
             $quality = "low";
         } else {
-            return "no .m3u8 file found at i = $i";
+          $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::info, "no .m3u8 file found at i = $i", array(__FUNCTION__));
+          $fileExist = FALSE;
         }
-        
-        $dir = "$movies_path/${commonpart}_$i/$quality/";
-        /* The m3u8 method is the "normal" method but in some case freeze ffmpeg in our experience, so we use a fallback method in those case.
-         * This second method cause some audio stuterring, so it should be avoided if possible
-         */
-        $success = merge_method_m3u8("$dir/$commonpart.m3u8", "$tmpdir/part$i.mov", 30 * 60); //give it 30 minutes max to merge
-        if(!$success) {
+
+        if ($fileExist) {
+          $dir = "$movies_path/${commonpart}_$i/$quality/";
+          /* The m3u8 method is the "normal" method but in some case freeze ffmpeg in our experience, so we use a fallback method in those case.
+          * This second method cause some audio stuterring, so it should be avoided if possible
+          */
+          $success = merge_method_m3u8("$dir/$commonpart.m3u8", "$tmpdir/part$i.mov", 30 * 60); //give it 30 minutes max to merge
+          if(!$success) {
             $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Normal merge method failed, trying fallback method", array(__FUNCTION__));
             $success = merge_method_fallback($dir, "$tmpdir/part$i.mov");
+          }
+
+          if(!$success)
+          return "Merge failure";
         }
-        
-        if(!$success)
-            return "Merge failure";
-        
     }
 
     //if we got more than one movie (means there were relaunches), merge them, else we're done
@@ -172,7 +176,7 @@ function movie_join_parts($movies_path, $commonpart, $output) {
 
             return join("\n", $cmdoutput);
         }
-        
+
         // deletes the temporary text file
         unlink($concat_file);
         exec("rm -rf $tmpdir", $cmdoutput, $errno);
@@ -182,14 +186,14 @@ function movie_join_parts($movies_path, $commonpart, $output) {
 
 function movie_cutlist_afterfixes(&$ffmpeg_params) {
     global $logger;
-    
+
     //check empty
     if(empty($ffmpeg_params)) {
         //then use whole file, no parts
         $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::ERROR, "Could not get parts from custlist, using the whole video file instead", array("movie_extract_cutlist"));
         $ffmpeg_params[] = array(0, 9999999999);
     }
-    
+
     // what else could we check ?
     // Check if there was one whole hour between pause and stop ?
 }
@@ -214,12 +218,12 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
     $init = 0;
     $startime = 0; //current segment start
     $duration = 0;
-    // prepares parameters for ffmpeg 
+    // prepares parameters for ffmpeg
     foreach ($cutlist_array as $value) {
 
         $action = $value[0];
         $action_time = $value[1];
-        
+
         switch ($action) {
             case 'init' :
                 $init = $action_time;
@@ -240,7 +244,7 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
                 }
                 break;
         }
-        if ($action == 'stop') 
+        if ($action == 'stop')
             break;
     }
     //when leaving this function, if $start_time is not equals to 0, we got an unfinished segment at the end
@@ -251,7 +255,7 @@ function movie_prepare_cutlist_segments(&$ffmpeg_params, &$cutlist_array) {
     }
 }
 /**
- * 
+ *
  * @global string $ffmpeg_cli_cmd
  * @global type $logger
  * @param type $movie_path
@@ -280,12 +284,12 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     }
 
     $ffmpeg_params = array();
-    
+
     movie_prepare_cutlist_segments($ffmpeg_params, $cutlist_array);
-    
+
     //post extraction fixes
     movie_cutlist_afterfixes($ffmpeg_params);
-    
+
     chdir($movie_path);
 
     $tmp_dir = "$movie_path/cutlist_tmpdir";
@@ -304,7 +308,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
         $part_start_second = $params[0];
         $desired_part_duration = $params[1];
         // sometimes, ffmpeg doesn't extract the recording segment properly
-        // This results in a shortened segment which may cause problems in the final rendering 
+        // This results in a shortened segment which may cause problems in the final rendering
         // We then loop on segment extraction to make sure it has the expected duration
         // Expected duration will probably always fail if ffmpeg was restarted by monitoring
         $try_count = 3;
@@ -326,21 +330,21 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
             if($return_code != 0) {
                 return '2/' . $cmdoutput;
             }
-            
+
             // the segment has been extracted, we verify here its duration
             $cmd = "$ffmpeg_cli_cmd -i $part_file 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g'";
             $cmdoutput = system($cmd, $return_code); // duration in HH:MM:SS
             if($return_code != 0) {
                 return '3/' . $cmdoutput;
             }
-            
+
             list($hours, $minutes, $seconds) = sscanf($cmdoutput, "%d:%d:%d");
             $part_duration = $hours * 3600 + $minutes * 60 + $seconds; // duration in seconds
-            
+
             if($try >= 1) {
                 $logger->log(EventType::RECORDER_MERGE_MOVIES, LogLevel::DEBUG, "Try [$try]: duration found : $part_duration - expected : " . $desired_part_duration, array("movie_extract_cutlist"), $asset_name);
             }
-            
+
             $try++;
         }
         if($try == $try_count) {
@@ -386,7 +390,7 @@ function movie_extract_cutlist($movie_path, $movie_in, $cutlist_file, $movie_out
     //cleanup. Note that we don't do it if we failed previously, this is intentional.
     if ($tmp_dir != '')
         exec("rm -rf $tmp_dir", $cmdoutput, $errno);
-    
+
     return 0;
 }
 
@@ -395,7 +399,7 @@ function ffmpeg_get_cutlist_file($module_name, $asset) {
     $folder = get_asset_module_folder($module_name, $asset);
     if(!$folder)
         return false;
-    
+
     return "$folder/_cut_list.txt";
 }
 
@@ -405,7 +409,7 @@ function ffmpeg_get_cutlist_file($module_name, $asset) {
 function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume) {
     $found_mean = false;
     $found_max = false;
-    
+
     foreach($output as $line) {
         $part = strstr($line, "mean_volume:");
         if($part == false)
@@ -415,7 +419,7 @@ function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume
         $found_mean = true;
         break;
     }
-    
+
      foreach($output as $line) {
         $part = strstr($line, "max_volume:");
         if($part == false)
@@ -427,19 +431,19 @@ function extract_volumes_from_ffmpeg_output($output, &$mean_volume, &$max_volume
     }
     return $found_mean && $found_max;
 }
-        
+
 /* Stop a process with PID from given file. Return success. Remove file on successfully stop.*/
 function stop_ffmpeg($pid_file) {
     global $logger;
     global $log_context;
-    
+
     if(file_exists($pid_file)) {
         $pid = file_get_contents($pid_file);
         unlink($pid_file);
         $return_val = 0;
         system("kill -2 $pid", $return_val);
         if($return_val != 0) {
-            $logger->log(EventType::RECORDER_SOUND_BACKUP, LogLevel::ERROR, 
+            $logger->log(EventType::RECORDER_SOUND_BACKUP, LogLevel::ERROR,
                     "Could not kill FFMPEG process (pid $pid)", array($log_context));
             return false;
         }
